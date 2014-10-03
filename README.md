@@ -1,4 +1,4 @@
-![Travis](https://travis-ci.org/asascience-open/QARTOD.svg?branch=master)
+[![Build Status](https://travis-ci.org/asascience-open/QARTOD.svg?branch=master)](https://travis-ci.org/asascience-open/QARTOD)
 
 QARTOD
 ======
