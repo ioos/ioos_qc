@@ -1,5 +1,5 @@
 import numpy as np
-from ioos_qartod import qc
+from ioos_qartod.qc_tests import qc
 
 
 def test_lon_lat_bbox():
@@ -7,6 +7,7 @@ def test_lon_lat_bbox():
     lon = np.array([80.0, -78.5, 500.500])
     lat = np.array([np.NaN, 50, -60])
     assert np.array_equal(qc.location_set_check(lon, lat), np.array([4, 1, 4]))
+
 
 def test_distance_threshold():
     """Tests a user defined distance threshold between succesive points"""
