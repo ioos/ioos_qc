@@ -1,3 +1,5 @@
+![Travis](https://travis-ci.org/asascience-open/QARTOD.svg?branch=master)
+
 QARTOD
 ======
 
