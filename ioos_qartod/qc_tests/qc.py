@@ -20,18 +20,44 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     """
     bbox = np.array(bbox_arr)
     if bbox.shape != (2, 2):
-        #TODO: Use more specific Exception types
-        raise Exception('Invalid bounding box dimensions')
+        # TODO: Use more specific Exception types
+        raise ValueError('Invalid bounding box dimensions')
     if lon.shape != lat.shape:
-        raise Exception('Shape not the same')
-    flagArr = np.ones_like(lon, dtype='uint8')
+        raise ValueError('Shape not the same')
+    flag_arr = np.ones_like(lon, dtype='uint8')
     if range_max is not None:
         lon_diff = np.insert(np.abs(np.diff(lon)), 0, 0, axis=-1)
         lat_diff = np.insert(np.abs(np.diff(lat)), 0, 0, axis=-1)
         # if not within set Euclidean distance, flag as suspect
         distances = np.hypot(lon_diff, lat_diff)
-        flagArr[distances > range_max] = PrimaryFlags.SUSPECT
-    flagArr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
-            (lon > bbox[1][0]) | (lat > bbox[1][1]) |
-            (np.isnan(lon)) | (np.isnan(lat))] = PrimaryFlags.BAD_DATA
-    return flagArr
+        flag_arr[distances > range_max] = PrimaryFlags.SUSPECT
+    flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
+             (lon > bbox[1][0]) | (lat > bbox[1][1]) |
+             (np.isnan(lon)) | (np.isnan(lat))] = PrimaryFlags.BAD_DATA
+    return flag_arr
+
+
+def range_check(arr, sensor_span, user_span=None):
+    """
+    Given a 2-tuple of sensor minimum/maximum values, flag data outside of
+    range as bad data.  Optionally also flag data which falls outside of a user
+    defined range
+    """
+    flag_arr = np.ones_like(arr, dtype='uint8')
+    if len(sensor_span) != 2:
+        raise ValueError("Sensor range extent must be size two")
+    # ensure coordinates are in proper order
+    s_span_sorted = sorted(sensor_span)
+    if user_span is not None:
+        if len(user_span) != 2:
+            raise ValueError("User defined range extent must be size two")
+        u_span_sorted = sorted(user_span)
+        if (u_span_sorted[0] < s_span_sorted[0] or
+           u_span_sorted[1] > s_span_sorted[1]):
+            raise ValueError("User span range may not exceed sensor bounds")
+        # test timing
+        flag_arr[(arr <= u_span_sorted[0]) |
+                 (arr >= u_span_sorted[1])] = PrimaryFlags.SUSPECT
+    flag_arr[(arr <= s_span_sorted[0]) |
+             (arr >= s_span_sorted[1])] = PrimaryFlags.BAD_DATA
+    return flag_arr
