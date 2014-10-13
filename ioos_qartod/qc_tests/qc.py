@@ -74,6 +74,9 @@ def spike_check(arr, low_thresh, high_thresh):
     The flag is set at point n-1.
     """
     # subtract the average from point at index n-1 and get the absolute value.
+    if low_thresh >= high_thresh:
+        raise ValueError("Low theshold value must be less than high threshold "
+                         "value")
     val = np.abs(np.convolve(arr, [-0.5, 1, -0.5], mode='same'))
     # first and last elements can't contain three points,
     # so set difference to zero so these will avoid getting spike flagged

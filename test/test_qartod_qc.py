@@ -49,9 +49,7 @@ class QartodQcTest(unittest.TestCase):
                           user_span)
 
     def test_spike_detection(self):
-        """
-        Test to make ensure single value spike detection works properly
-        """
+        """Test to make ensure single value spike detection works properly"""
         low_thresh, high_thresh = 25, 50
         arr = np.array([10, 12, 999.99, 13, 15, 40, 9, 9])
         # first and last elements should always be good data, unless someone
@@ -59,3 +57,10 @@ class QartodQcTest(unittest.TestCase):
         expected = [1, 4, 4, 4, 1, 3, 1, 1]
         assert np.array_equal(qc.spike_check(arr, low_thresh, high_thresh),
                               expected)
+
+    def test_spike_invalid_threshold_raises_value_error(self):
+        """Test that invalid ranges cause an exception to be raised"""
+        low_thresh, high_thresh = 50, 50
+        arr = np.array([10, 12, 999.99, 13, 15, 40, 9, 9])
+        self.assertRaises(ValueError, qc.spike_check, arr, low_thresh,
+                          high_thresh)
