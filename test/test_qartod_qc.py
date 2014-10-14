@@ -74,3 +74,26 @@ class QartodQcTest(unittest.TestCase):
         arr = np.array([10, 12, 999.99, 13, 15, 40, 9, 9])
         self.assertRaises(ValueError, qc.spike_check, arr, low_thresh,
                           high_thresh)
+
+    def test_flat_line_check(self):
+        """Make sure flat line check returns expected flag values"""
+        low_thresh = 3
+        high_thresh = 5
+        eps = 0.01
+        vals = np.array([1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2,
+                         4, 5, 3, 3.0001, 3.0005, 3.00001])
+        assert np.array_equal(qc.flat_line_check(vals, low_thresh, high_thresh,
+                              eps), [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
+
+    def test_bad_reps(self):
+        """Test that low_reps >= high_reps raises an error in flat line check"""
+        self.assertRaises(ValueError, qc.flat_line_check, np.ones(12), 10, 6,
+                          0.01)
+
+    def test_float_reps_raises_exception(self):
+        """
+        Check that non-integer values for repetitions raises a TypeError
+        in flat line check
+        """
+        self.assertRaises(TypeError, qc.flat_line_check, np.ones(12),
+                          4.5, 6.93892, 0.01)
