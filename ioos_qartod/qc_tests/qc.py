@@ -11,8 +11,15 @@ class PrimaryFlags:
     MISSING = 9
 
 
+def set_prev_qc(flag_arr, prev_qc):
+    """Takes previous QC flags and applies them to the start of the array
+       where the flag values are not unknown"""
+    flag_arr[prev_qc != PrimaryFlags.UNKNOWN] = \
+             prev_qc[prev_qc != PrimaryFlags.UNKNOWN]
+
+
 def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
-                       range_max=None):
+                       range_max=None, prev_qc=None):
     """
     Checks that longitude and latitude are within reasonable bounds
     defaulting to lon = [-180, 180] and lat = [-90, 90].
@@ -34,10 +41,12 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
              (lon > bbox[1][0]) | (lat > bbox[1][1]) |
              (np.isnan(lon)) | (np.isnan(lat))] = PrimaryFlags.BAD_DATA
+    if prev_qc is not None:
+        set_prev_qc(flag_arr, prev_qc)
     return flag_arr
 
 
-def range_check(arr, sensor_span, user_span=None):
+def range_check(arr, sensor_span, user_span=None, prev_qc=None):
     """
     Given a 2-tuple of sensor minimum/maximum values, flag data outside of
     range as bad data.  Optionally also flag data which falls outside of a user
@@ -60,4 +69,6 @@ def range_check(arr, sensor_span, user_span=None):
                  (arr >= u_span_sorted[1])] = PrimaryFlags.SUSPECT
     flag_arr[(arr <= s_span_sorted[0]) |
              (arr >= s_span_sorted[1])] = PrimaryFlags.BAD_DATA
+    if prev_qc is not None:
+        set_prev_qc(flag_arr, prev_qc)
     return flag_arr
