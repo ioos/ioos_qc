@@ -14,8 +14,8 @@ class PrimaryFlags:
 def set_prev_qc(flag_arr, prev_qc):
     """Takes previous QC flags and applies them to the start of the array
        where the flag values are not unknown"""
-    flag_arr[prev_qc != PrimaryFlags.UNKNOWN] = \
-             prev_qc[prev_qc != PrimaryFlags.UNKNOWN]
+    cond = prev_qc != PrimaryFlags.UNKNOWN
+    flag_arr[cond] = prev_qc[cond]
 
 
 def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
