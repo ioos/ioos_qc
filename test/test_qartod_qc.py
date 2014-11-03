@@ -82,8 +82,8 @@ class QartodQcTest(unittest.TestCase):
         eps = 0.01
         vals = np.array([1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2,
                          4, 5, 3, 3.0001, 3.0005, 3.00001])
-        assert np.array_equal(qc.flat_line_check(vals, low_thresh, high_thresh,
-                              eps), [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
+        npt.assert_array_equal(qc.flat_line_check(vals, low_thresh, high_thresh,
+                               eps), [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
 
     def test_bad_reps(self):
         """Test that low_reps >= high_reps raises an error in flat line check"""
