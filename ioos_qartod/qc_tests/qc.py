@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class SecondaryFlags:
+class PrimaryFlags:
     """Primary flags for QARTOD"""
     # don't subclass Enum since values don't fit nicely into a numpy array
     GOOD_DATA = 1
@@ -30,10 +30,10 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
         lat_diff = np.insert(np.abs(np.diff(lat)), 0, 0, axis=-1)
         # if not within set Euclidean distance, flag as suspect
         distances = np.hypot(lon_diff, lat_diff)
-        flag_arr[distances > range_max] = SecondaryFlags.SUSPECT
+        flag_arr[distances > range_max] = PrimaryFlags.SUSPECT
     flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
              (lon > bbox[1][0]) | (lat > bbox[1][1]) |
-             (np.isnan(lon)) | (np.isnan(lat))] = SecondaryFlags.BAD_DATA
+             (np.isnan(lon)) | (np.isnan(lat))] = PrimaryFlags.BAD_DATA
     return flag_arr
 
 
@@ -57,9 +57,9 @@ def range_check(arr, sensor_span, user_span=None):
             raise ValueError("User span range may not exceed sensor bounds")
         # test timing
         flag_arr[(arr <= u_span_sorted[0]) |
-                 (arr >= u_span_sorted[1])] = SecondaryFlags.SUSPECT
+                 (arr >= u_span_sorted[1])] = PrimaryFlags.SUSPECT
     flag_arr[(arr <= s_span_sorted[0]) |
-             (arr >= s_span_sorted[1])] = SecondaryFlags.BAD_DATA
+             (arr >= s_span_sorted[1])] = PrimaryFlags.BAD_DATA
     return flag_arr
 
 
@@ -82,5 +82,5 @@ def spike_check(arr, low_thresh, high_thresh):
     # so set difference to zero so these will avoid getting spike flagged
     val[[0, -1]] = 0
     return ((val < low_thresh) +
-            ((val >= low_thresh) & (val < high_thresh)) * SecondaryFlags.SUSPECT +
-            (val >= high_thresh) * SecondaryFlags.BAD_DATA)
+            ((val >= low_thresh) & (val < high_thresh)) * PrimaryFlags.SUSPECT +
+            (val >= high_thresh) * PrimaryFlags.BAD_DATA)
