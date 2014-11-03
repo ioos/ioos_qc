@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.testing as npt
 from ioos_qartod.qc_tests import qc
 import unittest
 
@@ -7,14 +8,14 @@ class QartodQcTest(unittest.TestCase):
         """Ensure that longitudes and latitudes are within reasonable bounds"""
         lon = np.array([80.0, -78.5, 500.500])
         lat = np.array([np.NaN, 50, -60])
-        assert np.array_equal(qc.location_set_check(lon, lat),
+        npt.assert_array_equal(qc.location_set_check(lon, lat),
                               np.array([4, 1, 4]))
 
     def test_distance_threshold(self):
         """Tests a user defined distance threshold between succesive points"""
         lon = np.array([-71.05, -71.06, -80.0])
         lat = np.array([41.0, 41.02, 45.05])
-        assert np.array_equal(qc.location_set_check(lon, lat, range_max=0.10),
+        npt.assert_array_equal(qc.location_set_check(lon, lat, range_max=0.10),
                               np.array([1, 1, 3]))
 
     def test_range_check_mixed(self):
@@ -26,7 +27,7 @@ class QartodQcTest(unittest.TestCase):
                          25, 30, 35,  # valid
                          40, 45,  # user range
                          51])  # sensor range
-        assert np.array_equal(qc.range_check(vals, sensor_span, user_span),
+        npt.assert_array_equal(qc.range_check(vals, sensor_span, user_span),
                               np.array([4, 4, 3, 3, 1, 1, 1, 3, 3, 4]))
 
     def test_overlapping_threshold_ranges(self):
@@ -55,7 +56,7 @@ class QartodQcTest(unittest.TestCase):
         # first and last elements should always be good data, unless someone
         # has set a threshold to zero
         expected = [1, 4, 4, 4, 1, 3, 1, 1]
-        assert np.array_equal(qc.spike_check(arr, low_thresh, high_thresh),
+        npt.assert_array_equal(qc.spike_check(arr, low_thresh, high_thresh),
                               expected)
 
     def test_spike_invalid_threshold_raises_value_error(self):
