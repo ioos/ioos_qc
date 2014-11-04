@@ -1,4 +1,6 @@
 import numpy as np
+import pyproj
+import quantities as q
 
 
 class PrimaryFlags:
@@ -23,7 +25,8 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     """
     Checks that longitude and latitude are within reasonable bounds
     defaulting to lon = [-180, 180] and lat = [-90, 90].
-    Optionally, check for a maximum range parameter in decimal degrees
+    Optionally, check for a maximum range parameter in great circle distance
+    defaulting to meters which can also use a unit from the quantities library
     """
     bbox = np.array(bbox_arr)
     if bbox.shape != (2, 2):
@@ -33,11 +36,10 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
         raise ValueError('Shape not the same')
     flag_arr = np.ones_like(lon, dtype='uint8')
     if range_max is not None:
-        lon_diff = np.insert(np.abs(np.diff(lon)), 0, 0, axis=-1)
-        lat_diff = np.insert(np.abs(np.diff(lat)), 0, 0, axis=-1)
-        # if not within set Euclidean distance, flag as suspect
-        distances = np.hypot(lon_diff, lat_diff)
-        flag_arr[distances > range_max] = PrimaryFlags.SUSPECT
+        ellipsoid = pyproj.Geod(ellps='WGS84')
+        _, _, dist = ellipsoid.inv(lon[:-1], lat[:-1], lon[1:], lat[1:])
+        dist_m = np.insert(dist, 0, 0) * q.meter
+        flag_arr[dist_m > range_max] = PrimaryFlags.SUSPECT
     flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
              (lon > bbox[1][0]) | (lat > bbox[1][1]) |
              (np.isnan(lon)) | (np.isnan(lat))] = PrimaryFlags.BAD_DATA

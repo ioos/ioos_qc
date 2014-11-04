@@ -12,18 +12,19 @@ class QartodQcTest(unittest.TestCase):
                               np.array([4, 1, 4]))
 
     def test_distance_threshold(self):
-        """Tests a user defined distance threshold between succesive points"""
+        """Tests a user defined distance threshold between successive points"""
         lon = np.array([-71.05, -71.06, -80.0])
         lat = np.array([41.0, 41.02, 45.05])
-        npt.assert_array_equal(qc.location_set_check(lon, lat, range_max=0.10),
-                              np.array([1, 1, 3]))
+        npt.assert_array_equal(qc.location_set_check(lon, lat,
+                                                     range_max=3000.0),
+                               np.array([1, 1, 3]))
 
     def test_prev_qc(self):
         """Tests a user defined distance threshold between succesive points"""
         lon = np.array([-71.05, -71.06, -80.0])
         lat = np.array([41.0, 41.02, 45.05])
         assert np.array_equal(qc.location_set_check(lon, lat,
-                                                    range_max=0.10,
+                                                    range_max=3000,
                                                     prev_qc=np.array([4])),
                               np.array([4, 1, 3]))
 
