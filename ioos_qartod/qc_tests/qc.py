@@ -95,3 +95,33 @@ def spike_check(arr, low_thresh, high_thresh):
     return ((val < low_thresh) +
             ((val >= low_thresh) & (val < high_thresh)) * PrimaryFlags.SUSPECT +
             (val >= high_thresh) * PrimaryFlags.BAD_DATA)
+
+
+def flat_line_check(arr, low_reps, high_reps, eps):
+    """
+    Check for repeated consecutively repeated values
+    within a tolerance eps
+    """
+    if any([not isinstance(d, int) for d in [low_reps, high_reps]]):
+        raise TypeError("Both low and high repetitions must be type int")
+    flag_arr = np.ones_like(arr)
+    if low_reps >= high_reps:
+        raise ValueError("Low reps must be less than high reps")
+    it = np.nditer(arr)
+    # consider moving loop to C for efficiency
+    for elem in it:
+        idx = it.iterindex
+        # check if low repetitions threshold is hit
+        cur_flag = PrimaryFlags.GOOD_DATA
+        if idx >= low_reps:
+            is_suspect = np.all(np.abs(arr[idx - low_reps:idx] - elem) < eps)
+            if is_suspect:
+                cur_flag = PrimaryFlags.SUSPECT
+            # since high reps is strictly greater than low reps, check it
+            if is_suspect and idx >= high_reps:
+                is_bad = np.all(np.abs(arr[idx - high_reps:idx - low_reps]
+                                       - elem) < eps)
+                if is_bad:
+                    cur_flag = PrimaryFlags.BAD_DATA
+        flag_arr[idx] = cur_flag
+    return flag_arr
