@@ -72,3 +72,26 @@ def range_check(arr, sensor_span, user_span=None, prev_qc=None):
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
+
+
+def spike_check(arr, low_thresh, high_thresh):
+    """
+    Determine if there is a spike at data point n-1 by subtracting
+    the midpoint of n and n-2 and taking the absolute value of this
+    quantity, seeing if it exceeds a a low or high threshold.
+    Values which do not exceed either threshold are flagged good,
+    values which exceed the low threshold are flagged suspect,
+    and values which exceed the high threshold are flagged bad.
+    The flag is set at point n-1.
+    """
+    # subtract the average from point at index n-1 and get the absolute value.
+    if low_thresh >= high_thresh:
+        raise ValueError("Low theshold value must be less than high threshold "
+                         "value")
+    val = np.abs(np.convolve(arr, [-0.5, 1, -0.5], mode='same'))
+    # first and last elements can't contain three points,
+    # so set difference to zero so these will avoid getting spike flagged
+    val[[0, -1]] = 0
+    return ((val < low_thresh) +
+            ((val >= low_thresh) & (val < high_thresh)) * PrimaryFlags.SUSPECT +
+            (val >= high_thresh) * PrimaryFlags.BAD_DATA)
