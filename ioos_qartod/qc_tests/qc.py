@@ -13,6 +13,8 @@ class PrimaryFlags:
     MISSING = 9
 
 
+# TODO: Consider refactoring this to use a decorator with something like
+# functools so we keep the code more DRY
 def set_prev_qc(flag_arr, prev_qc):
     """Takes previous QC flags and applies them to the start of the array
        where the flag values are not unknown"""
@@ -76,7 +78,7 @@ def range_check(arr, sensor_span, user_span=None, prev_qc=None):
     return flag_arr
 
 
-def spike_check(arr, low_thresh, high_thresh):
+def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     """
     Determine if there is a spike at data point n-1 by subtracting
     the midpoint of n and n-2 and taking the absolute value of this
@@ -94,12 +96,15 @@ def spike_check(arr, low_thresh, high_thresh):
     # first and last elements can't contain three points,
     # so set difference to zero so these will avoid getting spike flagged
     val[[0, -1]] = 0
-    return ((val < low_thresh) +
-            ((val >= low_thresh) & (val < high_thresh)) * PrimaryFlags.SUSPECT +
-            (val >= high_thresh) * PrimaryFlags.BAD_DATA)
+    flag_arr = ((val < low_thresh) +
+                ((val >= low_thresh) & (val < high_thresh)) * PrimaryFlags.SUSPECT +
+                (val >= high_thresh) * PrimaryFlags.BAD_DATA)
+    if prev_qc is not None:
+        set_prev_qc(flag_arr, prev_qc)
+    return flag_arr
 
 
-def flat_line_check(arr, low_reps, high_reps, eps):
+def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     """
     Check for repeated consecutively repeated values
     within a tolerance eps
@@ -126,4 +131,6 @@ def flat_line_check(arr, low_reps, high_reps, eps):
                 if is_bad:
                     cur_flag = PrimaryFlags.BAD_DATA
         flag_arr[idx] = cur_flag
+    if prev_qc is not None:
+        set_prev_qc(flag_arr, prev_qc)
     return flag_arr
