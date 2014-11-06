@@ -3,7 +3,7 @@ import pyproj
 import quantities as q
 
 
-class PrimaryFlags:
+class QCFlags:
     """Primary flags for QARTOD"""
     # don't subclass Enum since values don't fit nicely into a numpy array
     GOOD_DATA = 1
@@ -18,7 +18,7 @@ class PrimaryFlags:
 def set_prev_qc(flag_arr, prev_qc):
     """Takes previous QC flags and applies them to the start of the array
        where the flag values are not unknown"""
-    cond = prev_qc != PrimaryFlags.UNKNOWN
+    cond = prev_qc != QCFlags.UNKNOWN
     flag_arr[cond] = prev_qc[cond]
 
 
@@ -41,10 +41,10 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
         ellipsoid = pyproj.Geod(ellps='WGS84')
         _, _, dist = ellipsoid.inv(lon[:-1], lat[:-1], lon[1:], lat[1:])
         dist_m = np.insert(dist, 0, 0) * q.meter
-        flag_arr[dist_m > range_max] = PrimaryFlags.SUSPECT
+        flag_arr[dist_m > range_max] = QCFlags.SUSPECT
     flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
              (lon > bbox[1][0]) | (lat > bbox[1][1]) |
-             (np.isnan(lon)) | (np.isnan(lat))] = PrimaryFlags.BAD_DATA
+             (np.isnan(lon)) | (np.isnan(lat))] = QCFlags.BAD_DATA
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
@@ -70,9 +70,9 @@ def range_check(arr, sensor_span, user_span=None, prev_qc=None):
             raise ValueError("User span range may not exceed sensor bounds")
         # test timing
         flag_arr[(arr <= u_span_sorted[0]) |
-                 (arr >= u_span_sorted[1])] = PrimaryFlags.SUSPECT
+                 (arr >= u_span_sorted[1])] = QCFlags.SUSPECT
     flag_arr[(arr <= s_span_sorted[0]) |
-             (arr >= s_span_sorted[1])] = PrimaryFlags.BAD_DATA
+             (arr >= s_span_sorted[1])] = QCFlags.BAD_DATA
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
@@ -97,8 +97,8 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     # so set difference to zero so these will avoid getting spike flagged
     val[[0, -1]] = 0
     flag_arr = ((val < low_thresh) +
-                ((val >= low_thresh) & (val < high_thresh)) * PrimaryFlags.SUSPECT +
-                (val >= high_thresh) * PrimaryFlags.BAD_DATA)
+               ((val >= low_thresh) & (val < high_thresh)) * QCFlags.SUSPECT +
+                (val >= high_thresh) * QCFlags.BAD_DATA)
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
@@ -119,17 +119,17 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     for elem in it:
         idx = it.iterindex
         # check if low repetitions threshold is hit
-        cur_flag = PrimaryFlags.GOOD_DATA
+        cur_flag = QCFlags.GOOD_DATA
         if idx >= low_reps:
             is_suspect = np.all(np.abs(arr[idx - low_reps:idx] - elem) < eps)
             if is_suspect:
-                cur_flag = PrimaryFlags.SUSPECT
+                cur_flag = QCFlags.SUSPECT
             # since high reps is strictly greater than low reps, check it
             if is_suspect and idx >= high_reps:
                 is_bad = np.all(np.abs(arr[idx - high_reps:idx - low_reps]
                                        - elem) < eps)
                 if is_bad:
-                    cur_flag = PrimaryFlags.BAD_DATA
+                    cur_flag = QCFlags.BAD_DATA
         flag_arr[idx] = cur_flag
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
