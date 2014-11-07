@@ -134,3 +134,40 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
+
+
+def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
+                            time_range=(None, None), check_type='std',
+                            prev_qc=None):
+    """Check that the range or standard deviation is below a certain threshold
+       over a certain time period"""
+    flag_arr = np.empty(arr.shape)
+    flag_arr.fill(QCFlags.UNKNOWN)
+
+    if time_range[0] is not None:
+        if time_range[1] is not None:
+            time_idx = (times >= time_range[0]) & (times <= time_range[1])
+        else:
+            time_idx = times >= time_range[0]
+    elif time_range[1] is not None:
+        time_idx = times <= time_range[1]
+    else:
+        time_idx = np.ones_like(times, dtype='bool')
+
+    if check_type == 'std':
+        check_val = np.std(arr[time_idx])
+    elif check_type == 'range':
+        check_val = np.ptp(arr[time_idx])
+    else:
+        raise ValueError("Check type '{}' is not defined".format(check_type))
+
+    # set previous QC values first so that selected segment does not get
+    # overlapped by previous QC flags
+    if prev_qc is not None:
+        set_prev_qc(flag_arr, prev_qc)
+
+    if check_val >= min_var_fail and check_val < min_var_warn:
+        flag_arr[time_idx] = QCFlags.SUSPECT
+    elif check_val < min_var_fail:
+        flag_arr[time_idx] = QCFlags.BAD_DATA
+    return flag_arr
