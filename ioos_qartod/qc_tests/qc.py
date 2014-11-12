@@ -13,6 +13,21 @@ class QCFlags:
     MISSING = 9
 
 
+# Could also use a class based approach, but believe this to be a little
+# simpler for simple tests which are run once and don't need to maintain state.
+# This is a bit hardcoded, but if needed, one can always change the id attribute
+# if their internal representation of QARTOD tests differ
+def add_qartod_ident(qartod_id, qartod_test_name):
+    """
+    Adds attributes to the QARTOD functions corresponding to database fields.
+    """
+    def dec(fn):
+        fn.qartod_id = qartod_id
+        fn.qartod_test_name = qartod_test_name
+        return fn
+    return dec
+
+
 # TODO: Consider refactoring this to use a decorator with something like
 # functools so we keep the code more DRY
 def set_prev_qc(flag_arr, prev_qc):
@@ -22,6 +37,7 @@ def set_prev_qc(flag_arr, prev_qc):
     flag_arr[cond] = prev_qc[cond]
 
 
+@add_qartod_ident(3, 'Location Test')
 def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
                        range_max=None, prev_qc=None):
     """
@@ -50,6 +66,7 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     return flag_arr
 
 
+@add_qartod_ident(4, 'Gross Range Test')
 def range_check(arr, sensor_span, user_span=None, prev_qc=None):
     """
     Given a 2-tuple of sensor minimum/maximum values, flag data outside of
@@ -78,6 +95,7 @@ def range_check(arr, sensor_span, user_span=None, prev_qc=None):
     return flag_arr
 
 
+@add_qartod_ident(6, 'Spike Test')
 def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     """
     Determine if there is a spike at data point n-1 by subtracting
@@ -104,6 +122,7 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     return flag_arr
 
 
+@add_qartod_ident(8, 'Flat Line Test')
 def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     """
     Check for repeated consecutively repeated values
@@ -136,6 +155,7 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     return flag_arr
 
 
+@add_qartod_ident(10, 'Attenuated Signal Test')
 def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
                             time_range=(None, None), check_type='std',
                             prev_qc=None):
