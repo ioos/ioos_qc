@@ -130,7 +130,7 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     """
     if any([not isinstance(d, int) for d in [low_reps, high_reps]]):
         raise TypeError("Both low and high repetitions must be type int")
-    flag_arr = np.ones_like(arr)
+    flag_arr = np.ones_like(arr, dtype='uint8')
     if low_reps >= high_reps:
         raise ValueError("Low reps must be less than high reps")
     it = np.nditer(arr)
