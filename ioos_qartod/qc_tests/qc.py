@@ -161,7 +161,7 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
                             prev_qc=None):
     """Check that the range or standard deviation is below a certain threshold
        over a certain time period"""
-    flag_arr = np.empty(arr.shape)
+    flag_arr = np.empty(arr.shape, dtype='uint8')
     flag_arr.fill(QCFlags.UNKNOWN)
 
     if time_range[0] is not None:
