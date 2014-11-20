@@ -77,6 +77,14 @@ class QartodQcTest(unittest.TestCase):
         self.assertRaises(ValueError, qc.spike_check, arr, low_thresh,
                           high_thresh)
 
+    def test_rate_of_change(self):
+        arr = np.array([2, 10, 2.1, 3, 4, 5, 7, 10, 0, 2, 2.2, 2])
+        prev_qc = np.array([3])
+        thresh_val = 5
+        expected = np.array([3, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1])
+        result = qc.rate_of_change_check(arr, thresh_val, prev_qc)
+        npt.assert_array_equal(expected, result)
+
     def test_flat_line_check(self):
         """Make sure flat line check returns expected flag values"""
         low_thresh = 3

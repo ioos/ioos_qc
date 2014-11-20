@@ -122,6 +122,25 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     return flag_arr
 
 
+
+@add_qartod_ident(7, 'Rate of Change Test')
+def rate_of_change_check(arr, thresh_val, prev_qc=None):
+    """
+    Checks the first order difference of a series of values to see if
+    there are any values exceeding a threshold.  These are then marked as
+    suspect.  It is up to the test operator to determine an appropriate
+    threshold value for the absolute difference not to exceed
+    """
+    flag_arr = np.ones_like(arr, dtype='uint8')
+    exceed = np.insert(np.abs(np.diff(arr)) > thresh_val, 0, False)
+    if prev_qc is not None:
+        flag_arr[0] = prev_qc[0]
+    else:
+        flag_arr[0] = QCFlags.UNKNOWN
+
+    flag_arr[exceed] = QCFlags.SUSPECT
+    return flag_arr
+
 @add_qartod_ident(8, 'Flat Line Test')
 def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     """
