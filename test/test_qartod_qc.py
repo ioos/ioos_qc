@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.testing as npt
+import pandas as pd
 from ioos_qartod.qc_tests import qc
 from ioos_qartod.qc_tests.qc import QCFlags
 import unittest
@@ -40,6 +41,24 @@ class QartodQcTest(unittest.TestCase):
                          51])  # sensor range
         npt.assert_array_equal(qc.range_check(vals, sensor_span, user_span),
                               np.array([4, 4, 3, 3, 1, 1, 1, 3, 3, 4]))
+
+    def test_climatology_check(self):
+        # 14 vals - 2010-01-03 to 2010-04-04
+        dates = pd.date_range('2010-01-01', '2010-04-10', freq='W')
+        # monthly vals
+        monthly_clim = {1: (6.0, 10), 2: (1.4, 6.4), 3: (4.2, 13.0)}
+        ts = pd.Series(np.array([12.1, 9.0, 1.3, 6.2, 9.9,  # Jan
+                                  1.6,  2.0, 9.0, 4.0, # Feb
+                                  5.0, 5.5, 10.6, 16.0, # Mar
+                                  17.2 # Apr
+                                 ]), dates)
+        expected = np.array([3, 1, 3, 1, 1, # Jan
+                             1, 1, 3, 1, # Feb
+                             1, 1, 1, 3, # Mar
+                             2], # Apr should be unknown as w/o clim value
+                            dtype='i4')
+        results = qc.climatology_check(ts, monthly_clim, lambda t: t.month)
+        npt.assert_array_equal(results, expected)
 
     def test_overlapping_threshold_ranges(self):
         """
