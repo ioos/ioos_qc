@@ -1,6 +1,8 @@
 import numpy as np
 import pyproj
 import quantities as q
+import pandas as pd
+import multiprocessing
 
 
 class QCFlags:
@@ -93,6 +95,41 @@ def range_check(arr, sensor_span, user_span=None, prev_qc=None):
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
+
+
+def _process_time_chunk(value_pairs):
+    """Takes values and thresholds for climatologies
+       and returns whether passing or not, or returns UNKNOWN
+       if the threshold is None."""
+    vals = value_pairs[0]
+    threshold = value_pairs[1]
+    if threshold is not None:
+        return ((vals >= threshold[0]) &
+                (vals <= threshold[1])).astype('i4')
+    else:
+        return pd.Series(np.repeat(QCFlags.UNKNOWN, len(vals)), vals.index,
+                         dtype='i4')
+
+
+@add_qartod_ident(5, 'Climatology Test')
+def climatology_check(time_series, clim_table, group_function):
+    """
+    Takes a pandas time series, a dict of 2-tuples with (low, high) thresholds
+    as values, and a grouping function to group the time series into bins which
+    correspond to the climatology lookup table.  Flags data within
+    the threshold as good data and data lying outside of it as bad.  Data for
+    which climatology values do not exist (i.e. no entry to look up in the dict)
+    will be flagged as Unknown/not evaluated.
+    """
+    grouped_data = time_series.groupby(group_function)
+    vals = [(g, clim_table.get(grp_val)) for (grp_val, g) in grouped_data]
+    # should speed up processing of climatologies
+    pool = multiprocessing.Pool()
+    chunks = pool.map(_process_time_chunk, vals)
+    res = pd.concat(chunks)
+    #replace 0s from boolean with suspect values
+    res[res == 0] = QCFlags.SUSPECT
+    return res
 
 
 @add_qartod_ident(6, 'Spike Test')
