@@ -190,4 +190,6 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
         flag_arr[time_idx] = QCFlags.SUSPECT
     elif check_val < min_var_fail:
         flag_arr[time_idx] = QCFlags.BAD_DATA
+    else:
+        flag_arr[time_idx] = QCFlags.GOOD_DATA
     return flag_arr
