@@ -105,15 +105,34 @@ class QartodQcTest(unittest.TestCase):
         Test a time segment for an attenuated signal, comparing against
         standard deviation
         """
-        flags = np.empty(12).fill(QCFlags.UNKNOWN)
         signal = np.array([3, 4, 5, 8.1, 9, 8.5, 8.7, 8.4, 8.2, 8.35, 2, 1])
+        # half hour increments
         times = np.arange('2005-02-01T00:00Z', '2005-02-01T06:00Z',
                           dtype='datetime64[30m]')
         time_range=(np.datetime64('2005-02-01T01:30Z'),
                     np.datetime64('2005-02-01T04:30Z'))
-        min_var_warn = 50
-        min_var_fail = 0.7
+        min_var_fail = 0.05
+        min_var_warn = 0.7
         flags = qc.attenuated_signal_check(signal, times, min_var_warn,
                                            min_var_fail, time_range)
-        npt.assert_array_equal(flags, np.array([2, 2, 2, 4, 4, 4, 4, 4, 4, 4,
+        npt.assert_array_equal(flags, np.array([2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+                                                2, 2]))
+
+    def test_attenuated_signal_check_range(self):
+        """
+        Test a time segment for an attenuated signal, comparing against
+        range
+        """
+        signal = np.array([3, 4, 5, 8.1, 9, 8.5, 8.7, 8.4, 8.2, 8.35, 2, 1])
+        # half hour increments
+        times = np.arange('2005-02-01T00:00Z', '2005-02-01T06:00Z',
+                          dtype='datetime64[30m]')
+        time_range=(np.datetime64('2005-02-01T01:30Z'),
+                    np.datetime64('2005-02-01T04:30Z'))
+        min_var_fail = 0.1
+        min_var_warn = 0.15
+        flags = qc.attenuated_signal_check(signal, times, min_var_warn,
+                                           min_var_fail, time_range,
+                                           check_type='range')
+        npt.assert_array_equal(flags, np.array([2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
                                                 2, 2]))
