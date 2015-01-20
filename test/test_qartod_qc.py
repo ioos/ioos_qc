@@ -21,15 +21,6 @@ class QartodQcTest(unittest.TestCase):
                                                      range_max=3000.0),
                                np.array([1, 1, 3]))
 
-    def test_prev_qc(self):
-        """Tests a user defined distance threshold between succesive points"""
-        lon = np.array([-71.05, -71.06, -80.0])
-        lat = np.array([41.0, 41.02, 45.05])
-        assert np.array_equal(qc.location_set_check(lon, lat,
-                                                    range_max=3000,
-                                                    prev_qc=np.array([4])),
-                              np.array([4, 1, 3]))
-
     def test_range_check_mixed(self):
         """See if user and sensor ranges are picked up"""
         sensor_span = (10, 50)

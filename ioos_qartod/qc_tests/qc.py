@@ -41,7 +41,7 @@ def set_prev_qc(flag_arr, prev_qc):
 
 @add_qartod_ident(3, 'Location Test')
 def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
-                       range_max=None, prev_qc=None):
+                       range_max=None):
     """
     Checks that longitude and latitude are within reasonable bounds
     defaulting to lon = [-180, 180] and lat = [-90, 90].
@@ -63,13 +63,11 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
              (lon > bbox[1][0]) | (lat > bbox[1][1]) |
              (np.isnan(lon)) | (np.isnan(lat))] = QCFlags.BAD_DATA
-    if prev_qc is not None:
-        set_prev_qc(flag_arr, prev_qc)
     return flag_arr
 
 
 @add_qartod_ident(4, 'Gross Range Test')
-def range_check(arr, sensor_span, user_span=None, prev_qc=None):
+def range_check(arr, sensor_span, user_span=None):
     """
     Given a 2-tuple of sensor minimum/maximum values, flag data outside of
     range as bad data.  Optionally also flag data which falls outside of a user
@@ -92,8 +90,6 @@ def range_check(arr, sensor_span, user_span=None, prev_qc=None):
                  (arr >= u_span_sorted[1])] = QCFlags.SUSPECT
     flag_arr[(arr <= s_span_sorted[0]) |
              (arr >= s_span_sorted[1])] = QCFlags.BAD_DATA
-    if prev_qc is not None:
-        set_prev_qc(flag_arr, prev_qc)
     return flag_arr
 
 
