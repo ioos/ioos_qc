@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 '''
-ioos_qartod.flags.water_level
+ioos_qartod.flags.temp_salinity
 
-Flag Definitions for Water Levels
+Flag Definitions for In-situ temperature and salinity
 '''
 
 class TimingGap:
@@ -261,6 +261,46 @@ class AggregateTest:
         return cls.pass_flag, cls.offset
 
 
+class TSCurveSpaceTest:
+    offset        = 8
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    suspect_flag  = 0x2
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def suspect(cls):
+        return cls.suspect_flag, cls.offset
+    
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
+
+class DensityInversionTest:
+    offset        = 6
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
 
 AvailableTests = [
     TimingGap,
@@ -273,7 +313,10 @@ AvailableTests = [
     FlatLineTest,
     MultivariateTest,
     NeighborTest,
-    AggregateTest
+    AggregateTest,
+    TSCurveSpaceTest,
+    DensityInversionTest
 ]
+
 
 

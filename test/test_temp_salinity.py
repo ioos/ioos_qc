@@ -2,11 +2,11 @@
 '''
 test.test_wind_flags
 
-Tests for Flag Setting and Checking for Winds
+Tests for Flag Setting and Checking for In-situ temperature and salinity
 '''
 
 from ioos_qartod.flags import QARTODEval
-from ioos_qartod.flags.water_level import *
+from ioos_qartod.flags.temp_salinity import *
 
 import numpy as np
 import unittest
@@ -290,7 +290,52 @@ class TestWindFlags(unittest.TestCase):
         
         assert self.flags.check(AggregateTest) == AggregateTest.suspect_flag
         assert self.flags.check_str(AggregateTest) == 'suspect_flag'
+    
+    def test_ts_curve_space(self):
+        '''
+        Tests the TSCurveSpaceTest Test Flags
+        '''
 
+        self.flags.mark_test(TSCurveSpaceTest.passes())
+
+        assert self.flags.check(TSCurveSpaceTest) == TSCurveSpaceTest.pass_flag
+        assert self.flags.check_str(TSCurveSpaceTest) == 'pass_flag'
+        
+        self.flags.mark_test(TSCurveSpaceTest.fail())
+        
+        assert self.flags.check(TSCurveSpaceTest) == TSCurveSpaceTest.fail_flag
+        assert self.flags.check_str(TSCurveSpaceTest) == 'fail_flag'
+
+        self.flags.mark_test(TSCurveSpaceTest.not_eval())
+        
+        assert self.flags.check(TSCurveSpaceTest) == TSCurveSpaceTest.not_eval_flag
+        assert self.flags.check_str(TSCurveSpaceTest) == 'not_eval_flag'
+        
+        self.flags.mark_test(TSCurveSpaceTest.suspect())
+        
+        assert self.flags.check(TSCurveSpaceTest) == TSCurveSpaceTest.suspect_flag
+        assert self.flags.check_str(TSCurveSpaceTest) == 'suspect_flag'
+    
+    def test_density_inversion(self):
+        '''
+        Tests the DensityInversionTest Test Flags
+        '''
+
+        self.flags.mark_test(DensityInversionTest.passes())
+
+        assert self.flags.check(DensityInversionTest) == DensityInversionTest.pass_flag
+        assert self.flags.check_str(DensityInversionTest) == 'pass_flag'
+        
+        self.flags.mark_test(DensityInversionTest.fail())
+        
+        assert self.flags.check(DensityInversionTest) == DensityInversionTest.fail_flag
+        assert self.flags.check_str(DensityInversionTest) == 'fail_flag'
+
+        self.flags.mark_test(DensityInversionTest.not_eval())
+        
+        assert self.flags.check(DensityInversionTest) == DensityInversionTest.not_eval_flag
+        assert self.flags.check_str(DensityInversionTest) == 'not_eval_flag'
+        
     def test_numpy(self):
         '''
         Tests the flags for numpy support
