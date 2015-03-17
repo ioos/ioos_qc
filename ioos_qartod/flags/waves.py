@@ -6,30 +6,7 @@ Flag Definitions for Waves
 '''
 
 class LTBulkWaveTest:
-    offset        = 62
-    fail_flag     = 0x0
-    not_eval_flag = 0x1
-    suspect_flag  = 0x2
-    pass_flag     = 0x3
-    
-    @classmethod
-    def fail(cls):
-        return cls.fail_flag, cls.offset
-
-    @classmethod
-    def suspect(cls):
-        return cls.suspect_flag, cls.offset
-    
-    @classmethod
-    def not_eval(cls):
-        return cls.not_eval_flag, cls.offset
-    
-    @classmethod
-    def passes(cls):
-        return cls.pass_flag, cls.offset
-
-class LTStuckSensorTest:
-    offset        = 60
+    offset        = 0
     fail_flag     = 0x0
     not_eval_flag = 0x1
     suspect_flag  = 0x2
@@ -52,7 +29,7 @@ class LTStuckSensorTest:
         return cls.pass_flag, cls.offset
 
 class LTFrequencyRangeTest:
-    offset        = 58
+    offset        = 3
     fail_flag     = 0x0
     not_eval_flag = 0x1
     suspect_flag  = 0x2
@@ -75,52 +52,11 @@ class LTFrequencyRangeTest:
         return cls.pass_flag, cls.offset
 
 class LTLowFrequencyEnergyTest:
-    offset        = 56
+    offset        = 7
     not_eval_flag = 0x1
     suspect_flag  = 0x2
     pass_flag     = 0x3
     
-    @classmethod
-    def suspect(cls):
-        return cls.suspect_flag, cls.offset
-    
-    @classmethod
-    def not_eval(cls):
-        return cls.not_eval_flag, cls.offset
-    
-    @classmethod
-    def passes(cls):
-        return cls.pass_flag, cls.offset
-
-class LTRateOfChangeTest:
-    offset        = 54
-    fail_flag     = 0x0
-    not_eval_flag = 0x1
-    pass_flag     = 0x3
-    
-    @classmethod
-    def fail(cls):
-        return cls.fail_flag, cls.offset
-
-    @classmethod
-    def not_eval(cls):
-        return cls.not_eval_flag, cls.offset
-    
-    @classmethod
-    def passes(cls):
-        return cls.pass_flag, cls.offset
-
-class SpikeTest:
-    offset        = 20
-    fail_flag     = 0x0
-    not_eval_flag = 0x1
-    suspect_flag  = 0x2
-    pass_flag     = 0x3
-    
-    @classmethod
-    def fail(cls):
-        return cls.fail_flag, cls.offset
-
     @classmethod
     def suspect(cls):
         return cls.suspect_flag, cls.offset
@@ -134,7 +70,7 @@ class SpikeTest:
         return cls.pass_flag, cls.offset
 
 class AcousticNoiseTest:
-    offset        = 52
+    offset        = 9
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -152,7 +88,7 @@ class AcousticNoiseTest:
         return cls.pass_flag, cls.offset
 
 class SignalToNoiseTest:
-    offset        = 50
+    offset        = 12
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -169,8 +105,95 @@ class SignalToNoiseTest:
     def passes(cls):
         return cls.pass_flag, cls.offset
 
+class SpikeTest:
+    offset        = 15
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    suspect_flag  = 0x2
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def suspect(cls):
+        return cls.suspect_flag, cls.offset
+    
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
+
+class LTRateOfChangeTest:
+    offset        = 18
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
+
+class LTStuckSensorTest:
+    offset        = 21
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    suspect_flag  = 0x2
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def suspect(cls):
+        return cls.suspect_flag, cls.offset
+    
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
+
 class CorrelationMagnitudeTest:
-    offset        = 48
+    offset        = 24
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    suspect_flag  = 0x2
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def suspect(cls):
+        return cls.suspect_flag, cls.offset
+    
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
+
+class SignalStrengthTest:
+    offset        = 27
     fail_flag     = 0x0
     not_eval_flag = 0x1
     suspect_flag  = 0x2
@@ -193,7 +216,7 @@ class CorrelationMagnitudeTest:
         return cls.pass_flag, cls.offset
 
 class PressureAcousticSurfaceTrackerTest:
-    offset        = 46
+    offset        = 30
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -210,8 +233,31 @@ class PressureAcousticSurfaceTrackerTest:
     def passes(cls):
         return cls.pass_flag, cls.offset
 
+class TSCurveSpaceTest:
+    offset        = 33
+    fail_flag     = 0x0
+    not_eval_flag = 0x1
+    suspect_flag  = 0x2
+    pass_flag     = 0x3
+    
+    @classmethod
+    def fail(cls):
+        return cls.fail_flag, cls.offset
+
+    @classmethod
+    def suspect(cls):
+        return cls.suspect_flag, cls.offset
+    
+    @classmethod
+    def not_eval(cls):
+        return cls.not_eval_flag, cls.offset
+    
+    @classmethod
+    def passes(cls):
+        return cls.pass_flag, cls.offset
+
 class AcousticCurrentVelocityRangeTest:
-    offset        = 44
+    offset        = 36
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -229,7 +275,7 @@ class AcousticCurrentVelocityRangeTest:
         return cls.pass_flag, cls.offset
 
 class AcousticCurrentVelocityMeanValueTest:
-    offset        = 42
+    offset        = 39
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -247,7 +293,7 @@ class AcousticCurrentVelocityMeanValueTest:
         return cls.pass_flag, cls.offset
 
 class SampleCountTest:
-    offset        = 40
+    offset        = 42
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -265,7 +311,7 @@ class SampleCountTest:
         return cls.pass_flag, cls.offset
 
 class STTimeSeriesGapTest:
-    offset        = 38
+    offset        = 45
     fail_flag     = 0x0
     not_eval_flag = 0x1
     pass_flag     = 0x3
@@ -283,7 +329,7 @@ class STTimeSeriesGapTest:
         return cls.pass_flag, cls.offset
 
 class STTimeSeriesRangeTest:
-    offset        = 36
+    offset        = 48
     fail_flag     = 0x0
     not_eval_flag = 0x1
     suspect_flag  = 0x2
@@ -306,7 +352,7 @@ class STTimeSeriesRangeTest:
         return cls.pass_flag, cls.offset
 
 class STTimeSeriesAccelerationTest:
-    offset        = 34
+    offset        = 51
     not_eval_flag = 0x1
     suspect_flag  = 0x2
     pass_flag     = 0x3
@@ -324,7 +370,7 @@ class STTimeSeriesAccelerationTest:
         return cls.pass_flag, cls.offset
 
 class LTTimeSeriesCheckRatioCheckFactorTest:
-    offset        = 32
+    offset        = 54
     not_eval_flag = 0x1
     suspect_flag  = 0x2
     pass_flag     = 0x3
@@ -342,7 +388,7 @@ class LTTimeSeriesCheckRatioCheckFactorTest:
         return cls.pass_flag, cls.offset
 
 class LTTimeSeriesMeanStandardDeviationTest:
-    offset        = 8
+    offset        = 57
     not_eval_flag = 0x1
     suspect_flag  = 0x2
     pass_flag     = 0x3
@@ -359,26 +405,9 @@ class LTTimeSeriesMeanStandardDeviationTest:
     def passes(cls):
         return cls.pass_flag, cls.offset
 
-class NeighborTest:
-    offset        = 10
-    not_eval_flag = 0x1
-    suspect_flag  = 0x2
-    pass_flag     = 0x3
-    
-    @classmethod
-    def suspect(cls):
-        return cls.suspect_flag, cls.offset
-    
-    @classmethod
-    def not_eval(cls):
-        return cls.not_eval_flag, cls.offset
-    
-    @classmethod
-    def passes(cls):
-        return cls.pass_flag, cls.offset
 
 class AggregateTest:
-    offset        = 0
+    offset        = 60
     fail_flag     = 0x0
     not_eval_flag = 0x1
     suspect_flag  = 0x2
@@ -417,6 +446,7 @@ AvailableTests = [
     STTimeSeriesRangeTest,
     STTimeSeriesAccelerationTest,
     LTTimeSeriesCheckRatioCheckFactorTest,
+    TSCurveSpaceTest,
     LTTimeSeriesMeanStandardDeviationTest,
     NeighborTest
 ]

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 '''
-ioos_qartod.flags.water_level
+ioos_qartod.flags.do_2
 
-Flag Definitions for Water Levels
+Flag Definitions for Dissolved Oxygen v2
 '''
 
 class TimingGap:
@@ -275,5 +275,4 @@ AvailableTests = [
     NeighborTest,
     AggregateTest
 ]
-
 
