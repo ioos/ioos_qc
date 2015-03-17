@@ -447,7 +447,6 @@ AvailableTests = [
     STTimeSeriesAccelerationTest,
     LTTimeSeriesCheckRatioCheckFactorTest,
     TSCurveSpaceTest,
-    LTTimeSeriesMeanStandardDeviationTest,
-    NeighborTest
+    LTTimeSeriesMeanStandardDeviationTest
 ]
 
