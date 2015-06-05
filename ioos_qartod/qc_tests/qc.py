@@ -211,10 +211,14 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
 def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
                             time_range=(None, None), check_type='std',
                             prev_qc=None):
-    """Check that the range or standard deviation is below a certain threshold
-       over a certain time period"""
+    """
+    Check for near-flat-line conditions where the range of values (max-min) or
+    standard deviation are below minimum thresholds.
+    """
     flag_arr = np.empty(arr.shape, dtype='uint8')
     flag_arr.fill(QCFlags.UNKNOWN)
+
+    assert min_var_fail <= min_var_warn, "The minimum failure must be less than or equal to the minimum warning"
 
     if time_range[0] is not None:
         if time_range[1] is not None:
@@ -224,7 +228,7 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
     elif time_range[1] is not None:
         time_idx = times <= time_range[1]
     else:
-        time_idx = np.ones_like(times, dtype='bool')
+        time_idx = np.ones_like(arr, dtype='bool')
 
     if check_type == 'std':
         check_val = np.std(arr[time_idx])
@@ -238,10 +242,11 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
 
-    if check_val >= min_var_fail and check_val < min_var_warn:
-        flag_arr[time_idx] = QCFlags.SUSPECT
-    elif check_val < min_var_fail:
+    if check_val < min_var_fail:
         flag_arr[time_idx] = QCFlags.BAD_DATA
+    elif check_val < min_var_warn:
+        flag_arr[time_idx] = QCFlags.SUSPECT
     else:
         flag_arr[time_idx] = QCFlags.GOOD_DATA
     return flag_arr
+
