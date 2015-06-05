@@ -120,21 +120,18 @@ class QartodQcTest(unittest.TestCase):
 
     def test_attenuated_signal_check(self):
         """
-        Test a time segment for an attenuated signal, comparing against
-        standard deviation
         """
-        signal = np.array([3, 4, 5, 8.1, 9, 8.5, 8.7, 8.4, 8.2, 8.35, 2, 1])
+        signal = np.array([1.01, 1.02, 1.01, 1.01, 1.02, 1.03, 1.01, 1.0, 1.0, 1.0, 1.02, 1.01])
         # half hour increments
         times = np.arange('2005-02-01T00:00Z', '2005-02-01T06:00Z',
                           dtype='datetime64[30m]')
         time_range=(np.datetime64('2005-02-01T01:30Z'),
                     np.datetime64('2005-02-01T04:30Z'))
-        min_var_fail = 0.05
+        min_var_fail = 0.5
         min_var_warn = 0.7
         flags = qc.attenuated_signal_check(signal, times, min_var_warn,
                                            min_var_fail, time_range)
-        npt.assert_array_equal(flags, np.array([2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                                                2, 2]))
+        npt.assert_array_equal(flags, np.array([2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 2]))
 
     def test_attenuated_signal_check_range(self):
         """
