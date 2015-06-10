@@ -151,3 +151,15 @@ class QartodQcTest(unittest.TestCase):
                                            check_type='range')
         npt.assert_array_equal(flags, np.array([2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
                                                 2, 2]))
+
+    def test_qc_compare(self):
+        '''
+        Tests that the compare function works as intended
+        '''
+
+        range_flags = np.array([1,1,1,9,1,1,9,9])
+        spike_flags = np.array([2,1,1,1,1,1,9,9])
+        grdtn_flags = np.array([1,3,3,4,3,1,2,9])
+
+        primary_flags = qc.qc_compare([range_flags, spike_flags, grdtn_flags])
+        np.testing.assert_array_equal(primary_flags, np.array([1,3,3,4,3,1,2,9]))

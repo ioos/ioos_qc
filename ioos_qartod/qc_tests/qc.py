@@ -259,7 +259,7 @@ def qc_compare(vectors):
     assert all([s == shapes[0] for s in shapes])
     assert all([v.ndim == 1 for v in vectors])
 
-    result = np.ones_like(vectors[0]) * 9
+    result = np.ones_like(vectors[0]) * QCFlags.MISSING
     priorities = [QCFlags.MISSING, QCFlags.UNKNOWN, QCFlags.GOOD_DATA, QCFlags.SUSPECT, QCFlags.BAD_DATA]
     # For each of the priorities in order, set the resultant array to the the
     # flag where that flag exists in each of the vectors
