@@ -250,3 +250,22 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
         flag_arr[time_idx] = QCFlags.GOOD_DATA
     return flag_arr
 
+def qc_compare(vectors):
+    '''
+    Returns an array of flags that represent the aggregate of all the vectors
+    '''
+    shapes = [v.shape[0] for v in vectors]
+    # Assert that all of the vectors are the same size
+    assert all([s == shapes[0] for s in shapes])
+    assert all([v.ndim == 1 for v in vectors])
+
+    result = np.ones_like(vectors[0]) * QCFlags.MISSING
+    priorities = [QCFlags.MISSING, QCFlags.UNKNOWN, QCFlags.GOOD_DATA, QCFlags.SUSPECT, QCFlags.BAD_DATA]
+    # For each of the priorities in order, set the resultant array to the the
+    # flag where that flag exists in each of the vectors
+    for p in priorities:
+        for v in vectors:
+            idx = np.where(v==p)[0]
+            result[idx] = p
+    return result
+
