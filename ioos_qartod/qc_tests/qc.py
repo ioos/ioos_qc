@@ -86,10 +86,10 @@ def range_check(arr, sensor_span, user_span=None):
            u_span_sorted[1] > s_span_sorted[1]):
             raise ValueError("User span range may not exceed sensor bounds")
         # test timing
-        flag_arr[(arr <= u_span_sorted[0]) |
-                 (arr >= u_span_sorted[1])] = QCFlags.SUSPECT
-    flag_arr[(arr <= s_span_sorted[0]) |
-             (arr >= s_span_sorted[1])] = QCFlags.BAD_DATA
+        flag_arr[(arr < u_span_sorted[0]) |
+                 (arr > u_span_sorted[1])] = QCFlags.SUSPECT
+    flag_arr[(arr < s_span_sorted[0]) |
+             (arr > s_span_sorted[1])] = QCFlags.BAD_DATA
     return flag_arr
 
 

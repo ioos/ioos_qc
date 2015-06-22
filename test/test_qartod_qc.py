@@ -31,7 +31,7 @@ class QartodQcTest(unittest.TestCase):
                          40, 45,  # user range
                          51])  # sensor range
         npt.assert_array_equal(qc.range_check(vals, sensor_span, user_span),
-                              np.array([4, 4, 3, 3, 1, 1, 1, 3, 3, 4]))
+                              np.array([4, 3, 3, 1, 1, 1, 1, 1, 3, 4]))
 
     def test_climatology_check(self):
         # 14 vals - 2010-01-03 to 2010-04-04
