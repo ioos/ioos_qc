@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pandas as pd
 from ioos_qartod.qc_tests import qc
 from ioos_qartod.qc_tests.qc import QCFlags
+import quantities as pq
 import unittest
 
 class QartodQcTest(unittest.TestCase):
@@ -88,12 +89,25 @@ class QartodQcTest(unittest.TestCase):
                           high_thresh)
 
     def test_rate_of_change(self):
+        """Test the rate of change with default (seconds) along with hourly
+           rate of change"""
+        times = np.arange('2015-01-01 00:00:00', '2015-01-01 00:00:12',
+                          step=np.timedelta64(1, 's'), dtype=np.datetime64)
         arr = np.array([2, 10, 2.1, 3, 4, 5, 7, 10, 0, 2, 2.2, 2])
         prev_qc = np.array([3])
         thresh_val = 5
         expected = np.array([3, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1])
-        result = qc.rate_of_change_check(arr, thresh_val, prev_qc)
+        result = qc.rate_of_change_check(times, arr, thresh_val, prev_qc)
         npt.assert_array_equal(expected, result)
+        # now try roughly the same test with 12 hours instead of 12 seconds
+        # and with hourly rate of change specified
+        times_hr = np.arange('2015-01-01 00:00:00', '2015-01-01 12:00:00',
+                          step=np.timedelta64(1, 'h'), dtype=np.datetime64)
+        thresh_val_hr = 5 / pq.hour
+        result_hr = qc.rate_of_change_check(times_hr, arr, thresh_val_hr,
+                                            prev_qc)
+        npt.assert_array_equal(expected, result_hr)
+
 
     def test_flat_line_check(self):
         """Make sure flat line check returns expected flag values"""

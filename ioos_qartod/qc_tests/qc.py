@@ -1,6 +1,6 @@
 import numpy as np
 import pyproj
-import quantities as q
+import quantities as pq
 import pandas as pd
 import multiprocessing
 
@@ -58,7 +58,7 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     if range_max is not None:
         ellipsoid = pyproj.Geod(ellps='WGS84')
         _, _, dist = ellipsoid.inv(lon[:-1], lat[:-1], lon[1:], lat[1:])
-        dist_m = np.insert(dist, 0, 0) * q.meter
+        dist_m = np.insert(dist, 0, 0) * pq.meter
         flag_arr[dist_m > range_max] = QCFlags.SUSPECT
     flag_arr[(lon < bbox[0][0]) | (lat < bbox[0][1]) |
              (lon > bbox[1][0]) | (lat > bbox[1][1]) |
@@ -157,15 +157,29 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
 
 
 @add_qartod_ident(7, 'Rate of Change Test')
-def rate_of_change_check(arr, thresh_val, prev_qc=None):
+def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
     """
     Checks the first order difference of a series of values to see if
     there are any values exceeding a threshold.  These are then marked as
     suspect.  It is up to the test operator to determine an appropriate
-    threshold value for the absolute difference not to exceed
+    threshold value for the absolute difference not to exceed.  Threshold may
+    be expressed as a python quantities unit.  For example:
+    ``import quantities as pq``
+      # more code ...
+      # threshold of 2.5 per hour
+      threshold = 2.5 / pq.hour
+      # run the test with the new threshold
+      results = rate_of_change_check(times, arr, threshold, old_qc)``
+    Defaults to a rate expressed in terms of seconds if not specified.
     """
+    thresh_val_rate = (thresh_val if type(thresh_val) is pq.quantity.Quantity
+                                  else thresh_val / pq.second)
     flag_arr = np.ones_like(arr, dtype='uint8')
-    exceed = np.insert(np.abs(np.diff(arr)) > thresh_val, 0, False)
+    # express rate of change as seconds, unit conversions will handle proper
+    # comparison to threshold later
+    roc = np.abs((np.diff(arr) / (np.diff(times) / np.timedelta64(1, 's')) /
+           pq.second))
+    exceed = np.insert(roc > thresh_val_rate, 0, False)
     if prev_qc is not None:
         flag_arr[0] = prev_qc[0]
     else:
