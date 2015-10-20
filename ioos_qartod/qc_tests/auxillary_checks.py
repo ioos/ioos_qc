@@ -13,7 +13,8 @@ def check_timestamps(times, max_time_interval=None):
     # check if there are differences between sorted and unsorted, and then
     # see if if there are any duplicate times.  Then check that none of the
     # diffs exceeds the sorted time
-    if not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == 0):
+    zero = np.array(0, dtype=time_diff.dtype)
+    if not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == zero):
         return False
     elif (max_time_interval is not None and
           np.any(sort_diff > max_time_interval)):
