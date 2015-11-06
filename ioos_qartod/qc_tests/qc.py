@@ -6,8 +6,8 @@ import multiprocessing
 
 
 class QCFlags:
-    """Primary flags for QARTOD"""
-    # don't subclass Enum since values don't fit nicely into a numpy array
+    """Primary flags for QARTOD."""
+    # Don't subclass Enum since values don't fit nicely into a numpy array.
     GOOD_DATA = 1
     UNKNOWN = 2
     SUSPECT = 3
@@ -16,9 +16,9 @@ class QCFlags:
 
 
 # Could also use a class based approach, but believe this to be a little
-# simpler for simple tests which are run once and don't need to maintain state.
-# This is a bit hardcoded, but if needed, one can always change the id attribute
-# if their internal representation of QARTOD tests differ
+# simpler for simple tests which are run once and don't need to maintain
+# state.  This is a bit hardcoded, but if needed, one can always change the id
+# attribute if their internal representation of QARTOD tests differ
 def add_qartod_ident(qartod_id, qartod_test_name):
     """
     Adds attributes to the QARTOD functions corresponding to database fields.
@@ -31,10 +31,10 @@ def add_qartod_ident(qartod_id, qartod_test_name):
 
 
 # TODO: Consider refactoring this to use a decorator with something like
-# functools so we keep the code more DRY
+# functools so we keep the code more DRY.
 def set_prev_qc(flag_arr, prev_qc):
     """Takes previous QC flags and applies them to the start of the array
-       where the flag values are not unknown"""
+       where the flag values are not unknown."""
     cond = prev_qc != QCFlags.UNKNOWN
     flag_arr[cond] = prev_qc[cond]
 
@@ -46,14 +46,14 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
     Checks that longitude and latitude are within reasonable bounds
     defaulting to lon = [-180, 180] and lat = [-90, 90].
     Optionally, check for a maximum range parameter in great circle distance
-    defaulting to meters which can also use a unit from the quantities library
+    defaulting to meters which can also use a unit from the quantities library.
     """
     bbox = np.array(bbox_arr)
     if bbox.shape != (2, 2):
-        # TODO: Use more specific Exception types
-        raise ValueError('Invalid bounding box dimensions')
+        # TODO: Use more specific Exception types.
+        raise ValueError('Invalid bounding box dimensions.')
     if lon.shape != lat.shape:
-        raise ValueError('Shape not the same')
+        raise ValueError('Shape not the same.')
     flag_arr = np.ones_like(lon, dtype='uint8')
     if range_max is not None:
         ellipsoid = pyproj.Geod(ellps='WGS84')
@@ -70,22 +70,22 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
 def range_check(arr, sensor_span, user_span=None):
     """
     Given a 2-tuple of sensor minimum/maximum values, flag data outside of
-    range as bad data.  Optionally also flag data which falls outside of a user
-    defined range
+    range as bad data.  Optionally also flag data which falls outside of a
+    user defined range.
     """
     flag_arr = np.ones_like(arr, dtype='uint8')
     if len(sensor_span) != 2:
-        raise ValueError("Sensor range extent must be size two")
-    # ensure coordinates are in proper order
+        raise ValueError("Sensor range extent must be size two.")
+    # Ensure coordinates are in proper order.
     s_span_sorted = sorted(sensor_span)
     if user_span is not None:
         if len(user_span) != 2:
-            raise ValueError("User defined range extent must be size two")
+            raise ValueError("User defined range extent must be size two.")
         u_span_sorted = sorted(user_span)
         if (u_span_sorted[0] < s_span_sorted[0] or
            u_span_sorted[1] > s_span_sorted[1]):
-            raise ValueError("User span range may not exceed sensor bounds")
-        # test timing
+            raise ValueError("User span range may not exceed sensor bounds.")
+        # Test timing.
         flag_arr[(arr < u_span_sorted[0]) |
                  (arr > u_span_sorted[1])] = QCFlags.SUSPECT
     flag_arr[(arr < s_span_sorted[0]) |
@@ -114,16 +114,16 @@ def climatology_check(time_series, clim_table, group_function):
     as values, and a grouping function to group the time series into bins which
     correspond to the climatology lookup table.  Flags data within
     the threshold as good data and data lying outside of it as bad.  Data for
-    which climatology values do not exist (i.e. no entry to look up in the dict)
-    will be flagged as Unknown/not evaluated.
+    which climatology values do not exist (i.e. no entry to look up in the
+    dict) will be flagged as Unknown/not evaluated.
     """
     grouped_data = time_series.groupby(group_function)
     vals = [(g, clim_table.get(grp_val)) for (grp_val, g) in grouped_data]
-    # should speed up processing of climatologies
+    # Should speed up processing of climatologies.
     pool = multiprocessing.Pool()
     chunks = pool.map(_process_time_chunk, vals)
     res = pd.concat(chunks)
-    #replace 0s from boolean with suspect values
+    # Replace 0s from boolean with suspect values.
     res[res == 0] = QCFlags.SUSPECT
     return res
 
@@ -139,21 +139,20 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     and values which exceed the high threshold are flagged bad.
     The flag is set at point n-1.
     """
-    # subtract the average from point at index n-1 and get the absolute value.
+    # Subtract the average from point at index n-1 and get the absolute value.
     if low_thresh >= high_thresh:
         raise ValueError("Low theshold value must be less than high threshold "
-                         "value")
+                         "value.")
     val = np.abs(np.convolve(arr, [-0.5, 1, -0.5], mode='same'))
-    # first and last elements can't contain three points,
-    # so set difference to zero so these will avoid getting spike flagged
+    # First and last elements can't contain three points,
+    # so set difference to zero so these will avoid getting spike flagged.
     val[[0, -1]] = 0
     flag_arr = ((val < low_thresh) +
-               ((val >= low_thresh) & (val < high_thresh)) * QCFlags.SUSPECT +
+                ((val >= low_thresh) & (val < high_thresh)) * QCFlags.SUSPECT +
                 (val >= high_thresh) * QCFlags.BAD_DATA)
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
-
 
 
 @add_qartod_ident(7, 'Rate of Change Test')
@@ -173,12 +172,12 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
     Defaults to a rate expressed in terms of seconds if not specified.
     """
     thresh_val_rate = (thresh_val if type(thresh_val) is pq.quantity.Quantity
-                                  else thresh_val / pq.second)
+                       else thresh_val / pq.second)
     flag_arr = np.ones_like(arr, dtype='uint8')
     # express rate of change as seconds, unit conversions will handle proper
     # comparison to threshold later
     roc = np.abs((np.diff(arr) / (np.diff(times) / np.timedelta64(1, 's')) /
-           pq.second))
+                  pq.second))
     exceed = np.insert(roc > thresh_val_rate, 0, False)
     if prev_qc is not None:
         flag_arr[0] = prev_qc[0]
@@ -188,30 +187,31 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
     flag_arr[exceed] = QCFlags.SUSPECT
     return flag_arr
 
+
 @add_qartod_ident(8, 'Flat Line Test')
 def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     """
     Check for repeated consecutively repeated values
-    within a tolerance eps
+    within a tolerance eps.
     """
     if not eps:
         raise ValueError("Must specify a tolerance value (`eps`).")
     if any([not isinstance(d, int) for d in [low_reps, high_reps]]):
-        raise TypeError("Both low and high repetitions must be type int")
+        raise TypeError("Both low and high repetitions must be type int.")
     flag_arr = np.ones_like(arr, dtype='uint8')
     if low_reps >= high_reps:
-        raise ValueError("Low reps must be less than high reps")
+        raise ValueError("Low reps must be less than high reps.")
     it = np.nditer(arr)
-    # consider moving loop to C for efficiency
+    # Consider moving loop to C for efficiency.
     for elem in it:
         idx = it.iterindex
-        # check if low repetitions threshold is hit
+        # Check if low repetitions threshold is hit.
         cur_flag = QCFlags.GOOD_DATA
         if idx >= low_reps:
             is_suspect = np.all(np.abs(arr[idx - low_reps:idx] - elem) < eps)
             if is_suspect:
                 cur_flag = QCFlags.SUSPECT
-            # since high reps is strictly greater than low reps, check it
+            # Since high reps is strictly greater than low reps, check it.
             if is_suspect and idx >= high_reps:
                 is_bad = np.all(np.abs(arr[idx - high_reps:idx - low_reps]
                                        - elem) < eps)
@@ -245,7 +245,10 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
     flag_arr = np.empty(arr.shape, dtype='uint8')
     flag_arr.fill(QCFlags.UNKNOWN)
 
-    assert min_var_fail <= min_var_warn, "The minimum failure must be less than or equal to the minimum warning"
+    if not min_var_fail <= min_var_warn:
+        msg = ("The minimum failure ({}) must be less than or equal to the "
+               "minimum warning ({})").format
+        raise ValueError(msg(min_var_fail, min_var_warn))
 
     if time_range[0] is not None:
         if time_range[1] is not None:
@@ -277,21 +280,23 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
         flag_arr[time_idx] = QCFlags.GOOD_DATA
     return flag_arr
 
+
 def qc_compare(vectors):
-    '''
-    Returns an array of flags that represent the aggregate of all the vectors
-    '''
+    """
+    Returns an array of flags that represent the aggregate of all the vectors.
+    """
     shapes = [v.shape[0] for v in vectors]
-    # Assert that all of the vectors are the same size
+    # Assert that all of the vectors are the same size.
     assert all([s == shapes[0] for s in shapes])
     assert all([v.ndim == 1 for v in vectors])
 
     result = np.ones_like(vectors[0]) * QCFlags.MISSING
-    priorities = [QCFlags.MISSING, QCFlags.UNKNOWN, QCFlags.GOOD_DATA, QCFlags.SUSPECT, QCFlags.BAD_DATA]
+    priorities = [QCFlags.MISSING, QCFlags.UNKNOWN, QCFlags.GOOD_DATA,
+                  QCFlags.SUSPECT, QCFlags.BAD_DATA]
     # For each of the priorities in order, set the resultant array to the the
-    # flag where that flag exists in each of the vectors
+    # flag where that flag exists in each of the vectors.
     for p in priorities:
         for v in vectors:
-            idx = np.where(v==p)[0]
+            idx = np.where(v == p)[0]
             result[idx] = p
     return result
