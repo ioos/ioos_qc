@@ -1,24 +1,45 @@
+import os
 from setuptools import setup, find_packages
-from ioos_qartod import __version__
 
-packages = find_packages()
+
+def extract_version(module='ioos_qartod'):
+    version = None
+    fdir = os.path.dirname(__file__)
+    fnme = os.path.join(fdir, module, '__init__.py')
+    with open(fnme) as fd:
+        for line in fd:
+            if (line.startswith('__version__')):
+                _, version = line.split('=')
+                # Remove quotation characters.
+                version = version.strip()[1:-1]
+                break
+    return version
+
+rootpath = os.path.abspath(os.path.dirname(__file__))
+
+
+def read(*parts):
+    return open(os.path.join(rootpath, *parts), 'r').read()
 
 with open('requirements.txt') as f:
-    reqs = [line.strip() for line in f]
-with open('README.md') as f:
-    readme = f.read()
+    require = f.readlines()
+install_requires = [r.strip() for r in require]
+long_description = '{}\n'.format(read('README.rst'))
+LICENSE = read('LICENSE.txt')
 
 setup(name='ioos_qartod',
-      version=__version__,
+      version=extract_version(),
       author='Ben Adams',
       author_email='BAdams@asascience.com',
       packages=find_packages(),
-      install_requires=reqs,
-      license='Apache 2.0',
+      install_requires=install_requires,
+      license=LICENSE,
       url='https://github.com/asascience-open/QARTOD',
       description='IOOS QARTOD Tests implemented in Python',
-      long_description=readme,
+      long_description=long_description,
       classifiers=['Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.4',
+                   'Programming Language :: Python :: 3.5',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Scientific/Engineering :: GIS',
                    'Topic :: Scientific/Engineering :: Information Analysis',
