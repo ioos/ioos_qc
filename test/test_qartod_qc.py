@@ -119,6 +119,17 @@ class QartodQcTest(unittest.TestCase):
         npt.assert_array_equal(qc.flat_line_check(vals, low_thresh, high_thresh,
                                eps), [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
 
+    def test_time_series_flat_line_check(self):
+        """
+        Make sure time series flat line check returns expected flag values.
+        """
+        # Using the default values for low_reps and high_thresh.
+        eps = 0.01
+        vals = np.array([1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2,
+                         4, 5, 3, 3.0001, 3.0005, 3.00001])
+        res = qc.time_series_flat_line_check(vals, eps=eps)
+        npt.assert_array_equal(res, [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
+
     def test_bad_reps(self):
         """Test that low_reps >= high_reps raises an error in flat line check"""
         self.assertRaises(ValueError, qc.flat_line_check, np.ones(12), 10, 6,

@@ -194,6 +194,8 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     Check for repeated consecutively repeated values
     within a tolerance eps
     """
+    if not eps:
+        raise ValueError("Must specify a tolerance value (`eps`).")
     if any([not isinstance(d, int) for d in [low_reps, high_reps]]):
         raise TypeError("Both low and high repetitions must be type int")
     flag_arr = np.ones_like(arr, dtype='uint8')
@@ -219,6 +221,17 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
+
+
+@add_qartod_ident(16, 'Time Series Flat Line Test')
+def time_series_flat_line_check(arr, low_reps=3, high_reps=5, eps=None, prev_qc=None):
+    """
+    Check for invariate observations and can be applied to all bulk wave
+    parameters.
+
+    """
+    return flat_line_check(arr, low_reps=low_reps, high_reps=high_reps,
+                           eps=eps, prev_qc=prev_qc)
 
 
 @add_qartod_ident(10, 'Attenuated Signal Test')
@@ -282,4 +295,3 @@ def qc_compare(vectors):
             idx = np.where(v==p)[0]
             result[idx] = p
     return result
-
