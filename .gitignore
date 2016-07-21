@@ -4,3 +4,4 @@
 .ropeproject
 dist/
 *.egg-info/
+.tox
