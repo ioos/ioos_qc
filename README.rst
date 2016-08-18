@@ -34,7 +34,7 @@ To run tests, import the QARTOD qc module::
 
 Refer to the Sphinx generated documentation for information on how to use the
 various QARTOD tests.  Presently, most of the tests reside within the
-`ioos_qartod.qc_tests.qc` module.
+``ioos_qartod.qc_tests.qc`` module.
 
 Generally, data should be passed as numpy arrays.
 
