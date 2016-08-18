@@ -23,6 +23,7 @@ def add_qartod_ident(qartod_id, qartod_test_name):
     """
     Adds attributes to the QARTOD functions corresponding to database fields.
     Mostly for internal use
+
     :param qartod_id: The QARTOD test identifier, as represented by an integer
     :param qartod_test_name: The test name as stored in the database.
     """
@@ -51,10 +52,11 @@ def set_prev_qc(flag_arr, prev_qc):
 def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
                        range_max=None):
     """
-    Checks that longitude and latitude are within reasonable bounds
-    defaulting to lon = [-180, 180] and lat = [-90, 90].
-    Optionally, check for a maximum range parameter in great circle distance
-    defaulting to meters which can also use a unit from the quantities library.
+    Checks that longitude and latitude are within reasonable bounds defaulting
+    to lon = [-180, 180] and lat = [-90, 90].  Optionally, check for a maximum
+    range parameter in great circle distance defaulting to meters which can
+    also use a unit from the quantities library.
+
     :param lon: Longitude expressed as a floating point value
     :param lat: Latitude expressed as a floating point value
     :bbox_arr: A 2x2 array expressed in (lon, lat) pairs
@@ -82,10 +84,12 @@ def location_set_check(lon, lat, bbox_arr=[[-180, -90], [180, 90]],
 def range_check(arr, sensor_span, user_span=None):
     """
     Given a 2-tuple of sensor minimum/maximum values, flag data outside of
-    range as bad data.  Optionally also flag data which falls outside of a
-    user defined range.
+    range as bad data.  Optionally also flag data which falls outside of a user
+    defined range.
+
     :param arr: An array of data
-    :param sensor_span: A 2-tuple consisting of the sensor limits.  Data exceeding this threshold will be flagged as bad
+    :param sensor_span: A 2-tuple consisting of the sensor limits.  Data
+                        exceeding this threshold will be flagged as bad
     :param user_span: An optional 2-tuple consisting of the expected data bounds. Data outside of these bounds but within sensor span will
                       be flagged as suspect.  If the parameter is not present or is None, then onlyh the sensor_span will be considered and no data can be flagged as suspect.
     """
@@ -110,9 +114,10 @@ def range_check(arr, sensor_span, user_span=None):
 
 
 def _process_time_chunk(value_pairs):
-    """Takes values and thresholds for climatologies
-       and returns whether passing or not, or returns UNKNOWN
-       if the threshold is None."""
+    """
+    Takes values and thresholds for climatologies and returns whether passing
+    or not, or returns UNKNOWN if the threshold is None.
+    """
     vals = value_pairs[0]
     threshold = value_pairs[1]
     if threshold is not None:
@@ -128,10 +133,10 @@ def climatology_check(time_series, clim_table, group_function):
     """
     Takes a pandas time series, a dict of 2-tuples with (low, high) thresholds
     as values, and a grouping function to group the time series into bins which
-    correspond to the climatology lookup table.  Flags data within
-    the threshold as good data and data lying outside of it as bad.  Data for
-    which climatology values do not exist (i.e. no entry to look up in the
-    dict) will be flagged as Unknown/not evaluated.
+    correspond to the climatology lookup table.  Flags data within the
+    threshold as good data and data lying outside of it as bad.  Data for which
+    climatology values do not exist (i.e. no entry to look up in the dict) will
+    be flagged as Unknown/not evaluated.
     """
     grouped_data = time_series.groupby(group_function)
     vals = [(g, clim_table.get(grp_val)) for (grp_val, g) in grouped_data]
@@ -153,10 +158,12 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     Values which do not exceed either threshold are flagged good,
     values which exceed the low threshold are flagged suspect,
     and values which exceed the high threshold are flagged bad.
+    
     The flag is set at point n-1.
+    
     :param arr: The input array of values
-    :low_thresh: The low value threshold
-    :high_threshold: The high threshold value
+    :param low_thresh: The low value threshold
+    :param high_threshold: The high threshold value
     :param prev_qc: An array of any previous QC values which were applied.  The first element is assumed to correspond to the position of the first element of arr
     """
     # Subtract the average from point at index n-1 and get the absolute value.
@@ -189,7 +196,9 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
       threshold = 2.5 / pq.hour
       # run the test with the new threshold
       results = rate_of_change_check(times, arr, threshold, old_qc)``
+
     Defaults to a rate expressed in terms of seconds if not specified.
+
     :param times: An array of times
     :param arr: An array of observed values
     :thresh_val: Either a float value representing a rate of change over time
@@ -215,8 +224,8 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
 @add_qartod_ident(8, 'Flat Line Test')
 def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     """
-    Check for repeated consecutively repeated values
-    within a tolerance eps.
+    Check for repeated consecutively repeated values within a tolerance eps.
+
     :param arr: An array of observed data
     :param low_reps: number of repetitions prior to data being flagged suspect.
     :param high_reps: number of repetitions prior to being flagged bad.
@@ -257,8 +266,8 @@ def time_series_flat_line_check(arr, low_reps=3, high_reps=5, eps=None, prev_qc=
     """
     Check for invariate observations and can be applied to all bulk wave
     parameters.
-    :param arr: An array of observed data
 
+    :param arr: An array of observed data
     """
     return flat_line_check(arr, low_reps=low_reps, high_reps=high_reps,
                            eps=eps, prev_qc=prev_qc)
@@ -271,6 +280,7 @@ def attenuated_signal_check(arr, times, min_var_warn, min_var_fail,
     """
     Check for near-flat-line conditions where the range of values (max-min) or
     standard deviation are below minimum thresholds.
+
     :param arr: The input array of observed values
     :param time: An array of timestamps corresponding to the observed values
     :param min_var_warn: range or standard deviation value prior to flagging values as suspect

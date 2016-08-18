@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+ioos_qartod/qc_tests/auxillary_checks.py
+'''
 import numpy as np
 
 
@@ -7,8 +12,8 @@ def check_timestamps(times, max_time_interval=None):
     chronological order, and optionally that time intervals between
     measurements do not exceed a value `max_time_interval`.  Note that this is
     not a QARTOD test, but rather a utility test to make sure times are in the
-    proper order and optionally do not have large gaps prior to processing
-    the data.
+    proper order and optionally do not have large gaps prior to processing the
+    data.
 
     """
     time_diff = np.diff(times)
