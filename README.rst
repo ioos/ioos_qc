@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/asascience-open/QARTOD.svg?branch=master
-   :target: https://travis-ci.org/asascience-open/QARTOD
+.. image:: https://travis-ci.org/ioos/qartod.svg?branch=master
+   :target: https://travis-ci.org/ioos/qartod
    :alt: build_status
 
 
@@ -21,7 +21,7 @@ Current tests are taken from the Wind, Water Level, Currents, In-Situ Temperatur
 Currently implemented tests are:
 
 - Gross Range Test
-- Attenuated Signal Test 
+- Attenuated Signal Test
 - Flat Line Test
 - Rate of Change Test
 
