@@ -150,7 +150,7 @@ def climatology_check(time_series, clim_table, group_function):
 
 
 @add_qartod_ident(6, 'Spike Test')
-def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
+def spike_check(times, arr, low_thresh, high_thresh, prev_qc=None):
     """
     Determine if there is a spike at data point n-1 by subtracting
     the midpoint of n and n-2 and taking the absolute value of this
@@ -158,14 +158,18 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     Values which do not exceed either threshold are flagged good,
     values which exceed the low threshold are flagged suspect,
     and values which exceed the high threshold are flagged bad.
-    
+    Data around large time gaps that failed the spike test will
+    be flagged as unknown.
+
     The flag is set at point n-1.
-    
+
+    :param times: An array of times
     :param arr: The input array of values
     :param low_thresh: The low value threshold
     :param high_threshold: The high threshold value
     :param prev_qc: An array of any previous QC values which were applied.  The first element is assumed to correspond to the position of the first element of arr
     """
+
     # Subtract the average from point at index n-1 and get the absolute value.
     if low_thresh >= high_thresh:
         raise ValueError("Low theshold value must be less than high threshold "
@@ -177,6 +181,16 @@ def spike_check(arr, low_thresh, high_thresh, prev_qc=None):
     flag_arr = ((val < low_thresh) +
                 ((val >= low_thresh) & (val < high_thresh)) * QCFlags.SUSPECT +
                 (val >= high_thresh) * QCFlags.BAD_DATA)
+
+    # Change flag to unknown for data around large time gaps that failed the spike test
+    dt = np.mean(np.diff(times))  # mean value time between data samples
+    # Get the indices of the gaps and the point after
+    # These are the affected indices
+    idx1 = np.where((np.diff(times) > dt) & (flag_arr[1:] != 1))[0]
+    idx2 = [idx + 1 for idx in idx1 if idx < len(times) - 1]
+    time_idx = sorted(np.concatenate((idx1, idx2), axis=0))
+    flag_arr[time_idx] = QCFlags.UNKNOWN
+
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)
     return flag_arr
@@ -206,6 +220,7 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
     """
     thresh_val_rate = (thresh_val if type(thresh_val) is pq.quantity.Quantity
                        else thresh_val / pq.second)
+
     flag_arr = np.ones_like(arr, dtype='uint8')
     # express rate of change as seconds, unit conversions will handle proper
     # comparison to threshold later

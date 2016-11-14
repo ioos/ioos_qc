@@ -82,17 +82,33 @@ class QartodQcTest(unittest.TestCase):
         """
         low_thresh, high_thresh = 25, 50
         arr = np.array([10, 12, 999.99, 13, 15, 40, 9, 9])
+        times = np.array([1, 2, 3, 4, 5, 6, 7, 8])  # Contiguous time array
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
         expected = [1, 4, 4, 4, 1, 3, 1, 1]
-        npt.assert_array_equal(qc.spike_check(arr, low_thresh, high_thresh),
+        npt.assert_array_equal(qc.spike_check(times, arr, low_thresh, high_thresh),
+                               expected)
+
+    def test_spike_detection_with_time_gaps(self):
+        """
+        Test to make ensure single value spike detection works properly with
+        large time gaps
+        """
+        low_thresh, high_thresh = 25, 50
+        arr = np.array([10, 12, 200, 190, 180, 170, 160, 150])
+        times = np.array([1, 2, 13, 14, 15, 16, 17, 18])  # Adds a gap
+        # First and last elements should always be good data, unless someone
+        # has set a threshold to zero.
+        expected = [1, 2, 2, 1, 1, 1, 1, 1]
+        npt.assert_array_equal(qc.spike_check(times, arr, low_thresh, high_thresh),
                                expected)
 
     def test_spike_invalid_threshold_raises_value_error(self):
         """Test that invalid ranges cause an exception to be raised."""
         low_thresh, high_thresh = 50, 50
         arr = np.array([10, 12, 999.99, 13, 15, 40, 9, 9])
-        self.assertRaises(ValueError, qc.spike_check, arr, low_thresh,
+        times = np.array([1, 2, 3, 4, 5, 6, 7, 8])  # Contiguous time array
+        self.assertRaises(ValueError, qc.spike_check, times, arr, low_thresh,
                           high_thresh)
 
     def test_rate_of_change(self):
