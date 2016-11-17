@@ -182,7 +182,7 @@ def spike_check(times, arr, low_thresh, high_thresh, prev_qc=None):
                 ((val >= low_thresh) & (val < high_thresh)) * QCFlags.SUSPECT +
                 (val >= high_thresh) * QCFlags.BAD_DATA)
 
-    # Change flag to unknown for data around large time gaps that failed the spike test
+    # Change flag to suspect for data around large time gaps that failed the spike test
     dt = np.percentile(np.diff(times), 75)  # 75th percentile value time between data samples
     # Get the indices of the gaps and the point after
     # These are the affected indices
