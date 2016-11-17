@@ -186,10 +186,10 @@ def spike_check(times, arr, low_thresh, high_thresh, prev_qc=None):
     dt = np.percentile(np.diff(times), 75)  # 75th percentile value time between data samples
     # Get the indices of the gaps and the point after
     # These are the affected indices
-    idx1 = np.where((np.diff(times) > dt) & (flag_arr[1:] != 1))[0]
+    idx1 = np.where((np.diff(times) > dt) & (flag_arr[1:] == QCFlags.BAD_DATA))[0]
     idx2 = [idx + 1 for idx in idx1 if idx < len(times) - 1]
     time_idx = sorted(np.concatenate((idx1, idx2), axis=0))
-    flag_arr[time_idx] = QCFlags.UNKNOWN
+    flag_arr[time_idx] = QCFlags.SUSPECT
 
     if prev_qc is not None:
         set_prev_qc(flag_arr, prev_qc)

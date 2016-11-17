@@ -99,7 +99,7 @@ class QartodQcTest(unittest.TestCase):
         times = np.array([1, 2, 13, 14, 15, 16, 17, 18])  # Adds a gap
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
-        expected = [1, 2, 2, 1, 1, 1, 1, 1]
+        expected = [1, 3, 3, 1, 1, 1, 1, 1]
         npt.assert_array_equal(qc.spike_check(times, arr, low_thresh, high_thresh),
                                expected)
 
