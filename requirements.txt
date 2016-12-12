@@ -1,5 +1,5 @@
-numpy
-pandas
+numpy==1.11.1
+pandas==0.18.0
+# no tagged versions for quantities
 quantities
-pyproj
-nose
+pyproj==1.9.5.1
