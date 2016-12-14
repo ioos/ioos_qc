@@ -132,6 +132,12 @@ class QartodQcTest(unittest.TestCase):
         result_hr = qc.rate_of_change_check(times_hr, arr, thresh_val_hr,
                                             prev_qc)
         npt.assert_array_equal(expected, result_hr)
+        times = np.array([], dtype=np.datetime64)
+        arr = np.array([])
+        expected = np.array([])
+        result = qc.rate_of_change_check(times, arr, thresh_val)
+        npt.assert_array_equal(result, expected)
+
 
     def test_flat_line_check(self):
         """Make sure flat line check returns expected flag values."""
@@ -143,6 +149,11 @@ class QartodQcTest(unittest.TestCase):
         npt.assert_array_equal(qc.flat_line_check(vals, low_thresh,
                                                   high_thresh, eps),
                                [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
+        # test empty array - should return empty result
+        arr = np.array([])
+        expected = np.array([])
+        result = qc.flat_line_check(arr, low_thresh, high_thresh, eps)
+        npt.assert_array_equal(expected, result)
 
     def test_time_series_flat_line_check(self):
         """

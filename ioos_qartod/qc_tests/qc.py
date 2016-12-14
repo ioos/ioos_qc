@@ -227,10 +227,13 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
     roc = np.abs((np.diff(arr) / (np.diff(times) / np.timedelta64(1, 's')) /
                   pq.second))
     exceed = np.insert(roc > thresh_val_rate, 0, False)
-    if prev_qc is not None:
-        flag_arr[0] = prev_qc[0]
-    else:
-        flag_arr[0] = QCFlags.UNKNOWN
+    # we must some elements to apply the previous qc to, otherwise
+    # don't do anything
+    if arr.size > 0:
+        if prev_qc is not None:
+            flag_arr[0] = prev_qc[0]
+        else:
+            flag_arr[0] = QCFlags.UNKNOWN
 
     flag_arr[exceed] = QCFlags.SUSPECT
     return flag_arr
@@ -254,6 +257,11 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
     flag_arr = np.ones_like(arr, dtype='uint8')
     if low_reps >= high_reps:
         raise ValueError("Low reps must be less than high reps.")
+    # if the flag array is empty, just return the empty array.
+    # In numpy >= 1.11.2, numpy.nditer will throw a ValueError if you try
+    # to pass it an empty array, so prevent this here.
+    if arr.size == 0:
+        return flag_arr
     it = np.nditer(arr)
     # Consider moving loop to C for efficiency.
     for elem in it:
