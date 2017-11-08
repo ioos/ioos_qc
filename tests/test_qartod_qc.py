@@ -138,7 +138,6 @@ class QartodQcTest(unittest.TestCase):
         result = qc.rate_of_change_check(times, arr, thresh_val)
         npt.assert_array_equal(result, expected)
 
-
     def test_flat_line_check(self):
         """Make sure flat line check returns expected flag values."""
         low_thresh = 3

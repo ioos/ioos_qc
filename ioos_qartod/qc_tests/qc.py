@@ -277,8 +277,9 @@ def flat_line_check(arr, low_reps, high_reps, eps, prev_qc=None):
                 cur_flag = QCFlags.SUSPECT
             # Since high reps is strictly greater than low reps, check it.
             if is_suspect and idx >= high_reps:
-                is_bad = np.all(np.abs(arr[idx - high_reps:idx - low_reps]
-                                       - elem) < eps)
+                is_bad = np.all(
+                    np.abs(arr[idx - high_reps:idx - low_reps] - elem) < eps
+                )
                 if is_bad:
                     cur_flag = QCFlags.BAD_DATA
         flag_arr[idx] = cur_flag
