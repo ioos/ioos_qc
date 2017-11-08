@@ -1,0 +1,30 @@
+package:
+  name: ioos_qartod
+  version: "0.0.3"
+
+source:
+  path: ../
+
+build:
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - numpy
+    - pandas
+    - quantities
+    - pyproj
+
+test:
+  imports:
+    - ioos_qartod
+
+about:
+  home: https://github.com/ioos/qartod
+  license: Apache 2.0
+  summary: 'Collection of utilities, scripts and tests to assist in automated quality assurance.'
