@@ -3,19 +3,81 @@ language: python
 sudo: false
 
 env:
-    - CONDA="python=2.7"
-    - CONDA="python=3.4"
-    - CONDA="python=3.5"
+  global:
+    - secure: "GDYnimrJ/PzR0XPRLF4Z0iVq3G3X4CDo207abGZv32JzPVQ60/dKAZVMrO1Ml2UbNM3cH9DoMIcmpu6C39xWkW1dydtIS1RbXM1u/qiNJt6jmjOdLqtcS93RjP7OVtuUcu0Il6LndpnKvj5x0EYNP3e4Q0QnAK1TidGUC05l/oOxdzGheHPjJP4FxdCpWVyVeFN+Ls4vui6RmhDQYCbp79Pa8l1LB64Da4mGvSuNhhMPaqRfPbTXhkXlUBE4cTE37L9aQ883aBr716c3TmcykSinVGnJcvlI3ZaLjEoSpL3VKcLSCVk4wcFrA0O7DUi40XRMsMfMDZbdfkqCBd5NHAF5qDt1S0Hz40Ut132IQa/727ogMgbZzNNGYhnIcDD+OSWK5xmT5KSvDL7DLFBd6Uoay4uCw7E8b9VsjUmch2SS7MbHIWHAOYeQO8lI4MDDf2L+UqjENyS97kk+2I6cKd4b+iYZO2PZ8Ktb/2gCCsx2fHzZVl8FpsTKI/gQIesFo3uMqHRJ7tE/G4NqH1GPaphgXnuY+tlZ6ZBO+frsjqeo6P1LQy3PhmBsR2K+z+75spTJxNAO/Tfz4lDEl2/h2zVWv60IS3+rZoMEodxVP+N1+/QfGo3SNqqH+2oYYp3nD3H3zbSfoih49dsl2wQqqNMr3eyye0rFpWLCCKqeAY0="
+
+matrix:
+  fast_finish: true
+  include:
+    - python: 3.5
+      env: TEST_TARGET=default
+    - python: 3.6
+      env: TEST_TARGET=default
+    - python: 3.6
+      env: TEST_TARGET=coding_standards
+    - python: 3.6
+      env: TEST_TARGET=docs
+  allow_failures:
+    - python: 3.6
+      env: TEST_TARGET=coding_standards
+    - python: 3.6
+      env: TEST_TARGET=docs
 
 before_install:
-    - wget http://bit.ly/miniconda -O miniconda.sh
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - conda update --yes --all
-    - conda config --add channels conda-forge --force
-    - travis_retry conda create --yes -n TEST $CONDA --file requirements.txt
-    - source activate TEST
-    - travis_retry conda install --yes nose
+  # Install miniconda
+  # -----------------
+  - export CONDA_BASE=https://repo.continuum.io/miniconda/Miniconda3
+  - export MINICONDA_VERSION=latest
+  - wget ${CONDA_BASE}-${MINICONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+
+  # Create the basic testing environment
+  # ------------------------------------
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --set show_channel_urls True
+  - conda config --add create_default_packages pip
+  - conda update --quiet conda
+
+  # Add 3rd party channels
+  # ------------------------------------
+  - conda config --add channels conda-forge
+  - conda config --add channels axiom-data-science
+
+  # Create our environment
+  # ------------------------------------
+  - ENV_NAME='test-environment'
+  - conda create --quiet -n $ENV_NAME python=$TRAVIS_PYTHON_VERSION
+  - source activate $ENV_NAME
+
+  # Install testing requirements
+  # ------------------------------------
+  - conda install --file requirements.txt --file tests/requirements.txt
+  - conda list --export
+
+# Test source distribution.
+install:
+  - python setup.py sdist && version=$(python setup.py --version) && pushd dist && pip install ioos_qartod-${version}.tar.gz && popd
 
 script:
-    - nosetests -w test
+  - set -e
+
+  - if [[ $TEST_TARGET == 'default' ]]; then
+      py.test --disable-warnings ;
+    fi
+
+  - if [[ $TEST_TARGET == "coding_standards" ]]; then
+      py.test --disable-warnings --pep8 -m pep8 ;
+      py.test --disable-warnings --flakes -m flakes ;
+    fi
+
+  - if [[ $TEST_TARGET == 'docs' ]]; then
+      ./docs/deploy.sh ;
+    fi
+
+after_success:
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ] && [ "$TEST_TARGET" == "default" ]; then
+      conda install -n root conda-build anaconda-client ;
+      conda build conda-recipe --python $TRAVIS_PYTHON_VERSION ;
+      anaconda -t $ANACONDA_TOKEN upload --force -u axiom-data-science $HOME/miniconda/**/ioos_qartod-core-*.tar.bz2 ;
+    fi

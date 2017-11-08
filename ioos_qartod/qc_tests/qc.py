@@ -204,12 +204,15 @@ def rate_of_change_check(times, arr, thresh_val, prev_qc=None):
     suspect.  It is up to the test operator to determine an appropriate
     threshold value for the absolute difference not to exceed.  Threshold may
     be expressed as a python quantities unit.  For example:
-    ``import quantities as pq``
+
+      ``
+      import quantities as pq
       # more code ...
       # threshold of 2.5 per hour
       threshold = 2.5 / pq.hour
       # run the test with the new threshold
-      results = rate_of_change_check(times, arr, threshold, old_qc)``
+      results = rate_of_change_check(times, arr, threshold, old_qc)
+      ``
 
     Defaults to a rate expressed in terms of seconds if not specified.
 
