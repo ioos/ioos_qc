@@ -79,5 +79,5 @@ after_success:
   - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ] && [ "$TEST_TARGET" == "default" ]; then
       conda install -n root conda-build anaconda-client ;
       conda build conda-recipe --python $TRAVIS_PYTHON_VERSION ;
-      anaconda -t $ANACONDA_TOKEN upload --force -u axiom-data-science $HOME/miniconda/**/ioos_qartod-core-*.tar.bz2 ;
+      anaconda -t $ANACONDA_TOKEN upload --force -u axiom-data-science $HOME/miniconda/**/ioos_qartod-*.tar.bz2 ;
     fi
