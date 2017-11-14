@@ -1,9 +1,31 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
-ioos_qartod/qc_tests/auxillary_checks.py
-'''
 import numpy as np
+from typing import Union
+
+
+def isfixedlength(lst : Union[list, tuple],
+                  length : int
+                  ) -> bool:
+    if not isinstance(lst, (list, tuple)):
+        raise ValueError('Required: list/tuple, Got: {}'.format(type(lst)))
+
+    if len(lst) != length:
+        raise ValueError(
+            'Incorrect list/tuple length for {}. Required: {}, Got: {}'.format(
+                lst,
+                length,
+                len(lst)
+            )
+        )
+
+    return True
+
+
+def isnan(v):
+    return (
+        v is None or
+        v is np.nan or
+        v is np.ma.masked
+    )
 
 
 def check_timestamps(times, max_time_interval=None):

@@ -1,6 +1,8 @@
-import numpy as np
-from ioos_qartod.qc_tests import auxillary_checks
 import unittest
+
+import numpy as np
+
+from ioos_qc import utils
 
 
 class AuxillaryCheckTest(unittest.TestCase):
@@ -12,17 +14,16 @@ class AuxillaryCheckTest(unittest.TestCase):
     def test_bad_time_sorting(self):
         # Simply reversing the order ought to fail the sort check.
         reversed_times = self.times[::-1]
-        self.assertFalse(auxillary_checks.check_timestamps(reversed_times))
+        self.assertFalse(utils.check_timestamps(reversed_times))
 
     def test_bad_time_repeat(self):
         """Check that repeated timestamps are picked up."""
         repeated = np.concatenate([np.repeat(self.times[0], 3),
                                    self.times[3:]])
-        self.assertFalse(auxillary_checks.check_timestamps(repeated))
+        self.assertFalse(utils.check_timestamps(repeated))
 
     def test_bad_interval(self):
         """Check that bad time intervals return false."""
         # Intentionally set a small interval (3 min) to fail.
         interval = np.timedelta64(3, 'm')
-        self.assertFalse(auxillary_checks.check_timestamps(self.times,
-                                                           interval))
+        self.assertFalse(utils.check_timestamps(self.times, interval))

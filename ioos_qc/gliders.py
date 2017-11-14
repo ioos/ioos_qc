@@ -4,8 +4,7 @@ ioos_qartod/qc_tests/gliders.py
 '''
 
 import numpy as np
-
-from ioos_qartod.qc_tests.qc import QCFlags
+from ioos_qc.qartod import QartodFlags
 
 
 def pressure_check(pressure):
@@ -16,7 +15,7 @@ def pressure_check(pressure):
     :param numpy.ndarray pressure:
     '''
     delta = np.diff(pressure)
-    flags = np.ones_like(pressure, dtype='uint8') * QCFlags.GOOD_DATA
+    flags = np.ones_like(pressure, dtype='uint8') * QartodFlags.GOOD
 
     # Correct for downcast vs upcast by flipping the sign if it's decreasing
     sign = np.sign(np.mean(delta))
@@ -24,6 +23,6 @@ def pressure_check(pressure):
         delta = sign * delta
 
     flag_idx = np.where(delta <= 0)[0] + 1
-    flags[flag_idx] = QCFlags.SUSPECT
+    flags[flag_idx] = QartodFlags.SUSPECT
 
     return flags

@@ -2,11 +2,11 @@
 '''
 test/test_glider_checks.py
 '''
+import unittest
 
 import numpy as np
 import numpy.testing as npt
-from ioos_qartod.qc_tests import gliders
-import unittest
+from ioos_qc import gliders
 
 
 class TestGliderChecks(unittest.TestCase):
