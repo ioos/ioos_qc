@@ -1,5 +1,5 @@
 package:
-  name: ioos_qartod
+  name: ioos_qc
   version: "0.0.3"
 
 source:
@@ -16,15 +16,13 @@ requirements:
   run:
     - python
     - numpy
-    - pandas
-    - quantities
-    - pyproj
+    - pygc
 
 test:
   imports:
-    - ioos_qartod
+    - ioos_qc
 
 about:
-  home: https://github.com/ioos/qartod
+  home: https://github.com/axiom-data-science/ioos_qc
   license: Apache 2.0
   summary: 'Collection of utilities, scripts and tests to assist in automated quality assurance.'

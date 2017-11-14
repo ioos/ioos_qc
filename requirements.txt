@@ -1,5 +1,2 @@
 numpy
-pandas
-quantities
-pyproj
 pygc

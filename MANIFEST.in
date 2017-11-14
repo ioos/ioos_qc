@@ -1,3 +1,5 @@
 include *.rst
 include *.txt
-recursive-include ioos_qartod *.py
+include *.ini
+include VERSION
+recursive-include ioos_qc *.py
