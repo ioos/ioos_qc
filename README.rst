@@ -1,10 +1,9 @@
+IOOS QC
+=======
+
 .. image:: https://travis-ci.org/ioos/qartod.svg?branch=master
    :target: https://travis-ci.org/ioos/qartod
    :alt: build_status
-
-
-QARTOD
-======
 
 Collection of utilities, scripts and tests to assist in automated
 quality assurance and quality control for oceanographic datasets and
@@ -30,13 +29,10 @@ Running tests
 
 To run tests, import the QARTOD qc module::
 
-    from ioos_qartod import qc
+    from ioos_qc import qartod
 
 Refer to the Sphinx generated documentation for information on how to use the
-various QARTOD tests.  Presently, most of the tests reside within the
-``ioos_qartod.qc_tests.qc`` module.
-
-Generally, data should be passed as numpy arrays.
+various QARTOD tests.
 
 Caveats/Known Limitations
 -------------------------

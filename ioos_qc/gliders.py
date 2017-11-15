@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-'''
-ioos_qartod/qc_tests/gliders.py
-'''
-
 import numpy as np
 from ioos_qc.qartod import QartodFlags
 

@@ -1,19 +1,21 @@
-.. qartod documentation master file, created by
-   sphinx-quickstart on Thu Aug 18 10:56:41 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to qartod's documentation!
-==================================
-
-Contents:
+Welcome to the IOOS QC documentation!
+=====================================
 
 .. toctree::
    :maxdepth: 2
 
-   examples/index
-   code/index
+   readme
+   installation
    resources
+
+
+API documentation
+=================
+
+.. toctree::
+   :maxdepth: 4
+
+   api/modules
 
 
 
@@ -23,4 +25,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

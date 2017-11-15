@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = ioos_qartod
+SPHINXPROJ    = ioos_qc
 SOURCEDIR     = source
 BUILDDIR      = build
 
