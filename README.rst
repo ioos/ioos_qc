@@ -1,3 +1,4 @@
+=======
 IOOS QC
 =======
 
@@ -9,30 +10,40 @@ Collection of utilities, scripts and tests to assist in automated
 quality assurance and quality control for oceanographic datasets and
 observing systems.
 
-Please see our project documentation `QARTOD Documentation <https://ioos.github.io/qartod/>`_
+Please see the `IOOS QC project documentation <https://axiom-data-science.github.io/ioos_qc/>`_ for additional information.
 
 Available Tests
 ---------------
 
-Current tests refer to the `QARTOD manuals <https://ioos.noaa.gov/project/qartod/>`_
-Current tests are taken from the Wind, Water Level, Currents, In-Situ Temperature and Salinity QARTOD Manuals
+QARTOD
+======
+
+Current tests refer to the `QARTOD manuals <https://ioos.noaa.gov/project/qartod/>`_ and are taken from the Wind, Water Level, Currents, In-Situ Temperature and Salinity manuals
 
 Currently implemented tests are:
 
-- Gross Range Test
-- Attenuated Signal Test
-- Flat Line Test
-- Rate of Change Test
+- `Location Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.location_test>`_
+- `Gross Range Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.gross_range_test>`_
+- `Climatology Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.climatology_test>`_
+- `Spike Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.spike_test>`_
+- `Rate of Change Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.rate_of_change_test>`_
+- `Flat Line Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.flat_line_test>`_
+- `Attenuated Signal Test <https://axiom-data-science.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.attenuated_signal_test>`_
 
 Running tests
 -------------
 
-To run tests, import the QARTOD qc module::
+To run tests, import the correct module::
 
     from ioos_qc import qartod
 
-Refer to the Sphinx generated documentation for information on how to use the
-various QARTOD tests.
+You can then run any test you would like::
+
+    qartod.location_test(...)
+    qartod.spike_test(...)
+    ...
+
+Refer to the `documentation <https://axiom-data-science.github.io/ioos_qc/>`_ for information on how to use the various tests.
 
 Caveats/Known Limitations
 -------------------------
