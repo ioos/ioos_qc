@@ -1,8 +1,8 @@
 IOOS QC
 =======
 
-.. image:: https://travis-ci.org/ioos/qartod.svg?branch=master
-   :target: https://travis-ci.org/ioos/qartod
+.. image:: https://travis-ci.org/axiom-data-science/ioos_qc.svg?branch=master
+   :target: https://travis-ci.org/axiom-data-science/ioos_qc
    :alt: build_status
 
 Collection of utilities, scripts and tests to assist in automated

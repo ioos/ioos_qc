@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# qartod documentation build configuration file, created by
+# ioos_qc documentation build configuration file, created by
 # sphinx-quickstart on Thu Aug 18 10:56:41 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -73,7 +73,7 @@ source_suffix = ['.rst']
 master_doc = 'index'
 
 # General information about the project.
-project = 'qartod'
+project = 'ioos_qc'
 copyright = '2017, IOOS'
 author = 'IOOS'
 
@@ -151,9 +151,9 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'description': 'A python framework for working with met-ocean data',
-    'github_user': 'ioos',
-    'github_repo': 'qartod',
+    'description': 'IOOS Quality Control tests implemented in Python',
+    'github_user': 'axiom-data-science',
+    'github_repo': 'ioos_qc',
     'github_button': 'true',
 }
 
@@ -163,7 +163,7 @@ html_theme_options = {
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = 'qartod v0.0.2'
+# html_title = 'ioos_qc v0.0.2'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
@@ -263,7 +263,7 @@ html_show_sourcelink = False
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'qartoddoc'
+htmlhelp_basename = 'ioos_qcdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -289,7 +289,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'qartod.tex', 'qartod Documentation',
+    (master_doc, 'ioos_qc.tex', 'ioos_qc Documentation',
      'IOOS', 'manual'),
 ]
 
@@ -333,8 +333,8 @@ latex_documents = [
 man_pages = [
     (
         master_doc,
-        'qartod',
-        'qartod Documentation',
+        'ioos_qc',
+        'ioos_qc Documentation',
         [author],
         1
     )
@@ -353,10 +353,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        'qartod',
-        'qartod Documentation',
+        'ioos_qc',
+        'ioos_qc Documentation',
         author,
-        'qartod',
+        'ioos_qc',
         'Collection of utilities, scripts and tests to assist in automated quality assurance and quality control for oceanographic datasets and observing systems.',
         'Miscellaneous'
     ),
