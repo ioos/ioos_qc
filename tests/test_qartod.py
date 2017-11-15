@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# coding=utf-8
 import unittest
 
 import numpy as np
@@ -101,8 +103,8 @@ class QartodGrossRangeTest(unittest.TestCase):
 
     def test_gross_range_check(self):
         """See if user and sensor ranges are picked up."""
-        sensor_span = (10, 50)
-        user_span = (20, 40)
+        fail_span = (10, 50)
+        suspect_span = (20, 40)
         vals = np.array([
             5, 10,               # Sensor range.
             15,                  # User range.
@@ -113,8 +115,8 @@ class QartodGrossRangeTest(unittest.TestCase):
         npt.assert_array_equal(
             qartod.gross_range_test(
                 inp=vals,
-                sensor_span=sensor_span,
-                user_span=user_span
+                fail_span=fail_span,
+                suspect_span=suspect_span
             ),
             np.ma.array([
                 4, 3,
@@ -129,28 +131,28 @@ class QartodGrossRangeTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             qartod.gross_range_test(
                 inp=np.array([5]),
-                sensor_span=10,
-                user_span=(1, 1)
+                fail_span=10,
+                suspect_span=(1, 1)
             )
 
         with self.assertRaises(ValueError):
             qartod.gross_range_test(
                 inp=np.array([5]),
-                sensor_span=(1, 1),
-                user_span=10
+                fail_span=(1, 1),
+                suspect_span=10
             )
 
         with self.assertRaises(ValueError):
             qartod.gross_range_test(
                 inp=np.array([5]),
-                sensor_span=(1, 1),
-                user_span=(2, 2)
+                fail_span=(1, 1),
+                suspect_span=(2, 2)
             )
 
     def test_gross_range_check_masked(self):
         """See if user and sensor ranges are picked up."""
-        sensor_span = (10, 50)
-        user_span = (20, 40)
+        fail_span = (10, 50)
+        suspect_span = (20, 40)
         vals = np.array([
             None,                # None
             10,                  # Sensor range.
@@ -162,8 +164,8 @@ class QartodGrossRangeTest(unittest.TestCase):
         npt.assert_array_equal(
             qartod.gross_range_test(
                 vals,
-                sensor_span,
-                user_span
+                fail_span,
+                suspect_span
             ),
             np.ma.array([
                 9,
@@ -342,7 +344,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         expected = np.array([1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1])
         result = qartod.rate_of_change_test(
             inp=arr,
-            std_deviation=2,
+            deviation=2,
             num_deviations=2
         )
         npt.assert_array_equal(expected, result)
@@ -351,7 +353,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         expected = np.array([1, 1, 1, 3, 1, 1, 1, 3, 1, 1])
         result = qartod.rate_of_change_test(
             inp=arr,
-            std_deviation=20,
+            deviation=20,
             num_deviations=3
         )
         npt.assert_array_equal(expected, result)
@@ -360,7 +362,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         expected = np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
         result = qartod.rate_of_change_test(
             inp=arr,
-            std_deviation=0.5,
+            deviation=0.5,
             num_deviations=1
         )
         npt.assert_array_equal(expected, result)

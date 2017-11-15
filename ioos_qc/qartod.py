@@ -1,7 +1,8 @@
+#!/usr/bin/env python
+# coding=utf-8
 import numpy as np
-from decimal import Decimal
 from collections import namedtuple
-from typing import Union, Sequence, Tuple
+from typing import Sequence, Tuple
 
 from pygc import great_distance
 
@@ -13,7 +14,7 @@ from ioos_qc.utils import (
 
 class QartodFlags(object):
     """Primary flags for QARTOD."""
-    # Don't subclass Enum since values don't fit nicely into a numpy array.
+
     GOOD = 1
     UNKNOWN = 2
     SUSPECT = 3
@@ -21,16 +22,19 @@ class QartodFlags(object):
     MISSING = 9
 
 
-N = Union[int, float, Decimal]
+N = float  # Union[int, float, Decimal]
 span = namedtuple('Span', 'minv maxv')
 
 
-def qartod_compare(vectors : Sequence[Sequence[N]]) -> np.ma.MaskedArray:
-    """
-    Returns an array of flags that represent the aggregate of all the vectors.
+def qartod_compare(vectors : Sequence[Sequence[N]]
+                   ) -> np.ma.MaskedArray:
+    """Aggregates an array of glags by precedence into a single array.
 
-    :param vectors: An array of arrays of flags of uniform length
-    :returns: An array of aggregated flag data
+    Args:
+        vectors: An array of uniform length arrays representing individual flags
+
+    Returns:
+        A masked array of aggregated flag data.
     """
     shapes = [v.shape[0] for v in vectors]
     # Assert that all of the vectors are the same size.
@@ -58,27 +62,31 @@ def qartod_compare(vectors : Sequence[Sequence[N]]) -> np.ma.MaskedArray:
 
 def location_test(lon : Sequence[N],
                   lat : Sequence[N],
-                  bbox : Tuple[N, N, N, N] = None,
+                  bbox : Tuple[N, N, N, N] = (-180, -90, 180, 90),
                   range_max : N = None
                   ) -> np.ma.core.MaskedArray:
-    """
+    """Checks that a location is within reasonable bounds.
+
     Checks that longitude and latitude are within reasonable bounds defaulting
     to lon = [-180, 180] and lat = [-90, 90].  Optionally, check for a maximum
     range parameter in great circle distance defaulting to meters which can
-    also use a unit from the quantities library.
+    also use a unit from the quantities library. Missing and masked data is
+    flagged as UNKNOWN.
 
-    :param lon: Longitude expressed as a floating point value
-    :param lat: Latitude expressed as a floating point value
-    :bbox: A length 4 array expressed in (minx, miny, maxx, maxy)
-    :range_max: Maximum range expressed in terms of geodesic curve distance.  Defaults to units of meters
+    Args:
+        lon: Longitudes as a numeric numpy array or a list of numbers.
+        lat: Latitudes as a numeric numpy array or a list of numbers.
+        bbox: A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
+        range_max: Maximum allowed range expressed in geodesic curve distance (meters).
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
     """
 
     bboxnt = namedtuple('BBOX', 'minx miny maxx maxy')
     if bbox is not None:
         assert isfixedlength(bbox, 4)
         bbox = bboxnt(*bbox)
-    else:
-        bbox = bboxnt(-180, -90, 180, 90)
 
     lat = np.ma.masked_invalid(np.array(lat, dtype=np.float64))
     lon = np.ma.masked_invalid(np.array(lon, dtype=np.float64))
@@ -128,12 +136,26 @@ def location_test(lon : Sequence[N],
 
 
 def gross_range_test(inp : Sequence[N],
-                     sensor_span : Tuple[N, N],
-                     user_span : Tuple[N, N] = None
+                     fail_span : Tuple[N, N],
+                     suspect_span : Tuple[N, N] = None
                      ) -> np.ma.core.MaskedArray:
+    """Checks that values are within reasonable range bounds.
 
-    assert isfixedlength(sensor_span, 2)
-    sspan = span(*sorted(sensor_span))
+    Given a 2-tuple of minimum/maximum values, flag data outside of the given
+    range as FAIL data.  Optionally also flag data which falls outside of a user
+    defined range as SUSPECT. Missing and masked data is flagged as UNKNOWN.
+
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        fail_span: 2-tuple range which to flag outside data as FAIL.
+        suspect_span: 2-tuple range which to flag outside data as SUSPECT. [optional]
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
+
+    assert isfixedlength(fail_span, 2)
+    sspan = span(*sorted(fail_span))
 
     inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
     # Save original shape
@@ -145,9 +167,9 @@ def gross_range_test(inp : Sequence[N],
     # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING
 
-    if user_span is not None:
-        assert isfixedlength(user_span, 2)
-        uspan = span(*sorted(user_span))
+    if suspect_span is not None:
+        assert isfixedlength(suspect_span, 2)
+        uspan = span(*sorted(suspect_span))
         if uspan.minv < sspan.minv or uspan.maxv > sspan.maxv:
             raise ValueError('User span range may not exceed sensor span')
         # Flag suspect outside of user span
@@ -219,6 +241,19 @@ def climatology_test(config : ClimatologyConfig,
                      vinp : Sequence[N],
                      zinp : Sequence[N],
                      ) -> np.ma.core.MaskedArray:
+    """Checks that values are within reasonable range bounds and flags as SUSPECT.
+
+    Data for which no ClimatologyConfig member exists is marked as UNKNOWN.
+
+    Args:
+        config: A ClimatologyConfig object.
+        tinp: Time data as a numpy array of dtype `datetime64`.
+        vinp: Input data as a numeric numpy array or a list of numbers.
+        zinp: Z (depth) data as a numeric numpy array or a list of numbers.
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
 
     tinp = np.array(tinp)
     vinp = np.ma.masked_invalid(np.array(vinp, dtype=np.float64))
@@ -253,6 +288,25 @@ def climatology_test(config : ClimatologyConfig,
 def spike_test(inp : Sequence[N],
                thresholds : Tuple[N, N]
                ) -> np.ma.core.MaskedArray:
+    """Check for spikes by checking neigboring data against thresholds
+
+    Determine if there is a spike at data point n-1 by subtracting
+    the midpoint of n and n-2 and taking the absolute value of this
+    quantity, and checking if it exceeds a a low or high threshold.
+    Values which do not exceed either threshold are flagged GOOD,
+    values which exceed the low threshold are flagged SUSPECT,
+    and values which exceed the high threshold are flagged FAIL.
+    Missing and masked data is flagged as UNKNOWN.
+
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        thresholds: 2-tuple threshold range.  The lower number will always
+            represent the SUSPECT threshold value and the higher number will
+            always represent the FAIL threshold value.
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
 
     assert isfixedlength(thresholds, 2)
     thresholds = span(*sorted([ abs(x) for x in thresholds] ))
@@ -288,9 +342,28 @@ def spike_test(inp : Sequence[N],
 
 
 def rate_of_change_test(inp : Sequence[N],
-                        std_deviation : N,
+                        deviation : N,
                         num_deviations : int = 3
                         ) -> np.ma.core.MaskedArray:
+    """Checks the difference of neighboring values against N number of standard deviations.
+
+    Checks the first order difference of a series of values to see if
+    there are any values exceeding a standard deviation threshold defined
+    by the inputs.  These are then marked as SUSPECT.  It is up to the test operator
+    to determine an appropriate threshold value for the absolute difference not to
+    exceed. Threshold are expressed as a standard deviation threshold and a factor
+    controlling how many of the thresholds to tolerate before flagging.
+    Missing and masked data is flagged as UNKNOWN.
+
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        deviation: The number to multiply by `num_deviations` to get the threshold value.
+        num_deviations: The number to multiple by `deviation` to get the threshold value.
+            Defaults to 3.
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
 
     inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
     # Save original shape
@@ -308,10 +381,10 @@ def rate_of_change_test(inp : Sequence[N],
         diff
     )
 
-    deviation = std_deviation * num_deviations
+    final_threshold = deviation * num_deviations
     # If n - n-1 is greater than the set deviations, SUSPECT test
     with np.errstate(invalid='ignore'):
-        flag_arr[diff > deviation] = QartodFlags.SUSPECT
+        flag_arr[diff > final_threshold] = QartodFlags.SUSPECT
 
     # If the value is masked set the flag to MISSING
     flag_arr[diff.mask] = QartodFlags.MISSING
@@ -323,6 +396,23 @@ def flat_line_test(inp : Sequence[N],
                    counts : Tuple[int, int],
                    tolerance : N = 0
                    ) -> np.ma.MaskedArray:
+    """Check for consecutively repeated values within a tolerance.
+
+    Missing and masked data is flagged as UNKNOWN.
+
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        counts: 2-tuple representing the number of repetitions within `tolerance` to
+            allow before being flagged as SUSPECT or FAIL. The larger of the two
+            values is alwasy the SUSPECT threshold and the lower of the two numbers
+            is always the FAIL threshold.
+        tolerance: The tolerance that should be exceeded between consecutive values.
+            If the number consecutive values occuring that don't cross over `tolerance`
+            cross over either of the `counts` then the data will be flagged.
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
 
     def chunk(a, num):
         out = np.ma.masked_all(
@@ -372,6 +462,24 @@ def attenuated_signal_test(inp : Sequence[N],
                            threshold : Tuple[N, N],
                            check_type : str = 'std'
                            ) -> np.ma.MaskedArray:
+    """Check for near-flat-line conditions using a range or standard deviation.
+
+    Missing and masked data is flagged as UNKNOWN.
+
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        threshold: 2-tuple representing the minimum thresholds to use for SUSPECT
+            and FAIL checks. The smaller of the two values is used in the SUSPECT
+            tests and the greater of the two values is used in the FAIL tests.
+        check_type: Either 'std' (default) or 'range', depending on the type of check
+            you wish to perform.
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+        This array will always contain only a single unique value since all
+        input data is flagged together.
+    """
+
     assert isfixedlength(threshold, 2)
     threshold = span(*reversed(sorted(threshold)))
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-'''
-test/test_glider_checks.py
-'''
+# coding=utf-8
 import unittest
 
 import numpy as np

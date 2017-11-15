@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# coding=utf-8
 import numpy as np
 from typing import Union
+
+N = float  # Union[int, float, Decimal]
 
 
 def isfixedlength(lst : Union[list, tuple],
@@ -28,8 +32,10 @@ def isnan(v):
     )
 
 
-def check_timestamps(times, max_time_interval=None):
-    """
+def check_timestamps(times : np.ndarray,
+                     max_time_interval : N = None):
+    """Sanity checks for timestamp arrays
+
     Checks that the times supplied are in monotonically increasing
     chronological order, and optionally that time intervals between
     measurements do not exceed a value `max_time_interval`.  Note that this is
@@ -37,7 +43,12 @@ def check_timestamps(times, max_time_interval=None):
     proper order and optionally do not have large gaps prior to processing the
     data.
 
+    Args:
+        times: Input array of timestamps
+        max_time_interval: The interval between values should not exceed this
+            value. [optional]
     """
+
     time_diff = np.diff(times)
     sort_diff = np.diff(sorted(times))
     # Check if there are differences between sorted and unsorted, and then
