@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 import numpy as np
+from numbers import Real
 from collections import namedtuple
 from typing import Sequence, Tuple
 
@@ -22,7 +23,7 @@ class QartodFlags(object):
     MISSING = 9
 
 
-N = float  # Union[int, float, Decimal]
+N = Real
 span = namedtuple('Span', 'minv maxv')
 
 
