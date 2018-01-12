@@ -7,3 +7,4 @@ dist/
 .tox
 docs/build
 .cache/
+.anaconda
