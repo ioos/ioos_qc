@@ -1,3 +1,3 @@
 numpy
 pygc
-ruamel
+ruamel.yaml
