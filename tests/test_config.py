@@ -126,8 +126,6 @@ class ConfigRunTest(unittest.TestCase):
         qc = QcConfig(config)
         r = qc.run()
 
-        print(r)
-
         range_expected = np.array([3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3])
         npt.assert_array_equal(
             r['qartod']['gross_range_test'],
