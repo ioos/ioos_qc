@@ -217,7 +217,7 @@ class QartodClimatologyTest(unittest.TestCase):
         results = qartod.climatology_test(
             config=self.cc,
             tinp=times,
-            vinp=values,
+            inp=values,
             zinp=depths
         )
         npt.assert_array_equal(
@@ -247,7 +247,7 @@ class QartodClimatologyTest(unittest.TestCase):
         results = qartod.climatology_test(
             config=self.cc,
             tinp=times,
-            vinp=values,
+            inp=values,
             zinp=depths
         )
         npt.assert_array_equal(
@@ -287,7 +287,7 @@ class QartodClimatologyTest(unittest.TestCase):
         results = qartod.climatology_test(
             config=self.cc,
             tinp=times,
-            vinp=values,
+            inp=values,
             zinp=depths
         )
         npt.assert_array_equal(

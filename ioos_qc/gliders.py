@@ -4,15 +4,15 @@ import numpy as np
 from ioos_qc.qartod import QartodFlags
 
 
-def pressure_check(pressure):
+def pressure_check(inp):
     '''
     Returns an array of flag values where each input is flagged with SUSPECT if
     it does not monotonically increase
 
-    :param numpy.ndarray pressure:
+    :param numpy.ndarray inp:
     '''
-    delta = np.diff(pressure)
-    flags = np.ones_like(pressure, dtype='uint8') * QartodFlags.GOOD
+    delta = np.diff(inp)
+    flags = np.ones_like(inp, dtype='uint8') * QartodFlags.GOOD
 
     # Correct for downcast vs upcast by flipping the sign if it's decreasing
     sign = np.sign(np.mean(delta))

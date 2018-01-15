@@ -4,32 +4,31 @@ import pprint
 import logging
 from pathlib import Path
 from copy import deepcopy
+from inspect import signature
 from importlib import import_module
 
 from ruamel import yaml
-
-_FLAG_FIRST = object()
 
 L = logging.getLogger(__name__)
 
 
 class QcConfig(object):
 
-    def __init__(self, path_or_yaml):
-        if isinstance(path_or_yaml, dict):
-            y = path_or_yaml
-        elif isinstance(path_or_yaml, str):
-            with open(path_or_yaml) as f:
+    def __init__(self, path_or_dict):
+        if isinstance(path_or_dict, dict):
+            y = path_or_dict
+        elif isinstance(path_or_dict, str):
+            with open(path_or_dict) as f:
                 y = yaml.load(f.read(), Loader=yaml.Loader)
-        elif isinstance(path_or_yaml, Path):
-            with path_or_yaml.open() as f:
+        elif isinstance(path_or_dict, Path):
+            with path_or_dict.open() as f:
                 y = yaml.load(f.read(), Loader=yaml.Loader)
         else:
             return ValueError('Input is not valid file path or YAMLObject')
 
         self.config = y
 
-    def run(self, *args, **testkwargs):
+    def run(self, **passedkwargs):
         """ Runs the tests that are defined in the config object.
             Returns a dictionary of the results as defined by the config
         """
@@ -45,9 +44,18 @@ class QcConfig(object):
                 if not hasattr(testpackage, testname):
                     L.warning('No test named "{}.{}" was found, skipping'.format(modu, testname))
                 else:
+                    # Get our own copy of the kwargs object so we can change it
+                    testkwargs = deepcopy(passedkwargs)
                     # Merges dicts
                     testkwargs = { **kwargs, **testkwargs }  # noqa
-                    results[modu][testname] = getattr(testpackage, testname)(*args, **testkwargs)  # noqa
+
+                    # Get the arguments that the test functions support
+                    runfunc = getattr(testpackage, testname)
+                    sig = signature(runfunc)
+                    valid_keywords = [ p.name for p in sig.parameters.values() if p.kind == p.POSITIONAL_OR_KEYWORD ]
+
+                    testkwargs = { k: v for k, v in testkwargs.items() if k in valid_keywords }
+                    results[modu][testname] = runfunc(**testkwargs)  # noqa
 
         return results
 

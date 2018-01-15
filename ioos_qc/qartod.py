@@ -3,7 +3,8 @@
 import numpy as np
 from numbers import Real
 from collections import namedtuple
-from typing import Sequence, Tuple
+from datetime import time, datetime, date
+from typing import Sequence, Tuple, Union, Dict
 
 from pygc import great_distance
 
@@ -27,9 +28,21 @@ N = Real
 span = namedtuple('Span', 'minv maxv')
 
 
+# Convert dates to datetime and leave datetimes alone. This is also reducing all
+# objects to second precision
+def mapdates(dates):
+    for d in dates:
+        if isinstance(d, date):
+            yield datetime.combine(d, time.min)
+        elif isinstance(d, np.datetime64):
+            yield d.astype(datetime)
+        else:
+            yield d
+
+
 def qartod_compare(vectors : Sequence[Sequence[N]]
                    ) -> np.ma.MaskedArray:
-    """Aggregates an array of glags by precedence into a single array.
+    """Aggregates an array of flags by precedence into a single array.
 
     Args:
         vectors: An array of uniform length arrays representing individual flags
@@ -219,6 +232,7 @@ class ClimatologyConfig(object):
             zspan : Tuple[N, N] = None) -> None:
 
         assert isfixedlength(tspan, 2)
+        tspan = mapdates(tspan)
         tspan = span(*sorted(tspan))
 
         assert isfixedlength(vspan, 2)
@@ -237,9 +251,9 @@ class ClimatologyConfig(object):
         )
 
 
-def climatology_test(config : ClimatologyConfig,
+def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
+                     inp : Sequence[N],
                      tinp : Sequence[N],
-                     vinp : Sequence[N],
                      zinp : Sequence[N],
                      ) -> np.ma.core.MaskedArray:
     """Checks that values are within reasonable range bounds and flags as SUSPECT.
@@ -247,7 +261,9 @@ def climatology_test(config : ClimatologyConfig,
     Data for which no ClimatologyConfig member exists is marked as UNKNOWN.
 
     Args:
-        config: A ClimatologyConfig object.
+        config: A ClimatologyConfig object or a list of dicts containing tuples
+            that can be used to create a ClimatologyConfig object. Dict should be composed of
+            keywords 'tspan' and 'vspan' as well as an optiona 'zspan'
         tinp: Time data as a numpy array of dtype `datetime64`.
         vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data as a numeric numpy array or a list of numbers.
@@ -256,31 +272,38 @@ def climatology_test(config : ClimatologyConfig,
         A masked array of flag values equal in size to that of the input.
     """
 
+    # Create a ClimatologyConfig object if one was not passed in
+    if not isinstance(config, ClimatologyConfig):
+        c = ClimatologyConfig()
+        for climate_config_dict in config:
+            c.add(**climate_config_dict)
+        config = c
+
     tinp = np.array(tinp)
-    vinp = np.ma.masked_invalid(np.array(vinp, dtype=np.float64))
+    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
     zinp = np.ma.masked_invalid(np.array(zinp, dtype=np.float64))
 
     # Save original shape
-    original_shape = vinp.shape
+    original_shape = inp.shape
 
     tinp = tinp.flatten()
-    vinp = vinp.flatten()
+    inp = inp.flatten()
     zinp = zinp.flatten()
 
     # Start with everything as passing (1)
-    flag_arr = np.ma.ones(vinp.size, dtype='uint8')
+    flag_arr = np.ma.ones(inp.size, dtype='uint8')
 
     # If the value is masked set the flag to MISSING
-    flag_arr[vinp.mask] = QartodFlags.MISSING
+    flag_arr[inp.mask] = QartodFlags.MISSING
 
-    for i, (tind, vind, zind) in enumerate(zip(tinp, vinp, zinp)):
+    for i, (tind, ind, zind) in enumerate(zip(tinp, inp, zinp)):
         minv, maxv = config.values(tind, zind)
         if minv is None or maxv is None:
             flag_arr[i] = QartodFlags.MISSING
         else:
             # Flag suspect outside of climatology span
             with np.errstate(invalid='ignore'):
-                if vind < minv or vind > maxv:
+                if ind < minv or ind > maxv:
                     flag_arr[i] = QartodFlags.SUSPECT
 
     return flag_arr.reshape(original_shape)
