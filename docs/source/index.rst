@@ -6,6 +6,7 @@ Welcome to the IOOS QC documentation!
 
    readme
    installation
+   usage
    resources
 
 
