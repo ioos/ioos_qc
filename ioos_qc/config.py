@@ -61,4 +61,8 @@ class QcConfig(object):
 
     def __str__(self):
         """ A human friendly representation of the tests that this QcConfig object defines. """
-        return pprint.pprint(self.config)
+        return str(self.config)
+
+    def __repr__(self):
+        """ A human friendly representation of the tests that this QcConfig object defines. """
+        return self.config
