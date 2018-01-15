@@ -113,6 +113,32 @@ class ConfigRunTest(unittest.TestCase):
             location_expected
         )
 
+    def test_with_values_in_config(self):
+
+        config = deepcopy(self.config)
+        config['qartod']['location_test'] = {
+            'bbox': [-100, -40, 100, 40],
+            'lat': [  -41,  -40, -39, 0, 39,  40,  41 ],
+            'lon': [ -101, -100, -99, 0, 99, 100, 101 ],
+        }
+        config['qartod']['gross_range_test']['inp'] = list(range(13))
+
+        qc = QcConfig(config)
+        r = qc.run()
+
+        print(r)
+
+        range_expected = np.array([3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3])
+        npt.assert_array_equal(
+            r['qartod']['gross_range_test'],
+            range_expected
+        )
+        location_expected = np.array([4, 1, 1, 1, 1, 1, 4])
+        npt.assert_array_equal(
+            r['qartod']['location_test'],
+            location_expected
+        )
+
 
 class ConfigClimatologyTest(unittest.TestCase):
 
