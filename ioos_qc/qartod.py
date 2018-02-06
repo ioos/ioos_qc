@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import logging
 import warnings
 import numpy as np
 from numbers import Real
@@ -13,6 +14,8 @@ from ioos_qc.utils import (
     isnan,
     isfixedlength
 )
+
+L = logging.getLogger(__name__)  # noqa
 
 
 class QartodFlags(object):

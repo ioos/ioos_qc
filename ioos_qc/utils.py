@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # coding=utf-8
-import numpy as np
+import logging
 from typing import Union
+from numbers import Real
 
-N = float  # Union[int, float, Decimal]
+import numpy as np
+
+N = Real
+L = logging.getLogger(__name__)  # noqa
 
 
 def isfixedlength(lst : Union[list, tuple],

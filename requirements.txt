@@ -1,3 +1,4 @@
+dask
 numpy>=1.14
 pygc
 ruamel.yaml

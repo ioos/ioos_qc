@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 # coding=utf-8
 import unittest
+import warnings
 
 import numpy as np
+import dask.array as da
 import numpy.testing as npt
 
 from ioos_qc import qartod as qartod
+
+import logging
+L = logging.getLogger('ioos_qc')
+L.setLevel(logging.INFO)
+L.addHandler(logging.StreamHandler())
 
 
 class QartodLocationTest(unittest.TestCase):
@@ -14,20 +21,29 @@ class QartodLocationTest(unittest.TestCase):
         """
         Ensure that longitudes and latitudes are within reasonable bounds.
         """
-        lon = np.array([  80.0, -78.5, 500.500])
-        lat = np.array([np.NaN,  50.0,   -60.0])
+        lon = [  80.0, -78.5, 500.500]
+        lat = [np.NaN,  50.0,   -60.0]
+
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([4, 1, 4])
         )
 
-        lon = np.array([  80.0, -78.5, 500.500])
-        lat = np.array([np.NaN,  50.0,   -60.0])
+        lon = np.array(lon)
+        lat = np.array(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([4, 1, 4])
         )
 
+        lon = da.from_array(lon, chunks=2)
+        lat = da.from_array(lat, chunks=2)
+        npt.assert_array_equal(
+            qartod.location_test(lon=lon, lat=lat),
+            np.ma.array([4, 1, 4])
+        )
+
+    def test_single_location_none(self):
         # Masked/None/NaN values return "UNKNOWN"
         lon = [None]
         lat = [None]
@@ -36,13 +52,21 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([9])
         )
 
-        lon = np.array([None])
-        lat = np.array([None])
+        lon = np.array(lon)
+        lat = np.array(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([9])
         )
 
+        lon = da.from_array(lon, chunks=2)
+        lat = da.from_array(lat, chunks=2)
+        npt.assert_array_equal(
+            qartod.location_test(lon=lon, lat=lat),
+            np.ma.array([9])
+        )
+
+    def test_single_location_nan(self):
         lon = [np.nan]
         lat = [np.nan]
         npt.assert_array_equal(
@@ -50,8 +74,16 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([9])
         )
 
-        lon = np.array([np.nan])
-        lat = np.array([np.nan])
+        lon = np.array(lon)
+        lat = np.array(lat)
+        npt.assert_array_equal(
+            qartod.location_test(lon=lon, lat=lat),
+            np.ma.array([9])
+        )
+
+        # Test dask nan input
+        lon = da.from_array(lon, chunks=2)
+        lat = da.from_array(lat, chunks=2)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([9])
@@ -82,6 +114,20 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([4, 1, 1, 4, 4])
         )
 
+        lon = np.asarray([80,   -78, -71, -79, 500], dtype=np.floating)
+        lat = np.asarray([None,  50,  59,  10, -60], dtype=np.floating)
+        npt.assert_array_equal(
+            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
+            np.ma.array([4, 1, 1, 4, 4])
+        )
+
+        lon = da.from_array(np.asarray([80,   -78, -71, -79, 500], dtype=np.floating), chunks=2)
+        lat = da.from_array(np.asarray([None,  50,  59,  10, -60], dtype=np.floating), chunks=2)
+        npt.assert_array_equal(
+            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
+            np.ma.array([4, 1, 1, 4, 4])
+        )
+
     def test_location_distance_threshold(self):
         """
         Tests a user defined distance threshold between successive points.
@@ -105,27 +151,40 @@ class QartodGrossRangeTest(unittest.TestCase):
         """See if user and sensor ranges are picked up."""
         fail_span = (10, 50)
         suspect_span = (20, 40)
-        vals = np.array([
+        vals = [
             5, 10,               # Sensor range.
             15,                  # User range.
             20, 25, 30, 35, 40,  # Valid
             45,                  # User range.
             51                   # Sensor range.
+        ]
+        result = np.ma.array([
+            4, 3,
+            3,
+            1, 1, 1, 1, 1,
+            3,
+            4
         ])
-        npt.assert_array_equal(
-            qartod.gross_range_test(
-                inp=vals,
-                fail_span=fail_span,
-                suspect_span=suspect_span
-            ),
-            np.ma.array([
-                4, 3,
-                3,
-                1, 1, 1, 1, 1,
-                3,
-                4
-            ])
-        )
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            inputs = [
+                vals,
+                np.array(vals, dtype=np.integer),
+                np.array(vals, dtype=np.floating),
+                da.from_array(np.array(vals, dtype=np.integer), chunks=2),
+                da.from_array(np.array(vals, dtype=np.floating), chunks=2)
+            ]
+
+        for i in inputs:
+            npt.assert_array_equal(
+                qartod.gross_range_test(
+                    inp=i,
+                    fail_span=fail_span,
+                    suspect_span=suspect_span
+                ),
+                result
+            )
 
     def test_gross_range_bad_input(self):
         with self.assertRaises(ValueError):
@@ -153,29 +212,43 @@ class QartodGrossRangeTest(unittest.TestCase):
         """See if user and sensor ranges are picked up."""
         fail_span = (10, 50)
         suspect_span = (20, 40)
-        vals = np.array([
+        vals = [
             None,                # None
             10,                  # Sensor range.
             15,                  # User range.
             20, 25, 30, 35, 40,  # Valid
             np.nan,              # np.nan
-            51                   # Sensor range.
+            51,                  # Sensor range.
+            np.ma.masked         # np.ma.masked
+        ]
+        result = np.ma.array([
+            9,
+            3,
+            3,
+            1, 1, 1, 1, 1,
+            9,
+            4,
+            9
         ])
-        npt.assert_array_equal(
-            qartod.gross_range_test(
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            inputs = [
                 vals,
-                fail_span,
-                suspect_span
-            ),
-            np.ma.array([
-                9,
-                3,
-                3,
-                1, 1, 1, 1, 1,
-                9,
-                4
-            ])
-        )
+                np.array(vals, dtype=np.floating),
+                da.from_array(np.array(vals, dtype=np.floating), chunks=2)
+            ]
+
+        for i in inputs:
+            npt.assert_array_equal(
+                qartod.gross_range_test(
+                    vals,
+                    fail_span,
+                    suspect_span
+                ),
+                result
+
+            )
 
 
 class QartodClimatologyTest(unittest.TestCase):
@@ -213,17 +286,25 @@ class QartodClimatologyTest(unittest.TestCase):
                 None
             )
         ]
+
         times, values, depths = zip(*tests)
-        results = qartod.climatology_test(
-            config=self.cc,
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results,
-            np.ma.array([1])
-        )
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.floating),
+            da.from_array(np.asarray(values, dtype=np.floating), chunks=2)
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array([1])
+            )
 
     def test_climatology_test_fail(self):
         tests = [
@@ -244,16 +325,23 @@ class QartodClimatologyTest(unittest.TestCase):
             ),
         ]
         times, values, depths = zip(*tests)
-        results = qartod.climatology_test(
-            config=self.cc,
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results,
-            np.ma.array([3, 1, 3])
-        )
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.floating),
+            da.from_array(np.asarray(values, dtype=np.floating), chunks=2)
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array([3, 1, 3])
+            )
 
     def test_climatology_test_depths(self):
         tests = [
@@ -284,16 +372,23 @@ class QartodClimatologyTest(unittest.TestCase):
             )
         ]
         times, values, depths = zip(*tests)
-        results = qartod.climatology_test(
-            config=self.cc,
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results,
-            np.ma.array([1, 1, 1, 3, 9])
-        )
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.floating),
+            da.from_array(np.asarray(values, dtype=np.floating), chunks=2)
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array([1, 1, 1, 3, 9])
+            )
 
 
 class QartodSpikeTest(unittest.TestCase):
@@ -304,18 +399,25 @@ class QartodSpikeTest(unittest.TestCase):
         """
         thresholds = (25, 50)
 
-        arr = np.array([10, 12, 999.99, 13, 15, 40, 9, 9])
+        arr = [10, 12, 999.99, 13, 15, 40, 9, 9]
 
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
         expected = [1, 4, 4, 4, 1, 3, 1, 1]
-        npt.assert_array_equal(
-            qartod.spike_test(
-                inp=arr,
-                thresholds=thresholds
-            ),
-            expected
-        )
+
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            npt.assert_array_equal(
+                qartod.spike_test(
+                    inp=i,
+                    thresholds=thresholds
+                ),
+                expected
+            )
 
     def test_spike_masked(self):
         """
@@ -328,68 +430,96 @@ class QartodSpikeTest(unittest.TestCase):
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
         expected = [1, 4, 4, 4, 1, 3, 1, 1, 9, 9, 4, 4, 4, 9]
-        npt.assert_array_equal(
-            qartod.spike_test(
-                inp=arr,
-                thresholds=thresholds
-            ),
-            expected
-        )
+
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            npt.assert_array_equal(
+                qartod.spike_test(
+                    inp=i,
+                    thresholds=thresholds
+                ),
+                expected
+            )
 
 
 class QartodRateOfChangeTest(unittest.TestCase):
 
     def test_rate_of_change(self):
-        arr = np.array([2, 10, 2.1, 3, 4, 5, 7, 10, 0, 2, 2.2, 2])
-        expected = np.array([1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1])
-        result = qartod.rate_of_change_test(
-            inp=arr,
-            deviation=2,
-            num_deviations=2
-        )
-        npt.assert_array_equal(expected, result)
+        arr = [2, 10, 2.1, 3, 4, 5, 7, 10, 0, 2, 2.2, 2]
+        expected = [1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1]
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            result = qartod.rate_of_change_test(
+                inp=i,
+                deviation=2,
+                num_deviations=2
+            )
+            npt.assert_array_equal(expected, result)
 
-        arr = np.array([1, 2, 3, 90, 91, 92, 93, 1, 2, 3])
-        expected = np.array([1, 1, 1, 3, 1, 1, 1, 3, 1, 1])
-        result = qartod.rate_of_change_test(
-            inp=arr,
-            deviation=20,
-            num_deviations=3
-        )
-        npt.assert_array_equal(expected, result)
+        arr = [1, 2, 3, 90, 91, 92, 93, 1, 2, 3]
+        expected = [1, 1, 1, 3, 1, 1, 1, 3, 1, 1]
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            result = qartod.rate_of_change_test(
+                inp=i,
+                deviation=20,
+                num_deviations=3
+            )
+            npt.assert_array_equal(expected, result)
 
-        arr = np.array([1, 2, 3, 90, 91, 92, 93, 1, 2, 3])
-        expected = np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
-        result = qartod.rate_of_change_test(
-            inp=arr,
-            deviation=0.5,
-            num_deviations=1
-        )
-        npt.assert_array_equal(expected, result)
+        arr = [1, 2, 3, 90, 91, 92, 93, 1, 2, 3]
+        expected = [1, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            result = qartod.rate_of_change_test(
+                inp=i,
+                deviation=0.5,
+                num_deviations=1
+            )
+            npt.assert_array_equal(expected, result)
 
 
 class QartodFlatLineTest(unittest.TestCase):
 
     def test_flat_line(self):
         """Make sure flat line check returns expected flag values."""
-        vals = np.array([1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2,
-                         4, 5, 3, 3.0001, 3.0005, 3.00001])
-        expected = np.array([1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3])
-        npt.assert_array_equal(
-            qartod.flat_line_test(
-                inp=vals,
+        arr = [1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2, 4, 5, 3, 3.0001, 3.0005, 3.00001]
+        expected = [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3]
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            result = qartod.flat_line_test(
+                inp=i,
                 counts=(3, 5),
                 tolerance=0.01
-            ),
-            expected
-        )
+            )
+            npt.assert_array_equal(result, expected)
 
         # test empty array - should return empty result
-        vals = np.array([])
+        arr = np.array([])
         expected = np.array([])
         npt.assert_array_equal(
             qartod.flat_line_test(
-                inp=vals,
+                inp=arr,
                 counts=(3, 5),
                 tolerance=0.01
             ),
@@ -397,11 +527,11 @@ class QartodFlatLineTest(unittest.TestCase):
         )
 
         # test nothing fails
-        vals = np.random.random(100)
-        expected = np.ones_like(vals)
+        arr = np.random.random(100)
+        expected = np.ones_like(arr)
         npt.assert_array_equal(
             qartod.flat_line_test(
-                inp=vals,
+                inp=arr,
                 counts=(3, 5),
                 tolerance=0.00000000001
             ),
@@ -409,17 +539,22 @@ class QartodFlatLineTest(unittest.TestCase):
         )
 
         # test missing data
-        vals = [1, None, 2.0001, 2, 2.0001, 2, 2.0001, 2,
-                4, None, 3, None, None, 3.00001]
-        expected = np.array([1, 9, 1, 1, 3, 3, 4, 4, 1, 9, 1, 9, 9, 3])
-        npt.assert_array_equal(
-            qartod.flat_line_test(
-                inp=vals,
+        arr = [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001]
+        expected = [1, 9, 9, 1, 3, 3, 4, 4, 1, 9, 1, 9, 9, 3]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            inputs = [
+                arr,
+                np.asarray(arr, dtype=np.floating),
+                da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            ]
+        for i in inputs:
+            result = qartod.flat_line_test(
+                inp=i,
                 counts=(3, 5),
                 tolerance=0.01
-            ),
-            expected
-        )
+            )
+            npt.assert_array_equal(result, expected)
 
     def test_flat_line_bad_input(self):
         # non-integer counts should raise an error
