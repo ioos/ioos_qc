@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding=utf-8
-import pprint
 import logging
 from pathlib import Path
 from copy import deepcopy
