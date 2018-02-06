@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import warnings
 import numpy as np
 from numbers import Real
 from collections import namedtuple
@@ -102,8 +103,10 @@ def location_test(lon : Sequence[N],
         assert isfixedlength(bbox, 4)
         bbox = bboxnt(*bbox)
 
-    lat = np.ma.masked_invalid(np.array(lat, dtype=np.float64))
-    lon = np.ma.masked_invalid(np.array(lon, dtype=np.float64))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        lat = np.ma.masked_invalid(np.array(lat).astype(np.floating))
+        lon = np.ma.masked_invalid(np.array(lon).astype(np.floating))
 
     if lon.shape != lat.shape:
         raise ValueError(
@@ -171,7 +174,10 @@ def gross_range_test(inp : Sequence[N],
     assert isfixedlength(fail_span, 2)
     sspan = span(*sorted(fail_span))
 
-    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+
     # Save original shape
     original_shape = inp.shape
     inp = inp.flatten()
@@ -280,8 +286,10 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
         config = c
 
     tinp = np.array(tinp)
-    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
-    zinp = np.ma.masked_invalid(np.array(zinp, dtype=np.float64))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.floating))
 
     # Save original shape
     original_shape = inp.shape
@@ -335,7 +343,10 @@ def spike_test(inp : Sequence[N],
     assert isfixedlength(thresholds, 2)
     thresholds = span(*sorted([ abs(x) for x in thresholds] ))
 
-    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+
     # Save original shape
     original_shape = inp.shape
     inp = inp.flatten()
@@ -388,8 +399,10 @@ def rate_of_change_test(inp : Sequence[N],
     Returns:
         A masked array of flag values equal in size to that of the input.
     """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
 
-    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
     # Save original shape
     original_shape = inp.shape
     inp = inp.flatten()
@@ -454,7 +467,10 @@ def flat_line_test(inp : Sequence[N],
     if not isinstance(counts.minv, int) or not isinstance(counts.maxv, int):
         raise TypeError('Counts must be integers. Got {}'.format(counts))
 
-    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+
     # Save original shape
     original_shape = inp.shape
     inp = inp.flatten()
@@ -507,7 +523,10 @@ def attenuated_signal_test(inp : Sequence[N],
     assert isfixedlength(threshold, 2)
     threshold = span(*reversed(sorted(threshold)))
 
-    inp = np.ma.masked_invalid(np.array(inp, dtype=np.float64))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+
     # Save original shape
     original_shape = inp.shape
     inp = inp.flatten()
