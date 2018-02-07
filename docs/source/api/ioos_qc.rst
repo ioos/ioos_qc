@@ -9,34 +9,36 @@ ioos\_qc package
 Submodules
 ----------
 
-ioos\_qc\.config module
------------------------
+ioos\_qc.config module
+----------------------
 
 .. automodule:: ioos_qc.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-ioos\_qc\.gliders module
-------------------------
+ioos\_qc.gliders module
+-----------------------
 
 .. automodule:: ioos_qc.gliders
     :members:
     :undoc-members:
     :show-inheritance:
 
-ioos\_qc\.qartod module
------------------------
+ioos\_qc.qartod module
+----------------------
 
 .. automodule:: ioos_qc.qartod
     :members:
     :undoc-members:
     :show-inheritance:
 
-ioos\_qc\.utils module
-----------------------
+ioos\_qc.utils module
+---------------------
 
 .. automodule:: ioos_qc.utils
     :members:
     :undoc-members:
     :show-inheritance:
+
+
