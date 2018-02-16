@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 from numbers import Real
 from collections import namedtuple
-from datetime import time, datetime, date
 from typing import Sequence, Tuple, Union, Dict
 
 from pygc import great_distance
@@ -28,6 +27,9 @@ class QartodFlags(object):
     MISSING = 9
 
 
+FLAGS = QartodFlags  # Default name for all check modules
+
+
 N = Real
 span = namedtuple('Span', 'minv maxv')
 
@@ -35,13 +37,10 @@ span = namedtuple('Span', 'minv maxv')
 # Convert dates to datetime and leave datetimes alone. This is also reducing all
 # objects to second precision
 def mapdates(dates):
-    for d in dates:
-        if isinstance(d, date):
-            yield datetime.combine(d, time.min)
-        elif isinstance(d, np.datetime64):
-            yield d.astype(datetime)
-        else:
-            yield d
+    if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
+        return dates.astype('datetime64[ns]')
+    else:
+        return np.array(dates, dtype='datetime64[ns]')
 
 
 def qartod_compare(vectors : Sequence[Sequence[N]]
@@ -288,7 +287,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
             c.add(**climate_config_dict)
         config = c
 
-    tinp = np.array(tinp)
+    tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))

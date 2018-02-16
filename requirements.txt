@@ -1,4 +1,9 @@
+bottleneck
 dask
+geojson
+netCDF4
 numpy>=1.14
 pygc
 ruamel.yaml
+simplejson
+xarray
