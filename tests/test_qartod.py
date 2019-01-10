@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # coding=utf-8
+import logging
 import unittest
 import warnings
 
-import numpy as np
 import dask.array as da
+import numpy as np
 import numpy.testing as npt
 
 from ioos_qc import qartod as qartod
 
-import logging
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
@@ -419,9 +419,35 @@ class QartodSpikeTest(unittest.TestCase):
                 expected
             )
 
+    def test_spike_negative_vals(self):
+        """
+        Test to make spike detection works properly for negative values.
+        """
+        thresholds = (25, 50)
+
+        arr = [-10, -12, -999.99, -13, -15, -40, -9, -9]
+
+        # First and last elements should always be good data, unless someone
+        # has set a threshold to zero.
+        expected = [1, 4, 4, 4, 1, 3, 1, 1]
+
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            npt.assert_array_equal(
+                qartod.spike_test(
+                    inp=i,
+                    thresholds=thresholds
+                ),
+                expected
+            )
+
     def test_spike_masked(self):
         """
-        Test to make ensure single value spike detection works properly.
+        Test with missing data.
         """
         thresholds = (25, 50)
 
@@ -430,6 +456,32 @@ class QartodSpikeTest(unittest.TestCase):
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
         expected = [1, 4, 4, 4, 1, 3, 1, 1, 9, 9, 4, 4, 4, 9]
+
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+        ]
+        for i in inputs:
+            npt.assert_array_equal(
+                qartod.spike_test(
+                    inp=i,
+                    thresholds=thresholds
+                ),
+                expected
+            )
+
+    def test_spike_realdata(self):
+        """
+        Test with real-world data.
+        """
+        thresholds = (.5, 1)
+
+        arr = [-0.189, -0.0792, -0.0122, 0.0457, 0.0671, 0.0213, -0.0488, -0.1463, -0.2438, -0.3261, -0.3871, -0.4054,
+               -0.3932, -0.3383, -0.2804, -0.2347, -0.2134, -0.2347, -0.2926, -0.3597, -0.442, -0.509, 0, -0.5944,
+               -0.57, -0.4267, -0.2926, -0.1585, -0.0945, -0.0762]
+
+        expected = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1]
 
         inputs = [
             arr,

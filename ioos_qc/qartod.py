@@ -355,7 +355,7 @@ def spike_test(inp : Sequence[N],
 
     # Calculate the average of n-2 and n
     ref = np.zeros(inp.size, dtype=np.float64)
-    ref[1:-1] = np.abs((inp[0:-2] + inp[2:]) / 2)
+    ref[1:-1] = (inp[0:-2] + inp[2:]) / 2
     ref = np.ma.masked_invalid(ref)
 
     # Start with everything as passing (1)
