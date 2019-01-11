@@ -500,9 +500,15 @@ class QartodSpikeTest(unittest.TestCase):
 
 class QartodRateOfChangeTest(unittest.TestCase):
 
+    def setUp(self):
+        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
+                               step=np.timedelta64(15, 'm'), dtype=np.datetime64)
+        self.threshold = 5 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
+
     def test_rate_of_change(self):
-        arr = [2, 10, 2.1, 3, 4, 5, 7, 10, 0, 2, 2.2, 2]
-        expected = [1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1]
+        times = self.times
+        arr = [2, 10, 2.1, 3, 4, 5, 7, 10, 0, 2, 2.2, 2, 1, 2, 3, 90, 91, 92, 93, 1, 2, 3, 4, 5]
+        expected = [1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 1]
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
@@ -511,46 +517,43 @@ class QartodRateOfChangeTest(unittest.TestCase):
         for i in inputs:
             result = qartod.rate_of_change_test(
                 inp=i,
-                deviation=2,
-                num_deviations=2
+                tinp=times,
+                threshold=self.threshold
             )
             npt.assert_array_equal(expected, result)
 
-        arr = [1, 2, 3, 90, 91, 92, 93, 1, 2, 3]
-        expected = [1, 1, 1, 3, 1, 1, 1, 3, 1, 1]
-        inputs = [
-            arr,
-            np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
-        ]
-        for i in inputs:
-            result = qartod.rate_of_change_test(
-                inp=i,
-                deviation=20,
-                num_deviations=3
-            )
-            npt.assert_array_equal(expected, result)
+    def test_rate_of_change_missing_values(self):
+        times = self.times[0:8]
+        arr = [2, 10, 2, 3, None, None, 7, 10]
+        expected = [1, 3, 3, 1, 9, 9, 1, 1]
+        result = qartod.rate_of_change_test(
+            inp=arr,
+            tinp=times,
+            threshold=self.threshold
+        )
+        npt.assert_array_equal(expected, result)
 
-        arr = [1, 2, 3, 90, 91, 92, 93, 1, 2, 3]
-        expected = [1, 3, 3, 3, 3, 3, 3, 3, 3, 3]
-        inputs = [
-            arr,
-            np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
-        ]
-        for i in inputs:
-            result = qartod.rate_of_change_test(
-                inp=i,
-                deviation=0.5,
-                num_deviations=1
-            )
-            npt.assert_array_equal(expected, result)
+    def test_rate_of_change_negative_values(self):
+        times = self.times[0:4]
+        arr = [-2, -10, -2, -3]
+        expected = [1, 3, 3, 1]
+        result = qartod.rate_of_change_test(
+            inp=arr,
+            tinp=times,
+            threshold=self.threshold
+        )
+        npt.assert_array_equal(expected, result)
 
 
 class QartodFlatLineTest(unittest.TestCase):
 
+    def setUp(self):
+        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
+                               step=np.timedelta64(15, 'm'), dtype=np.datetime64)
+        self.thresholds = (3000, 4800)  # 50 mins and 80 mins
+        self.tolerance = 0.01
+
     def test_flat_line(self):
-        """Make sure flat line check returns expected flag values."""
         arr = [1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2, 4, 5, 3, 3.0001, 3.0005, 3.00001]
         expected = [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3]
         inputs = [
@@ -561,10 +564,23 @@ class QartodFlatLineTest(unittest.TestCase):
         for i in inputs:
             result = qartod.flat_line_test(
                 inp=i,
-                counts=(3, 5),
-                tolerance=0.01
+                tinp=self.times,
+                thresholds=self.thresholds,
+                tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
+
+        # test negative array - should return same result
+        arr = [-1*x for x in arr]
+        npt.assert_array_equal(
+            qartod.flat_line_test(
+                inp=arr,
+                tinp=self.times,
+                thresholds=self.thresholds,
+                tolerance=self.tolerance
+            ),
+            expected
+        )
 
         # test empty array - should return empty result
         arr = np.array([])
@@ -572,8 +588,9 @@ class QartodFlatLineTest(unittest.TestCase):
         npt.assert_array_equal(
             qartod.flat_line_test(
                 inp=arr,
-                counts=(3, 5),
-                tolerance=0.01
+                tinp=self.times,
+                thresholds=self.thresholds,
+                tolerance=self.tolerance
             ),
             expected
         )
@@ -584,13 +601,14 @@ class QartodFlatLineTest(unittest.TestCase):
         npt.assert_array_equal(
             qartod.flat_line_test(
                 inp=arr,
-                counts=(3, 5),
+                tinp=self.times,
+                thresholds=self.thresholds,
                 tolerance=0.00000000001
             ),
             expected
         )
 
-        # test missing data
+    def test_flat_line_missing_values(self):
         arr = [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001]
         expected = [1, 9, 9, 1, 3, 3, 4, 4, 1, 9, 1, 9, 9, 3]
         with warnings.catch_warnings():
@@ -603,8 +621,9 @@ class QartodFlatLineTest(unittest.TestCase):
         for i in inputs:
             result = qartod.flat_line_test(
                 inp=i,
-                counts=(3, 5),
-                tolerance=0.01
+                tinp=self.times,
+                thresholds=self.thresholds,
+                tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
 
@@ -615,6 +634,7 @@ class QartodFlatLineTest(unittest.TestCase):
                 np.ones(12),
                 (4.5, 6.93892)
             )
+
 
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
