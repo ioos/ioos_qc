@@ -51,6 +51,8 @@ class QcConfig(object):
             for testname, kwargs in tests.items():
                 if not hasattr(testpackage, testname):
                     L.warning('No test named "{}.{}" was found, skipping'.format(modu, testname))
+                elif kwargs is None:
+                    L.debug('Test "{}.{}" had no config, skipping'.format(modu, testname))
                 else:
                     # Get our own copy of the kwargs object so we can change it
                     testkwargs = deepcopy(passedkwargs)
