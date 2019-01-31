@@ -2,11 +2,11 @@
 # coding=utf-8
 import logging
 import warnings
-import numpy as np
-from numbers import Real
 from collections import namedtuple
+from numbers import Real
 from typing import Sequence, Tuple, Union, Dict
 
+import numpy as np
 from pygc import great_distance
 
 from ioos_qc.utils import (
@@ -271,7 +271,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     Args:
         config: A ClimatologyConfig object or a list of dicts containing tuples
             that can be used to create a ClimatologyConfig object. Dict should be composed of
-            keywords 'tspan' and 'vspan' as well as an optiona 'zspan'
+            keywords 'tspan' and 'vspan' as well as an optional 'zspan'
         tinp: Time data as a numpy array of dtype `datetime64`.
         vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data as a numeric numpy array or a list of numbers.
@@ -355,7 +355,7 @@ def spike_test(inp : Sequence[N],
 
     # Calculate the average of n-2 and n
     ref = np.zeros(inp.size, dtype=np.float64)
-    ref[1:-1] = np.abs((inp[0:-2] + inp[2:]) / 2)
+    ref[1:-1] = (inp[0:-2] + inp[2:]) / 2
     ref = np.ma.masked_invalid(ref)
 
     # Start with everything as passing (1)
@@ -379,24 +379,21 @@ def spike_test(inp : Sequence[N],
 
 
 def rate_of_change_test(inp : Sequence[N],
-                        deviation : N,
-                        num_deviations : int = 3
+                        tinp : Sequence[N],
+                        threshold : float
                         ) -> np.ma.core.MaskedArray:
-    """Checks the difference of neighboring values against N number of standard deviations.
-
-    Checks the first order difference of a series of values to see if
-    there are any values exceeding a standard deviation threshold defined
-    by the inputs.  These are then marked as SUSPECT.  It is up to the test operator
+    """Checks the first order difference of a series of values to see if
+    there are any values exceeding a threshold defined by the inputs.
+    These are then marked as SUSPECT.  It is up to the test operator
     to determine an appropriate threshold value for the absolute difference not to
-    exceed. Threshold are expressed as a standard deviation threshold and a factor
-    controlling how many of the thresholds to tolerate before flagging.
+    exceed. Threshold is expressed as a rate in observations units per second.
     Missing and masked data is flagged as UNKNOWN.
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        deviation: The number to multiply by `num_deviations` to get the threshold value.
-        num_deviations: The number to multiple by `deviation` to get the threshold value.
-            Defaults to 3.
+        tinp: Time data as a numpy array of dtype `datetime64`.
+        threshold: A float value representing a rate of change over time,
+                 in observation units per second.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
@@ -412,27 +409,22 @@ def rate_of_change_test(inp : Sequence[N],
     # Start with everything as passing (1)
     flag_arr = np.ma.ones(inp.size, dtype='uint8')
 
-    # Calculate the (n - n-1) difference.
-    diff = np.abs(inp[1:] - inp[:-1])
-    # First value set to zero (can't subtract previous element)
-    diff = np.append(
-        np.zeros(1, dtype=np.float64),
-        diff
-    )
+    # calculate rate of change in units/second
+    roc = np.ma.zeros(inp.size, dtype='float')
+    roc[1:] = np.abs(np.diff(inp) / np.diff(tinp).astype(float))
 
-    final_threshold = deviation * num_deviations
-    # If n - n-1 is greater than the set deviations, SUSPECT test
     with np.errstate(invalid='ignore'):
-        flag_arr[diff > final_threshold] = QartodFlags.SUSPECT
+        flag_arr[roc > threshold] = QartodFlags.SUSPECT
 
     # If the value is masked set the flag to MISSING
-    flag_arr[diff.mask] = QartodFlags.MISSING
+    flag_arr[inp.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
 
 
 def flat_line_test(inp : Sequence[N],
-                   counts : Tuple[int, int],
+                   tinp: Sequence[N],
+                   thresholds : Tuple[int, int],
                    tolerance : N = 0
                    ) -> np.ma.MaskedArray:
     """Check for consecutively repeated values within a tolerance.
@@ -441,12 +433,13 @@ def flat_line_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        counts: 2-tuple representing the number of repetitions within `tolerance` to
-            allow before being flagged as SUSPECT or FAIL. The larger of the two
-            values is alwasy the SUSPECT threshold and the lower of the two numbers
+        tinp: Time data as a numpy array of dtype `datetime64`.
+        thresholds: 2-tuple representing the number of seconds within `tolerance` to
+            allow before being flagged as SUSPECT or FAIL. The smaller of the two
+            values is always the SUSPECT threshold and the larger of the two numbers
             is always the FAIL threshold.
         tolerance: The tolerance that should be exceeded between consecutive values.
-            If the number consecutive values occuring that don't cross over `tolerance`
+            If the number consecutive values occurring that don't cross over `tolerance`
             cross over either of the `counts` then the data will be flagged.
 
     Returns:
@@ -464,10 +457,12 @@ def flat_line_test(inp : Sequence[N],
             out[i, :data.size] = data
         return out
 
-    assert isfixedlength(counts, 2)
-    counts = span(*sorted(counts))
-    if not isinstance(counts.minv, int) or not isinstance(counts.maxv, int):
-        raise TypeError('Counts must be integers. Got {}'.format(counts))
+    assert isfixedlength(thresholds, 2)
+
+    # convert time thresholds to number of observations
+    time_interval = np.median(np.diff(tinp)).astype(float)
+    counts = thresholds / time_interval
+    counts = span(*sorted(counts.astype(int)))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")

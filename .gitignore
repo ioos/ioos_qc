@@ -8,3 +8,4 @@ dist/
 docs/build
 .cache/
 .anaconda
+.idea

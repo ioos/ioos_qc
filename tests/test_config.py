@@ -145,6 +145,16 @@ class ConfigRunTest(unittest.TestCase):
             location_expected
         )
 
+    def test_with_empty_config(self):
+        self.config['qartod']['flat_line_test'] = None
+        qc = QcConfig(self.config)
+        r = qc.run(
+            inp=list(range(13))
+        )
+
+        assert 'gross_range_test' in r['qartod']
+        assert 'flat_line_test' not in r['qartod']
+
 
 class ConfigClimatologyTest(unittest.TestCase):
 
