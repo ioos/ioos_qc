@@ -571,7 +571,7 @@ class QartodFlatLineTest(unittest.TestCase):
             npt.assert_array_equal(result, expected)
 
         # test negative array - should return same result
-        arr = [-1*x for x in arr]
+        arr = [-1 * x for x in arr]
         npt.assert_array_equal(
             qartod.flat_line_test(
                 inp=arr,
@@ -634,7 +634,6 @@ class QartodFlatLineTest(unittest.TestCase):
                 np.ones(12),
                 (4.5, 6.93892)
             )
-
 
 
 class QartodAttenuatedSignalTest(unittest.TestCase):

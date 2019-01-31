@@ -1,6 +1,7 @@
 language: python
 
 sudo: false
+dist: xenial
 
 env:
   global:
@@ -13,10 +14,14 @@ matrix:
       env: TEST_TARGET=default
     - python: 3.6
       env: TEST_TARGET=default
+    - python: 3.7
+      env: TEST_TARGET=default
     - python: 3.6
       env: TEST_TARGET=coding_standards
     - python: 3.6
       env: TEST_TARGET=docs
+    - python: 3.6
+      env: TEST_TARGET=makerelease
   allow_failures:
     - python: 3.6
       env: TEST_TARGET=coding_standards
@@ -67,16 +72,19 @@ script:
     fi
 
   - if [[ $TEST_TARGET == "coding_standards" ]]; then
-      py.test --disable-warnings --pep8 -m pep8 ;
-      py.test --disable-warnings --flakes -m flakes ;
+      py.test --disable-warnings --flake8 -m flake8 ;
     fi
 
   - if [[ $TEST_TARGET == 'docs' ]]; then
       ./docs/deploy.sh ;
     fi
 
+  - if [[ $TEST_TARGET == 'makerelease' ]]; then
+      echo "Making a release..." ;
+    fi
+
 after_success:
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ] && [ "$TEST_TARGET" == "default" ]; then
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ] && [ "$TEST_TARGET" == "makerelease" ]; then
       conda install -n root conda-build anaconda-client ;
       conda build conda-recipe --python $TRAVIS_PYTHON_VERSION ;
       anaconda -t $ANACONDA_TOKEN upload --force -u axiom-data-science $HOME/miniconda/**/ioos_qc-*.tar.bz2 ;
