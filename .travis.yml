@@ -1,6 +1,7 @@
 language: python
 
 sudo: false
+dist: xenial
 
 env:
   global:
