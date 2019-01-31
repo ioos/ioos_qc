@@ -7,22 +7,33 @@ source:
 
 build:
   number: 0
-  script: python setup.py install --single-version-externally-managed --record record.txt
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
 
 requirements:
-  build:
+  host:
     - python
-    - setuptools
+    - pip
   run:
     - python
-    - numpy
+    - bottleneck
+    - dask
+    - geojson
+    - netCDF4
+    - numpy >=1.14
     - pygc
+    - ruamel.yaml
+    - simplejson
+    - xarray
 
 test:
+  source_files:
+    - ioos_qc
   imports:
     - ioos_qc
 
 about:
   home: https://github.com/axiom-data-science/ioos_qc
   license: Apache 2.0
+  license_file: LICENSE.txt
   summary: 'Collection of utilities, scripts and tests to assist in automated quality assurance.'
