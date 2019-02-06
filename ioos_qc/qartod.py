@@ -320,8 +320,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
 
 
 def spike_test(inp : Sequence[N],
-               suspect_threshold: float,
-               fail_threshold: float
+               suspect_threshold: N,
+               fail_threshold: N
                ) -> np.ma.core.MaskedArray:
     """Check for spikes by checking neighboring data against thresholds
 
