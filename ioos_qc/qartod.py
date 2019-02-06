@@ -320,13 +320,14 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
 
 
 def spike_test(inp : Sequence[N],
-               thresholds : Tuple[N, N]
+               suspect_threshold: N,
+               fail_threshold: N
                ) -> np.ma.core.MaskedArray:
-    """Check for spikes by checking neigboring data against thresholds
+    """Check for spikes by checking neighboring data against thresholds
 
     Determine if there is a spike at data point n-1 by subtracting
     the midpoint of n and n-2 and taking the absolute value of this
-    quantity, and checking if it exceeds a a low or high threshold.
+    quantity, and checking if it exceeds a low or high threshold.
     Values which do not exceed either threshold are flagged GOOD,
     values which exceed the low threshold are flagged SUSPECT,
     and values which exceed the high threshold are flagged FAIL.
@@ -334,16 +335,12 @@ def spike_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        thresholds: 2-tuple threshold range.  The lower number will always
-            represent the SUSPECT threshold value and the higher number will
-            always represent the FAIL threshold value.
+        suspect_threshold: The SUSPECT threshold value, in observations units.
+        fail_threshold: The SUSPECT threshold value, in observations units.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
     """
-
-    assert isfixedlength(thresholds, 2)
-    thresholds = span(*sorted([ abs(x) for x in thresholds] ))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -366,11 +363,11 @@ def spike_test(inp : Sequence[N],
 
     # If n-1 - ref is greater than the low threshold, SUSPECT test
     with np.errstate(invalid='ignore'):
-        flag_arr[diff > thresholds.minv] = QartodFlags.SUSPECT
+        flag_arr[diff > suspect_threshold] = QartodFlags.SUSPECT
 
     # If n-1 - ref is greater than the high threshold, FAIL test
     with np.errstate(invalid='ignore'):
-        flag_arr[diff > thresholds.maxv] = QartodFlags.FAIL
+        flag_arr[diff > fail_threshold] = QartodFlags.FAIL
 
     # If the value is masked or nan set the flag to MISSING
     flag_arr[diff.mask] = QartodFlags.MISSING
@@ -424,7 +421,8 @@ def rate_of_change_test(inp : Sequence[N],
 
 def flat_line_test(inp : Sequence[N],
                    tinp: Sequence[N],
-                   thresholds : Tuple[int, int],
+                   suspect_threshold: int,
+                   fail_threshold: int,
                    tolerance : N = 0
                    ) -> np.ma.MaskedArray:
     """Check for consecutively repeated values within a tolerance.
@@ -434,10 +432,10 @@ def flat_line_test(inp : Sequence[N],
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a numpy array of dtype `datetime64`.
-        thresholds: 2-tuple representing the number of seconds within `tolerance` to
-            allow before being flagged as SUSPECT or FAIL. The smaller of the two
-            values is always the SUSPECT threshold and the larger of the two numbers
-            is always the FAIL threshold.
+        suspect_threshold: The number of seconds within `tolerance` to
+            allow before being flagged as SUSPECT.
+        fail_threshold: The number of seconds within `tolerance` to
+            allow before being flagged as FAIL.
         tolerance: The tolerance that should be exceeded between consecutive values.
             If the number consecutive values occurring that don't cross over `tolerance`
             cross over either of the `counts` then the data will be flagged.
@@ -457,11 +455,9 @@ def flat_line_test(inp : Sequence[N],
             out[i, :data.size] = data
         return out
 
-    assert isfixedlength(thresholds, 2)
-
     # convert time thresholds to number of observations
     time_interval = np.median(np.diff(tinp)).astype(float)
-    counts = thresholds / time_interval
+    counts = (int(suspect_threshold), int(fail_threshold)) / time_interval
     counts = span(*sorted(counts.astype(int)))
 
     with warnings.catch_warnings():

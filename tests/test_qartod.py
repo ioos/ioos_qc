@@ -393,11 +393,14 @@ class QartodClimatologyTest(unittest.TestCase):
 
 class QartodSpikeTest(unittest.TestCase):
 
+    def setUp(self):
+        self.suspect_threshold = 25
+        self.fail_threshold = 50
+
     def test_spike(self):
         """
         Test to make ensure single value spike detection works properly.
         """
-        thresholds = (25, 50)
 
         arr = [10, 12, 999.99, 13, 15, 40, 9, 9]
 
@@ -414,7 +417,8 @@ class QartodSpikeTest(unittest.TestCase):
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
-                    thresholds=thresholds
+                    suspect_threshold=self.suspect_threshold,
+                    fail_threshold=self.fail_threshold
                 ),
                 expected
             )
@@ -440,7 +444,8 @@ class QartodSpikeTest(unittest.TestCase):
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
-                    thresholds=thresholds
+                    suspect_threshold=self.suspect_threshold,
+                    fail_threshold=self.fail_threshold
                 ),
                 expected
             )
@@ -449,7 +454,6 @@ class QartodSpikeTest(unittest.TestCase):
         """
         Test with missing data.
         """
-        thresholds = (25, 50)
 
         arr = [10, 12, 999.99, 13, 15, 40, 9, 9, None, 10, 10, 999.99, 10, None]
 
@@ -466,7 +470,8 @@ class QartodSpikeTest(unittest.TestCase):
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
-                    thresholds=thresholds
+                    suspect_threshold=self.suspect_threshold,
+                    fail_threshold=self.fail_threshold
                 ),
                 expected
             )
@@ -475,7 +480,8 @@ class QartodSpikeTest(unittest.TestCase):
         """
         Test with real-world data.
         """
-        thresholds = (.5, 1)
+        suspect_threshold = 0.5
+        fail_threshold = 1
 
         arr = [-0.189, -0.0792, -0.0122, 0.0457, 0.0671, 0.0213, -0.0488, -0.1463, -0.2438, -0.3261, -0.3871, -0.4054,
                -0.3932, -0.3383, -0.2804, -0.2347, -0.2134, -0.2347, -0.2926, -0.3597, -0.442, -0.509, 0, -0.5944,
@@ -492,7 +498,8 @@ class QartodSpikeTest(unittest.TestCase):
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
-                    thresholds=thresholds
+                    suspect_threshold=suspect_threshold,
+                    fail_threshold=fail_threshold
                 ),
                 expected
             )
@@ -550,7 +557,8 @@ class QartodFlatLineTest(unittest.TestCase):
     def setUp(self):
         self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
                                step=np.timedelta64(15, 'm'), dtype=np.datetime64)
-        self.thresholds = (3000, 4800)  # 50 mins and 80 mins
+        self.suspect_threshold = 3000   # 50 mins
+        self.fail_threshold = 4800  # 80 mins
         self.tolerance = 0.01
 
     def test_flat_line(self):
@@ -565,7 +573,8 @@ class QartodFlatLineTest(unittest.TestCase):
             result = qartod.flat_line_test(
                 inp=i,
                 tinp=self.times,
-                thresholds=self.thresholds,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
                 tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
@@ -576,7 +585,8 @@ class QartodFlatLineTest(unittest.TestCase):
             qartod.flat_line_test(
                 inp=arr,
                 tinp=self.times,
-                thresholds=self.thresholds,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
                 tolerance=self.tolerance
             ),
             expected
@@ -589,7 +599,8 @@ class QartodFlatLineTest(unittest.TestCase):
             qartod.flat_line_test(
                 inp=arr,
                 tinp=self.times,
-                thresholds=self.thresholds,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
                 tolerance=self.tolerance
             ),
             expected
@@ -602,7 +613,8 @@ class QartodFlatLineTest(unittest.TestCase):
             qartod.flat_line_test(
                 inp=arr,
                 tinp=self.times,
-                thresholds=self.thresholds,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
                 tolerance=0.00000000001
             ),
             expected
@@ -622,18 +634,11 @@ class QartodFlatLineTest(unittest.TestCase):
             result = qartod.flat_line_test(
                 inp=i,
                 tinp=self.times,
-                thresholds=self.thresholds,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
                 tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
-
-    def test_flat_line_bad_input(self):
-        # non-integer counts should raise an error
-        with self.assertRaises(TypeError):
-            qartod.flat_line_test(
-                np.ones(12),
-                (4.5, 6.93892)
-            )
 
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
