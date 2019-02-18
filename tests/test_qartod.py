@@ -4,7 +4,6 @@ import logging
 import unittest
 import warnings
 
-import dask.array as da
 import numpy as np
 import numpy.testing as npt
 
@@ -14,6 +13,16 @@ L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
 
+
+def dask_arr(vals):
+    """
+    If dask is enabled for this environment, return dask array of values. Otherwise, return values.
+    """
+    try:
+        import dask.array as da
+        return da.from_array(vals, chunks=2)
+    except ImportError:
+        return vals
 
 class QartodLocationTest(unittest.TestCase):
 
@@ -36,8 +45,8 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([4, 1, 4])
         )
 
-        lon = da.from_array(lon, chunks=2)
-        lat = da.from_array(lat, chunks=2)
+        lon = dask_arr(lon)
+        lat = dask_arr(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([4, 1, 4])
@@ -59,8 +68,8 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([9])
         )
 
-        lon = da.from_array(lon, chunks=2)
-        lat = da.from_array(lat, chunks=2)
+        lon = dask_arr(lon)
+        lat = dask_arr(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([9])
@@ -82,8 +91,8 @@ class QartodLocationTest(unittest.TestCase):
         )
 
         # Test dask nan input
-        lon = da.from_array(lon, chunks=2)
-        lat = da.from_array(lat, chunks=2)
+        lon = dask_arr(lon)
+        lat = dask_arr(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
             np.ma.array([9])
@@ -121,8 +130,8 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = da.from_array(np.asarray([80,   -78, -71, -79, 500], dtype=np.floating), chunks=2)
-        lat = da.from_array(np.asarray([None,  50,  59,  10, -60], dtype=np.floating), chunks=2)
+        lon = dask_arr(np.asarray([80,   -78, -71, -79, 500], dtype=np.floating))
+        lat = dask_arr(np.asarray([None,  50,  59,  10, -60], dtype=np.floating))
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
@@ -172,8 +181,8 @@ class QartodGrossRangeTest(unittest.TestCase):
                 vals,
                 np.array(vals, dtype=np.integer),
                 np.array(vals, dtype=np.floating),
-                da.from_array(np.array(vals, dtype=np.integer), chunks=2),
-                da.from_array(np.array(vals, dtype=np.floating), chunks=2)
+                dask_arr(np.array(vals, dtype=np.integer)),
+                dask_arr(np.array(vals, dtype=np.floating))
             ]
 
         for i in inputs:
@@ -236,7 +245,7 @@ class QartodGrossRangeTest(unittest.TestCase):
             inputs = [
                 vals,
                 np.array(vals, dtype=np.floating),
-                da.from_array(np.array(vals, dtype=np.floating), chunks=2)
+                dask_arr(np.array(vals, dtype=np.floating))
             ]
 
         for i in inputs:
@@ -291,7 +300,7 @@ class QartodClimatologyTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
-            da.from_array(np.asarray(values, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(values, dtype=np.floating))
         ]
 
         for i in inputs:
@@ -328,7 +337,7 @@ class QartodClimatologyTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
-            da.from_array(np.asarray(values, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(values, dtype=np.floating))
         ]
 
         for i in inputs:
@@ -375,7 +384,7 @@ class QartodClimatologyTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
-            da.from_array(np.asarray(values, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(values, dtype=np.floating))
         ]
 
         for i in inputs:
@@ -411,7 +420,7 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(arr, dtype=np.floating))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -438,7 +447,7 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(arr, dtype=np.floating))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -464,7 +473,7 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(arr, dtype=np.floating))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -492,7 +501,7 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(arr, dtype=np.floating))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -519,7 +528,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(arr, dtype=np.floating))
         ]
         for i in inputs:
             result = qartod.rate_of_change_test(
@@ -567,7 +576,7 @@ class QartodFlatLineTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.floating),
-            da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+            dask_arr(np.asarray(arr, dtype=np.floating))
         ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -628,7 +637,7 @@ class QartodFlatLineTest(unittest.TestCase):
             inputs = [
                 arr,
                 np.asarray(arr, dtype=np.floating),
-                da.from_array(np.asarray(arr, dtype=np.floating), chunks=2)
+                dask_arr(np.asarray(arr, dtype=np.floating))
             ]
         for i in inputs:
             result = qartod.flat_line_test(

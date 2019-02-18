@@ -1,5 +1,3 @@
-bottleneck
-dask
 geojson
 netCDF4
 numpy>=1.14
