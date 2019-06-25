@@ -272,7 +272,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
         config: A ClimatologyConfig object or a list of dicts containing tuples
             that can be used to create a ClimatologyConfig object. Dict should be composed of
             keywords 'tspan' and 'vspan' as well as an optional 'zspan'
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
         vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data as a numeric numpy array or a list of numbers.
 
@@ -388,7 +388,7 @@ def rate_of_change_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
         threshold: A float value representing a rate of change over time,
                  in observation units per second.
 
@@ -431,7 +431,7 @@ def flat_line_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
         suspect_threshold: The number of seconds within `tolerance` to
             allow before being flagged as SUSPECT.
         fail_threshold: The number of seconds within `tolerance` to
@@ -474,15 +474,15 @@ def flat_line_test(inp : Sequence[N],
     suspect_chunks = chunk(inp, counts.minv)
     suspect_data = np.repeat(inp, counts.minv).reshape(inp.size, counts.minv)
     with np.errstate(invalid='ignore'):
-        suspect_test = np.all(np.abs((suspect_chunks - suspect_data)) < tolerance, axis=1)
-        suspect_test = np.ma.filled(suspect_test, fill_value=False)
+        suspect_test = np.ma.filled(np.abs((suspect_chunks - suspect_data)) < tolerance, fill_value=False)
+        suspect_test = np.all(suspect_test, axis=1)
         flag_arr[suspect_test] = QartodFlags.SUSPECT
 
     fail_chunks = chunk(inp, counts.maxv)
     failed_data = np.repeat(inp, counts.maxv).reshape(inp.size, counts.maxv)
     with np.errstate(invalid='ignore'):
-        failed_test = np.all(np.abs((fail_chunks - failed_data)) < tolerance, axis=1)
-        failed_test = np.ma.filled(failed_test, fill_value=False)
+        failed_test = np.ma.filled(np.abs((fail_chunks - failed_data)) < tolerance, fill_value=False)
+        failed_test = np.all(failed_test, axis=1)
         flag_arr[failed_test] = QartodFlags.FAIL
 
     # If the value is masked set the flag to MISSING
