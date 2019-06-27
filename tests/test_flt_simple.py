@@ -8,6 +8,7 @@ ELD
 6/27/2019
 """
 
+import numpy as np
 import numpy.testing as npt
 from ioos_qc import qartod as qartod
 
@@ -28,7 +29,7 @@ def check_flat_line_test(config, flt):
     npt.assert_array_equal(results, config['expected'])
 
 
-def test_all():
+def test_both_flt():
 
     # this config completely passes both tests
     all_pass = {'time': [1, 2, 3, 4, 5],
@@ -76,3 +77,58 @@ def test_all():
     # extremes to the peak and valley, so don't exceed the tolerance
     failing['expected'] = [1, 1, 1, 3, 3, 1, 1, 4, 4, 3]
     check_flat_line_test(failing, qartod.flat_line_test)
+
+
+def test_flat_line_missing_values():
+
+    # test missing values (based on test_qartod test_flat_line_missing_values)
+    missing = {'time': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+               'value': [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001],
+               'tolerance': 0.01,
+               'suspect_threshold': 3.333,
+               'fail_threshold': 5.333,
+               'expected': [1, 9, 9, 1, 1, 1, 3, 3, 1, 9, 1, 9, 9, 1]
+               }
+    check_flat_line_test(missing, qartod.flat_line_test_ptp)
+    check_flat_line_test(missing, qartod.flat_line_test)
+
+
+def test_flat_line_starting_from_beginning():
+
+    # test missing values (based on test_qartod test_flat_line_starting_from_beginning)
+    origcon = {'time': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+               'value': [2, 2.0001, 2, 2.0001, 2, 2.0001, 2, 4, 5, 3, 3.0001, 3.0005, 3.00001],
+               'tolerance': 0.01,
+               'suspect_threshold': 3.333,
+               'fail_threshold': 5.333,
+               'expected': [1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3]
+               }
+    check_flat_line_test(origcon, qartod.flat_line_test_ptp)
+    check_flat_line_test(origcon, qartod.flat_line_test)
+
+
+def test_empty_array():
+
+    # test empty array - should return empty result
+    empty = {'time': [1, 2, 3, 4, 5],
+             'value': np.array([]),
+             'tolerance': 0.9,
+             'suspect_threshold': 2,
+             'fail_threshold': 4,
+             'expected': np.array([])
+             }
+    check_flat_line_test(empty, qartod.flat_line_test_ptp)
+    check_flat_line_test(empty, qartod.flat_line_test)
+
+    # Note, time cannot be empty or it fails when trying to make suspect_chunks (no masked array with negative
+    # dimensions)  A problem for another day?
+    empty = {'time': np.array([]),
+             'value': np.array([]),
+             'tolerance': 0.9,
+             'suspect_threshold': 2,
+             'fail_threshold': 4,
+             'expected': np.array([])
+             }
+    # check_flat_line_test(empty, qartod.flat_line_test_ptp)
+    check_flat_line_test(empty, qartod.flat_line_test)
+
