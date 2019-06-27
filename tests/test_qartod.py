@@ -620,7 +620,7 @@ class QartodFlatLineTest(unittest.TestCase):
         npt.assert_array_equal(
             qartod.flat_line_test(
                 inp=arr,
-                tinp=self.times,
+                tinp=arr,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
                 tolerance=self.tolerance

@@ -458,6 +458,8 @@ def flat_line_test(inp: Sequence[N],
         return out
 
     # convert time thresholds to number of observations
+    if not len(tinp):
+        return np.ma.array([])
     time_interval = np.median(np.diff(tinp)).astype(float)
     counts = (int(suspect_threshold), int(fail_threshold)) / time_interval
     counts = span(*sorted(counts.astype(int)))
@@ -539,6 +541,8 @@ def flat_line_test_ptp(inp: Sequence[N],
         return out
 
     # convert time thresholds to number of observations
+    if not len(tinp):
+        return np.ma.array([])
     time_interval = np.median(np.diff(tinp)).astype(float)
     counts = (int(suspect_threshold), int(fail_threshold)) / time_interval
     counts = span(*sorted(counts.astype(int)))

@@ -109,7 +109,7 @@ def test_flat_line_starting_from_beginning():
 
 def test_empty_array():
 
-    # test empty array - should return empty result
+    # test empty array - should return empty result (like the original test in test_qartod)
     empty = {'time': [1, 2, 3, 4, 5],
              'value': np.array([]),
              'tolerance': 0.9,
@@ -120,8 +120,7 @@ def test_empty_array():
     check_flat_line_test(empty, qartod.flat_line_test_ptp)
     check_flat_line_test(empty, qartod.flat_line_test)
 
-    # Note, time cannot be empty or it fails when trying to make suspect_chunks (no masked array with negative
-    # dimensions)  A problem for another day?
+    # also works if time is an empty array
     empty = {'time': np.array([]),
              'value': np.array([]),
              'tolerance': 0.9,
@@ -129,6 +128,6 @@ def test_empty_array():
              'fail_threshold': 4,
              'expected': np.array([])
              }
-    # check_flat_line_test(empty, qartod.flat_line_test_ptp)
+    check_flat_line_test(empty, qartod.flat_line_test_ptp)
     check_flat_line_test(empty, qartod.flat_line_test)
 
