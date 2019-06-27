@@ -426,7 +426,8 @@ def flat_line_test(inp: Sequence[N],
                    fail_threshold: int,
                    tolerance: N = 0
                    ) -> np.ma.MaskedArray:
-    """Check for consecutively repeated values within a tolerance.
+    """Check for consecutively repeated values by requiring the difference between a point and all previous exceed a
+    tolerance.
 
     Missing and masked data is flagged as UNKNOWN.
 
@@ -438,8 +439,8 @@ def flat_line_test(inp: Sequence[N],
         fail_threshold: The number of seconds within `tolerance` to
             allow before being flagged as FAIL.
         tolerance: The tolerance that should be exceeded between consecutive values.
-            If the number consecutive values occurring that don't cross over `tolerance`
-            cross over either of the `counts` then the data will be flagged.
+            If the difference between the current value (data) and _all_ the individual preceding values (chunk) is
+            not greater than the `tolerance` then the data will be flagged.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
@@ -484,6 +485,87 @@ def flat_line_test(inp: Sequence[N],
     with np.errstate(invalid='ignore'):
         failed_test = np.ma.filled(np.abs((fail_chunks - failed_data)) < tolerance, fill_value=False)
         failed_test = np.all(failed_test, axis=1)
+        flag_arr[failed_test] = QartodFlags.FAIL
+
+    # If the value is masked set the flag to MISSING
+    flag_arr[inp.mask] = QartodFlags.MISSING
+
+    return flag_arr.reshape(original_shape)
+
+
+def flat_line_test_ptp(inp: Sequence[N],
+                       tinp: Sequence[N],
+                       suspect_threshold: int,
+                       fail_threshold: int,
+                       tolerance: N = 0
+                       ) -> np.ma.MaskedArray:
+    """ Check for consecutively repeated values by requiring that previous values exceed a defined range (tolerance).
+
+    Missing and masked data is flagged as UNKNOWN.
+
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
+        suspect_threshold: The number of seconds within `tolerance` to
+            allow before being flagged as SUSPECT.
+        fail_threshold: The number of seconds within `tolerance` to
+            allow before being flagged as FAIL.
+        tolerance: The tolerance that should be exceeded between consecutive values.  If the range of the preceding
+            consecutive values (chunk) isn't greater than `tolerance' then the data will be flagged.
+
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
+
+    def chunk(a, num):
+        """ Make an array from the data that falls in a progressively advancing window.
+        Note: this version includes the last point in the window.
+
+        Args:
+            a: a 1-D list of data values
+            num: width of the window
+
+        Returns:
+            2-D masked array where each row is a timestep, and each column is the data that fall in the window
+        """
+        out = np.ma.masked_all(
+            (a.size, num+1),
+            dtype=np.float64
+        )
+        for i in reversed(range(0, a.size)):
+            start = max(0, i - num)
+            data = a[start:i+1]
+            out[i, :data.size] = data
+        return out
+
+    # convert time thresholds to number of observations
+    time_interval = np.median(np.diff(tinp)).astype(float)
+    counts = (int(suspect_threshold), int(fail_threshold)) / time_interval
+    counts = span(*sorted(counts.astype(int)))
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+
+    # Save original shape
+    original_shape = inp.shape
+    inp = inp.flatten()
+
+    # Start with everything as passing (1)
+    flag_arr = np.ma.ones(inp.size, dtype='uint8')
+
+    suspect_chunks = chunk(inp, counts.minv)
+    with np.errstate(invalid='ignore'):
+        # number of points at the beginning of the timeseries are not greater than the window threshold, so
+        # indicate them as passing by filling the suspect_test with False there
+        suspect_test = np.ptp(np.ma.filled(suspect_chunks, fill_value=np.nan), axis=1) < tolerance
+        suspect_test = np.ma.filled(suspect_test, fill_value=False)
+        flag_arr[suspect_test] = QartodFlags.SUSPECT
+
+    fail_chunks = chunk(inp, counts.maxv)
+    with np.errstate(invalid='ignore'):
+        failed_test = np.ptp(np.ma.filled(fail_chunks, fill_value=np.nan), axis=1) < tolerance
+        failed_test = np.ma.filled(failed_test, fill_value=False)
         flag_arr[failed_test] = QartodFlags.FAIL
 
     # If the value is masked set the flag to MISSING

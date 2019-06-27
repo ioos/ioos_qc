@@ -38,7 +38,7 @@ def test_all():
                 'fail_threshold': 4,
                 'expected': [1, 1, 1, 1, 1]
                 }
-    # check_flat_line_test(all_pass, flt_eld_envelope.flat_line_test_eld)
+    check_flat_line_test(all_pass, qartod.flat_line_test_ptp)
     check_flat_line_test(all_pass, qartod.flat_line_test)
 
     # this config produces 1 suspect point both tests
@@ -49,7 +49,7 @@ def test_all():
                'fail_threshold': 4,
                'expected': [1, 1, 3, 1, 1]
                }
-    # check_flat_line_test(suspect, flt_eld_envelope.flat_line_test_eld)
+    check_flat_line_test(suspect, qartod.flat_line_test_ptp)
     check_flat_line_test(suspect, qartod.flat_line_test)
 
     # this config produces 1 failed point both tests
@@ -60,7 +60,7 @@ def test_all():
                'fail_threshold': 4,
                'expected': [1, 1, 3, 3, 4]
                }
-    # check_flat_line_test(failing, flt_eld_envelope.flat_line_test_eld)
+    check_flat_line_test(failing, qartod.flat_line_test_ptp)
     check_flat_line_test(failing, qartod.flat_line_test)
 
     # this config produces different answers depending on the test used, so 'expected' must be adjusted.
@@ -71,7 +71,7 @@ def test_all():
                'fail_threshold': 6,
                'expected': [1, 1, 1, 3, 3, 1, 1, 1, 3, 3]
                }
-    # check_flat_line_test(failing, flt_eld_envelope.flat_line_test_eld)
+    check_flat_line_test(failing, qartod.flat_line_test_ptp)
     # the original test produces fails on the right side of the bump because those points are mid-way between the
     # extremes to the peak and valley, so don't exceed the tolerance
     failing['expected'] = [1, 1, 1, 3, 3, 1, 1, 4, 4, 3]
