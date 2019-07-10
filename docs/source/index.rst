@@ -10,7 +10,7 @@ Collection of utilities, scripts and tests to assist in automated
 quality assurance and quality control for oceanographic datasets and
 observing systems.
 
-`Code <https://github.com/axiom-data-science/ioos_qc>`_  |  `Issues <https://github.com/axiom-data-science/ioos_qc/issues>`_  |  `Documentation </>`_
+`Code <https://github.com/axiom-data-science/ioos_qc>`_  |  `Issues <https://github.com/axiom-data-science/ioos_qc/issues>`_  |  `Documentation </>`_ | :doc:`Examples </examples>`
 
 
 .. toctree::
@@ -19,6 +19,7 @@ observing systems.
    installation
    usage
    resources
+   examples
 
 
 API documentation

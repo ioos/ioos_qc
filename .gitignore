@@ -7,5 +7,11 @@ dist/
 .tox
 docs/build
 .cache/
+.pytest_cache/
 .anaconda
 .idea
+.ipynb_checkpoints/
+.config/
+.local/
+.ipython/
+
