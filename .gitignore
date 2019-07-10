@@ -9,3 +9,8 @@ docs/build
 .cache/
 .anaconda
 .idea
+.ipynb_checkpoints/
+.config/
+.local/
+.ipython/
+
