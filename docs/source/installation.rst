@@ -9,6 +9,8 @@ At the command line::
 Development and Testing
 -----------------------
 
+::
+
     $ conda create -n ioosqc37 python=3.7
     $ conda activate ioosqc37
     $ conda install --file requirements.txt --file tests/requirements.txt
