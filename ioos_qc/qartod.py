@@ -431,7 +431,7 @@ def flat_line_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
         suspect_threshold: The number of seconds within `tolerance` to
             allow before being flagged as SUSPECT.
         fail_threshold: The number of seconds within `tolerance` to
