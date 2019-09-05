@@ -28,3 +28,7 @@ Build docs::
     make html
 
 Then open a browser to ``build/html/index.html``.
+
+*Note:* If you add or edit the notebook examples, you should save the result with the *output cleared on all cells*.
+This way, ``nbsphinx`` will build the notebook output during the build stage. If you encounter problems during the build,
+delete the ``docs/source/examples/.ipynb_checkpoints/`` folder and try again.
