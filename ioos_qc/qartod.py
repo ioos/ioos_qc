@@ -491,8 +491,8 @@ def flat_line_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-def flat_line_test_rolling(inp: Sequence[N],  # an ordered collection of something
-                           tinp: Sequence[N],  # Note are coming in as int, not datetime
+def flat_line_test_rolling(inp: Sequence[N],
+                           tinp: Sequence[N],
                            suspect_threshold: int,
                            fail_threshold: int,
                            tolerance: N = 0
@@ -501,14 +501,15 @@ def flat_line_test_rolling(inp: Sequence[N],  # an ordered collection of somethi
     Missing and masked data is flagged as UNKNOWN.
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
         suspect_threshold: The number of seconds within `tolerance` to
             allow before being flagged as SUSPECT.
         fail_threshold: The number of seconds within `tolerance` to
             allow before being flagged as FAIL.
         tolerance: The tolerance that should be exceeded between consecutive values.
-            If the number consecutive values occurring that don't cross over `tolerance`
-            cross over either of the `counts` then the data will be flagged.
+            To determine if the current point `n` should be flagged, we use a rolling window, with endpoint at
+            point `n`, and calculate the range of values in the window. If that range is less than `tolerance`,
+            then the point is flagged.
     Returns:
         A masked array of flag values equal in size to that of the input.
     """

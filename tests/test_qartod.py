@@ -630,6 +630,23 @@ class QartodFlatLineTest(unittest.TestCase):
             expected
         )
 
+    @unittest.skip("This fails! but the rolling ptp method does not")
+    def test_flat_line_with_spike(self):
+        time = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        arr = [1, 1, 1, 1, 1, 6, 5, 4, 3, 2]
+        tolerance = 4
+        suspect_threshold = 3
+        fail_threshold = 6
+        expected = [1, 1, 1, 3, 3, 1, 1, 1, 3, 3]
+        result = qartod.flat_line_test(
+            inp=arr,
+            tinp=time,
+            suspect_threshold=suspect_threshold,
+            fail_threshold=fail_threshold,
+            tolerance=tolerance
+        )
+        npt.assert_array_equal(result, expected)
+
     def test_flat_line_missing_values(self):
         arr = [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001]
         expected = [1, 9, 9, 1, 3, 3, 4, 4, 1, 9, 1, 9, 9, 3]
@@ -751,6 +768,22 @@ class QartodFlatLineRollingTest(unittest.TestCase):
                 tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
+
+    def test_flat_line_with_spike(self):
+        tolerance = 4
+        suspect_threshold = 3
+        fail_threshold = 6
+        time = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        arr =      [1, 1, 1, 1, 1, 6, 5, 4, 3, 2]
+        expected = [1, 1, 1, 3, 3, 1, 1, 1, 3, 3]
+        result = qartod.flat_line_test_rolling(
+            inp=arr,
+            tinp=time,
+            suspect_threshold=suspect_threshold,
+            fail_threshold=fail_threshold,
+            tolerance=tolerance
+        )
+        npt.assert_array_equal(result, expected)
 
     def test_flat_line_missing_values(self):
         arr = [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001]
