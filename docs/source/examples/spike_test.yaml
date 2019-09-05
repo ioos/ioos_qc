@@ -1,0 +1,4 @@
+qartod :
+  spike_test :
+    suspect_threshold : 0.8
+    fail_threshold : 3
