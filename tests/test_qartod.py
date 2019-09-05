@@ -24,14 +24,15 @@ def dask_arr(vals):
     except ImportError:
         return vals
 
+
 class QartodLocationTest(unittest.TestCase):
 
     def test_location(self):
         """
         Ensure that longitudes and latitudes are within reasonable bounds.
         """
-        lon = [  80.0, -78.5, 500.500]
-        lat = [np.NaN,  50.0,   -60.0]
+        lon = [80.0, -78.5, 500.500]
+        lat = [np.NaN, 50.0, -60.0]
 
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
@@ -116,22 +117,22 @@ class QartodLocationTest(unittest.TestCase):
             qartod.location_test(lon=70, lat=70, bbox=(1, 2))
 
     def test_location_bbox(self):
-        lon = [80,   -78, -71, -79, 500]
-        lat = [None,  50,  59,  10, -60]
+        lon = [80, -78, -71, -79, 500]
+        lat = [None, 50, 59, 10, -60]
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = np.asarray([80,   -78, -71, -79, 500], dtype=np.floating)
-        lat = np.asarray([None,  50,  59,  10, -60], dtype=np.floating)
+        lon = np.asarray([80, -78, -71, -79, 500], dtype=np.floating)
+        lat = np.asarray([None, 50, 59, 10, -60], dtype=np.floating)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = dask_arr(np.asarray([80,   -78, -71, -79, 500], dtype=np.floating))
-        lat = dask_arr(np.asarray([None,  50,  59,  10, -60], dtype=np.floating))
+        lon = dask_arr(np.asarray([80, -78, -71, -79, 500], dtype=np.floating))
+        lat = dask_arr(np.asarray([None, 50, 59, 10, -60], dtype=np.floating))
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
@@ -161,11 +162,11 @@ class QartodGrossRangeTest(unittest.TestCase):
         fail_span = (10, 50)
         suspect_span = (20, 40)
         vals = [
-            5, 10,               # Sensor range.
-            15,                  # User range.
+            5, 10,  # Sensor range.
+            15,  # User range.
             20, 25, 30, 35, 40,  # Valid
-            45,                  # User range.
-            51                   # Sensor range.
+            45,  # User range.
+            51  # Sensor range.
         ]
         result = np.ma.array([
             4, 3,
@@ -222,13 +223,13 @@ class QartodGrossRangeTest(unittest.TestCase):
         fail_span = (10, 50)
         suspect_span = (20, 40)
         vals = [
-            None,                # None
-            10,                  # Sensor range.
-            15,                  # User range.
+            None,  # None
+            10,  # Sensor range.
+            15,  # User range.
             20, 25, 30, 35, 40,  # Valid
-            np.nan,              # np.nan
-            51,                  # Sensor range.
-            np.ma.masked         # np.ma.masked
+            np.nan,  # np.nan
+            51,  # Sensor range.
+            np.ma.masked  # np.ma.masked
         ]
         result = np.ma.array([
             9,
@@ -564,9 +565,9 @@ class QartodRateOfChangeTest(unittest.TestCase):
 class QartodFlatLineTest(unittest.TestCase):
 
     def setUp(self):
-        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
+        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 03:30:00',
                                step=np.timedelta64(15, 'm'), dtype=np.datetime64)
-        self.suspect_threshold = 3000   # 50 mins
+        self.suspect_threshold = 3000  # 50 mins
         self.fail_threshold = 4800  # 80 mins
         self.tolerance = 0.01
 
@@ -616,7 +617,7 @@ class QartodFlatLineTest(unittest.TestCase):
         )
 
         # test nothing fails
-        arr = np.random.random(100)
+        arr = np.random.random(len(self.times))
         expected = np.ones_like(arr)
         npt.assert_array_equal(
             qartod.flat_line_test(
@@ -648,6 +649,135 @@ class QartodFlatLineTest(unittest.TestCase):
                 tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
+
+
+class QartodFlatLineRollingNumpyTest(unittest.TestCase):
+
+    def setUp(self):
+        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 03:30:00',
+                               step=np.timedelta64(15, 'm'), dtype=np.datetime64)
+        self.suspect_threshold = 3000  # 50 mins
+        self.fail_threshold = 4800  # 80 mins
+        self.tolerance = 0.01
+
+    def test_flat_line(self):
+        arr = [1, 2, 2.0001, 2, 2.0001, 2, 2.0001, 2, 4, 5, 3, 3.0001, 3.0005, 3.00001]
+        expected = [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3]
+        #                  ['1.0001', '0.0001', '0.0001', '0.0001', '0.0001', '0.0001', '2.0000', '3.0000', '2.0000', '2.0000', '0.0005']
+
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.floating),
+            dask_arr(np.asarray(arr, dtype=np.floating))
+        ]
+        for i in inputs:
+            result = qartod.flat_line_test_rolling(
+                inp=i,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            )
+            npt.assert_array_equal(result, expected)
+
+        # test negative array - should return same result
+        arr = [-1 * x for x in arr]
+        npt.assert_array_equal(
+            qartod.flat_line_test_rolling(
+                inp=arr,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            ),
+            expected
+        )
+
+        # test empty array - should return empty result
+        arr = np.array([])
+        expected = np.array([])
+        npt.assert_array_equal(
+            qartod.flat_line_test_rolling(
+                inp=arr,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            ),
+            expected
+        )
+
+        # test nothing fails
+        arr = np.random.random(len(self.times))
+        expected = np.ones_like(arr)
+        npt.assert_array_equal(
+            qartod.flat_line_test_rolling(
+                inp=arr,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=0.00000000001
+            ),
+            expected
+        )
+
+    def test_flat_line_missing_values(self):
+        arr = [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001]
+        expected = [1, 9, 9, 1, 3, 3, 4, 4, 1, 9, 1, 9, 9, 3]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            inputs = [
+                arr,
+                np.asarray(arr, dtype=np.floating),
+                dask_arr(np.asarray(arr, dtype=np.floating))
+            ]
+        for i in inputs:
+            result = qartod.flat_line_test_rolling(
+                inp=i,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            )
+            npt.assert_array_equal(result, expected)
+
+
+@unittest.skip("only for running manually")
+class QartodFlatLinePerformanceTest(unittest.TestCase):
+
+    def setUp(self):
+        # Before running this test, unzip the csv in tests/data and install pandas
+        import pandas as pd
+        data = pd.read_csv('data/20363_1000427.csv')
+        self.times = data['time_epoch']
+        self.inp = data['value']
+        self.suspect_threshold = 43200
+        self.fail_threshold = 86400
+        self.tolerance = 1
+        self.n = 10
+
+    def perf_test(self, method):
+        import time
+        start = time.time()
+
+        print(f'running {method}...')
+        for i in range(0, self.n):
+            print(f'\t{i + 1}/{self.n}')
+            method(
+                inp=self.inp,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            )
+
+        end = time.time()
+        elapsed = end - start
+        avg_elapsed = elapsed / self.n
+        print(f'results for {method}:\t\t{self.n} runs\n\t{elapsed}s total\n\t{avg_elapsed}s avg')
+
+    def test_flat_line(self):
+        self.perf_test(qartod.flat_line_test)
 
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
@@ -701,7 +831,6 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         )
 
     def test_attenuated_signal_range(self):
-
         # range less than 30
         signal = np.array([10, 20, 30, 40])
         expected = np.array([4, 4, 4, 4])

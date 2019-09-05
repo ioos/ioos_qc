@@ -491,6 +491,75 @@ def flat_line_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
+def flat_line_test_rolling(inp: Sequence[N],  # an ordered collection of something
+                           tinp: Sequence[N],  # Note are coming in as int, not datetime
+                           suspect_threshold: int,
+                           fail_threshold: int,
+                           tolerance: N = 0
+                           ) -> np.ma.MaskedArray:
+    """Check for consecutively repeated values within a tolerance.
+    Missing and masked data is flagged as UNKNOWN.
+    Args:
+        inp: Input data as a numeric numpy array or a list of numbers.
+        tinp: Time data as a numpy array of dtype `datetime64`.
+        suspect_threshold: The number of seconds within `tolerance` to
+            allow before being flagged as SUSPECT.
+        fail_threshold: The number of seconds within `tolerance` to
+            allow before being flagged as FAIL.
+        tolerance: The tolerance that should be exceeded between consecutive values.
+            If the number consecutive values occurring that don't cross over `tolerance`
+            cross over either of the `counts` then the data will be flagged.
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
+
+    if len(inp) == 0:
+        return np.ma.MaskedArray([])
+
+    # input as numpy arr
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+
+    # Save original shape
+    original_shape = inp.shape
+    inp = inp.flatten()
+
+    # Start with everything as passing
+    flag_arr = np.full((inp.size,), QartodFlags.GOOD)
+
+    def rolling_window(a, window):
+        """
+        https://rigtorp.se/2011/01/01/rolling-statistics-numpy.html
+        """
+        shape = a.shape[:-1] + (a.shape[-1] - window + 1, window + 1)
+        strides = a.strides + (a.strides[-1],)
+        arr = np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+        return np.ma.masked_invalid(arr[:-1, :])
+
+    def run_test(test_threshold, flag_value):
+        # convert time thresholds to number of observations
+        time_interval = np.median(np.diff(tinp)).astype(float)
+        count = (int(test_threshold) / time_interval).astype(int)
+
+        # calculate actual data ranges for each window
+        data_min = np.min(rolling_window(inp, count), 1)
+        data_max = np.max(rolling_window(inp, count), 1)
+        data_range = np.abs(data_max - data_min)
+
+        # find data ranges that are within threshold
+        test_results = np.ma.filled(data_range < tolerance, fill_value=False)
+        test_results = np.insert(test_results, 0, np.full((count,), False))  # TODO better way to do this?
+        flag_arr[test_results] = flag_value
+
+    run_test(suspect_threshold, QartodFlags.SUSPECT)
+    run_test(fail_threshold, QartodFlags.FAIL)
+
+    # If the value is masked set the flag to MISSING
+    flag_arr[inp.mask] = QartodFlags.MISSING
+
+    return flag_arr.reshape(original_shape)
+
 def attenuated_signal_test(inp : Sequence[N],
                            threshold : Tuple[N, N],
                            check_type : str = 'std'
