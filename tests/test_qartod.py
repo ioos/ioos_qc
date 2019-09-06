@@ -24,15 +24,14 @@ def dask_arr(vals):
     except ImportError:
         return vals
 
-
 class QartodLocationTest(unittest.TestCase):
 
     def test_location(self):
         """
         Ensure that longitudes and latitudes are within reasonable bounds.
         """
-        lon = [80.0, -78.5, 500.500]
-        lat = [np.NaN, 50.0, -60.0]
+        lon = [  80.0, -78.5, 500.500]
+        lat = [np.NaN,  50.0,   -60.0]
 
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
@@ -117,22 +116,22 @@ class QartodLocationTest(unittest.TestCase):
             qartod.location_test(lon=70, lat=70, bbox=(1, 2))
 
     def test_location_bbox(self):
-        lon = [80, -78, -71, -79, 500]
-        lat = [None, 50, 59, 10, -60]
+        lon = [80,   -78, -71, -79, 500]
+        lat = [None,  50,  59,  10, -60]
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = np.asarray([80, -78, -71, -79, 500], dtype=np.floating)
-        lat = np.asarray([None, 50, 59, 10, -60], dtype=np.floating)
+        lon = np.asarray([80,   -78, -71, -79, 500], dtype=np.floating)
+        lat = np.asarray([None,  50,  59,  10, -60], dtype=np.floating)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = dask_arr(np.asarray([80, -78, -71, -79, 500], dtype=np.floating))
-        lat = dask_arr(np.asarray([None, 50, 59, 10, -60], dtype=np.floating))
+        lon = dask_arr(np.asarray([80,   -78, -71, -79, 500], dtype=np.floating))
+        lat = dask_arr(np.asarray([None,  50,  59,  10, -60], dtype=np.floating))
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
@@ -162,11 +161,11 @@ class QartodGrossRangeTest(unittest.TestCase):
         fail_span = (10, 50)
         suspect_span = (20, 40)
         vals = [
-            5, 10,  # Sensor range.
-            15,  # User range.
+            5, 10,               # Sensor range.
+            15,                  # User range.
             20, 25, 30, 35, 40,  # Valid
-            45,  # User range.
-            51  # Sensor range.
+            45,                  # User range.
+            51                   # Sensor range.
         ]
         result = np.ma.array([
             4, 3,
@@ -223,13 +222,13 @@ class QartodGrossRangeTest(unittest.TestCase):
         fail_span = (10, 50)
         suspect_span = (20, 40)
         vals = [
-            None,  # None
-            10,  # Sensor range.
-            15,  # User range.
+            None,                # None
+            10,                  # Sensor range.
+            15,                  # User range.
             20, 25, 30, 35, 40,  # Valid
-            np.nan,  # np.nan
-            51,  # Sensor range.
-            np.ma.masked  # np.ma.masked
+            np.nan,              # np.nan
+            51,                  # Sensor range.
+            np.ma.masked         # np.ma.masked
         ]
         result = np.ma.array([
             9,
@@ -895,6 +894,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         )
 
     def test_attenuated_signal_range(self):
+
         # range less than 30
         signal = np.array([10, 20, 30, 40])
         expected = np.array([4, 4, 4, 4])
