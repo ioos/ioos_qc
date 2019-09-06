@@ -14,4 +14,5 @@ docs/build
 .config/
 .local/
 .ipython/
+tests/data/*.csv
 

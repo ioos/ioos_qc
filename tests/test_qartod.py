@@ -564,10 +564,11 @@ class QartodRateOfChangeTest(unittest.TestCase):
 class QartodFlatLineTest(unittest.TestCase):
 
     def setUp(self):
-        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
+        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 03:30:00',
                                step=np.timedelta64(15, 'm'), dtype=np.datetime64)
-        self.suspect_threshold = 3000   # 50 mins
-        self.fail_threshold = 4800  # 80 mins
+        self.times_epoch_secs = [t.astype(int) for t in self.times]
+        self.suspect_threshold = 3000   # 50 mins, or count of 3
+        self.fail_threshold = 4800  # 80 mins, or count of 5
         self.tolerance = 0.01
 
     def test_flat_line(self):
@@ -587,6 +588,18 @@ class QartodFlatLineTest(unittest.TestCase):
                 tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
+
+        # test epoch secs - should return same result
+        npt.assert_array_equal(
+            qartod.flat_line_test(
+                inp=arr,
+                tinp=self.times_epoch_secs,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            ),
+            expected
+        )
 
         # test negative array - should return same result
         arr = [-1 * x for x in arr]
@@ -616,7 +629,7 @@ class QartodFlatLineTest(unittest.TestCase):
         )
 
         # test nothing fails
-        arr = np.random.random(100)
+        arr = np.random.random(len(self.times))
         expected = np.ones_like(arr)
         npt.assert_array_equal(
             qartod.flat_line_test(
@@ -628,6 +641,42 @@ class QartodFlatLineTest(unittest.TestCase):
             ),
             expected
         )
+
+    def test_flat_line_starting_from_beginning(self):
+        arr = [2, 2.0001, 2, 2.0001, 2, 2.0001, 2, 4, 5, 3, 3.0001, 3.0005, 3.00001]
+        expected = [1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            inputs = [
+                arr,
+                np.asarray(arr, dtype=np.floating),
+                dask_arr(np.asarray(arr, dtype=np.floating))
+            ]
+        for i in inputs:
+            result = qartod.flat_line_test(
+                inp=i,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            )
+            npt.assert_array_equal(result, expected)
+
+    def test_flat_line_with_spike(self):
+        tolerance = 4
+        suspect_threshold = 3
+        fail_threshold = 6
+        time = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        arr =      [1, 1, 1, 1, 1, 6, 5, 4, 3, 2]
+        expected = [1, 1, 1, 3, 3, 1, 1, 1, 3, 3]
+        result = qartod.flat_line_test(
+            inp=arr,
+            tinp=time,
+            suspect_threshold=suspect_threshold,
+            fail_threshold=fail_threshold,
+            tolerance=tolerance
+        )
+        npt.assert_array_equal(result, expected)
 
     def test_flat_line_missing_values(self):
         arr = [1, None, np.ma.masked, 2, 2.0001, 2, 2.0001, 2, 4, None, 3, None, None, 3.00001]
@@ -648,6 +697,44 @@ class QartodFlatLineTest(unittest.TestCase):
                 tolerance=self.tolerance
             )
             npt.assert_array_equal(result, expected)
+
+
+@unittest.skip("only for running manually")
+class QartodFlatLinePerformanceTest(unittest.TestCase):
+
+    def setUp(self):
+        # Before running this test, unzip the csv in tests/data and install pandas
+        import pandas as pd
+        data = pd.read_csv('data/20363_1000427.csv')
+        self.times = data['time_epoch']
+        self.inp = data['value']
+        self.suspect_threshold = 43200
+        self.fail_threshold = 86400
+        self.tolerance = 1
+        self.n = 10
+
+    def perf_test(self, method):
+        import time
+        start = time.time()
+
+        L.info("running {}...".format(method))
+        for i in range(0, self.n):
+            L.info("\t{}/{}".format(i + 1, self.n))
+            method(
+                inp=self.inp,
+                tinp=self.times,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold,
+                tolerance=self.tolerance
+            )
+
+        end = time.time()
+        elapsed = end - start
+        avg_elapsed = elapsed / self.n
+        L.info("results for {}:\t\t{} runs\n\t{}s total\n\t{}s avg".format(method, self.n, elapsed, avg_elapsed))
+
+    def test_flat_line(self):
+        self.perf_test(qartod.flat_line_test)
 
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
