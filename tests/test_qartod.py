@@ -823,7 +823,7 @@ class QartodFlatLinePerformanceTest(unittest.TestCase):
         import time
         start = time.time()
 
-        L.info(f'running {method}...')
+        L.info("running {}...".format(method))
         for i in range(0, self.n):
             L.info("\t{}/{}".format(i + 1, self.n))
             method(
