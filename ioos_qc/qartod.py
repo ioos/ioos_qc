@@ -427,6 +427,7 @@ def flat_line_test(inp: Sequence[N],
                    ) -> np.ma.MaskedArray:
     """Check for consecutively repeated values within a tolerance.
     Missing and masked data is flagged as UNKNOWN.
+    More information: https://github.com/axiom-data-science/ioos_qc/pull/11
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
@@ -474,8 +475,9 @@ def flat_line_test(inp: Sequence[N],
         count = (int(test_threshold) / time_interval).astype(int)
 
         # calculate actual data ranges for each window
-        data_min = np.min(rolling_window(inp, count), 1)
-        data_max = np.max(rolling_window(inp, count), 1)
+        window = rolling_window(inp, count)
+        data_min = np.min(window, 1)
+        data_max = np.max(window, 1)
         data_range = np.abs(data_max - data_min)
 
         # find data ranges that are within threshold and flag them
