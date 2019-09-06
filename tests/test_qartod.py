@@ -824,9 +824,9 @@ class QartodFlatLinePerformanceTest(unittest.TestCase):
         import time
         start = time.time()
 
-        print(f'running {method}...')
+        L.info(f'running {method}...')
         for i in range(0, self.n):
-            print(f'\t{i + 1}/{self.n}')
+            L.info("\t{}/{}".format(i + 1, self.n))
             method(
                 inp=self.inp,
                 tinp=self.times,
@@ -838,7 +838,7 @@ class QartodFlatLinePerformanceTest(unittest.TestCase):
         end = time.time()
         elapsed = end - start
         avg_elapsed = elapsed / self.n
-        print(f'results for {method}:\t\t{self.n} runs\n\t{elapsed}s total\n\t{avg_elapsed}s avg')
+        L.info("results for {}:\t\t{} runs\n\t{}s total\n\t{}s avg".format(method, self.n, elapsed, avg_elapsed))
 
     def test_flat_line(self):
         self.perf_test(qartod.flat_line_test)
