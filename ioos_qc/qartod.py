@@ -443,9 +443,6 @@ def flat_line_test(inp: Sequence[N],
         A masked array of flag values equal in size to that of the input.
     """
 
-    if len(inp) == 0:
-        return np.ma.MaskedArray([])
-
     # input as numpy arr
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -458,6 +455,10 @@ def flat_line_test(inp: Sequence[N],
     # Start with everything as passing
     flag_arr = np.full((inp.size,), QartodFlags.GOOD)
 
+    # if we have fewer than 3 points, we can't run the test, so everything passes
+    if len(inp) < 3:
+        return flag_arr.reshape(original_shape)
+
     # determine median time interval
     time_interval = np.median(np.diff(tinp)).astype(float)
 
@@ -465,6 +466,8 @@ def flat_line_test(inp: Sequence[N],
         """
         https://rigtorp.se/2011/01/01/rolling-statistics-numpy.html
         """
+        if len(a) < window:
+            return np.ma.MaskedArray(np.empty((0, window + 1)))
         shape = a.shape[:-1] + (a.shape[-1] - window + 1, window + 1)
         strides = a.strides + (a.strides[-1],)
         arr = np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
@@ -483,7 +486,8 @@ def flat_line_test(inp: Sequence[N],
         # find data ranges that are within threshold and flag them
         test_results = np.ma.filled(data_range < tolerance, fill_value=False)
         # data points before end of first window should pass
-        test_results = np.insert(test_results, 0, np.full((count,), False))
+        n_fill = count if count < len(inp) else len(inp)
+        test_results = np.insert(test_results, 0, np.full((n_fill,), False))
         flag_arr[test_results] = flag_value
 
     run_test(suspect_threshold, QartodFlags.SUSPECT)

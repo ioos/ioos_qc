@@ -662,6 +662,26 @@ class QartodFlatLineTest(unittest.TestCase):
             )
             npt.assert_array_equal(result, expected)
 
+    def test_flat_line_short_timeseries(self):
+
+        def check(time, arr, expected):
+            result = qartod.flat_line_test(
+                inp=arr,
+                tinp=time,
+                suspect_threshold=3,
+                fail_threshold=5,
+                tolerance=0.1
+            )
+            npt.assert_array_equal(result, expected)
+
+        check(time=[],                  arr=[],                     expected=[])
+        check(time=[0],                 arr=[5],                    expected=[1])
+        check(time=[0, 1],              arr=[5, 5],                 expected=[1, 1])
+        check(time=[0, 1, 2],           arr=[5, 5, 5],              expected=[1, 1, 1])
+        check(time=[0, 1, 2, 3],        arr=[5, 5, 5, 5],           expected=[1, 1, 1, 3])
+        check(time=[0, 1, 2, 3, 4],     arr=[5, 5, 5, 5, 5],        expected=[1, 1, 1, 3, 3])
+        check(time=[0, 1, 2, 3, 4, 5],  arr=[5, 5, 5, 5, 5, 5],     expected=[1, 1, 1, 3, 3, 4])
+
     def test_flat_line_with_spike(self):
         tolerance = 4
         suspect_threshold = 3
