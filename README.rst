@@ -2,6 +2,14 @@
 IOOS QC
 =======
 
+.. image:: https://anaconda.org/conda-forge/ioos_qc/badges/version.svg
+   :target: https://anaconda.org/conda-forge/ioos_qc
+   :alt: conda_forge_package
+
+.. image:: https://anaconda.org/axiom-data-science/ioos_qc/badges/version.svg
+   :target: https://anaconda.org/axiom-data-science/ioos_qc
+   :alt: conda_package
+
 .. image:: https://travis-ci.org/axiom-data-science/ioos_qc.svg?branch=master
    :target: https://travis-ci.org/axiom-data-science/ioos_qc
    :alt: build_status
