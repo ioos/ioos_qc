@@ -427,7 +427,7 @@ def flat_line_test(inp: Sequence[N],
                    ) -> np.ma.MaskedArray:
     """Check for consecutively repeated values within a tolerance.
     Missing and masked data is flagged as UNKNOWN.
-    More information: https://github.com/axiom-data-science/ioos_qc/pull/11
+    More information: https://github.com/ioos/ioos_qc/pull/11
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.

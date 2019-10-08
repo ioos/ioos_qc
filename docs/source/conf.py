@@ -153,7 +153,7 @@ html_theme = 'alabaster'
 #
 html_theme_options = {
     'description': 'IOOS Quality Control tests implemented in Python',
-    'github_user': 'axiom-data-science',
+    'github_user': 'ioos',
     'github_repo': 'ioos_qc',
     'github_button': 'true',
 }

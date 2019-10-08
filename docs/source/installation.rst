@@ -3,7 +3,7 @@ Installation
 
 Install with conda::
 
-    $ conda install -c axiom-data-science ioos_qc
+    $ conda install -c conda-forge ioos_qc
 
 
 Development and Testing

@@ -2,7 +2,7 @@
 Notebook Examples
 =================
 
-You can download the source for these notebooks `here <https://github.com/axiom-data-science/ioos_qc/tree/master/docs/source/examples>`_.
+You can download the source for these notebooks `here <https://github.com/ioos/ioos_qc/tree/master/docs/source/examples>`_.
 
 * :doc:`Quickstart notebook </examples/Qartod_Single_Test_Example>`
 

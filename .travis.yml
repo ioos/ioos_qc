@@ -47,7 +47,6 @@ before_install:
   # Add 3rd party channels
   # ------------------------------------
   - conda config --add channels conda-forge
-  - conda config --add channels axiom-data-science
 
   # Create our environment
   # ------------------------------------

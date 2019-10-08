@@ -21,7 +21,7 @@ setup(
     license             = 'Apache',
     author              = "Kyle Wilcox",
     author_email        = "kyle@axds.co",
-    url                 = "https://github.com/axiom-data-science/ioos_qc",
+    url                 = "https://github.com/ioos/ioos_qc",
     packages            = find_packages(),
     install_requires    = reqs,
     classifiers         = [

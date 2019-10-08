@@ -31,7 +31,7 @@ test:
     - ioos_qc
 
 about:
-  home: https://github.com/axiom-data-science/ioos_qc
+  home: https://github.com/ioos/ioos_qc
   license: Apache 2.0
   license_file: LICENSE.txt
   summary: 'Collection of utilities, scripts and tests to assist in automated quality assurance.'
