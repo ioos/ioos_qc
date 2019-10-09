@@ -16,7 +16,7 @@ reqs = [line.strip() for line in open('requirements.txt') if not line.startswith
 setup(
     name                = 'ioos_qc',
     version             = version(),
-    description         = 'IOOS Quality Control tests implemented in Python',
+    description         = 'IOOS QARTOD and Quality Control tests implemented in Python',
     long_description    = readme(),
     license             = 'Apache',
     author              = "Kyle Wilcox",
@@ -25,7 +25,7 @@ setup(
     packages            = find_packages(),
     install_requires    = reqs,
     classifiers         = [
-        'Development Status :: 4 - Beta',
+        "Development Status :: 5 - Production/Stable",
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Programming Language :: Python',
