@@ -11,6 +11,17 @@ There are three main ways to use the `ioos_qc` project.
 Manual
 ------
 
+.. code-block:: python
+    :linenos:
+    :caption: Calling a test manually
+
+    from ioos_qc import qartod
+
+    qartod.spike_test(
+        inp=list(range(13)),
+        suspect_span=[1, 11],
+        fail_span=[0, 12]
+    )
 
 
 QcConfig

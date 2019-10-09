@@ -152,7 +152,7 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'description': 'IOOS Quality Control tests implemented in Python',
+    'description': 'IOOS QARTOD and other Quality Control tests implemented in Python',
     'github_user': 'ioos',
     'github_repo': 'ioos_qc',
     'github_button': 'true',

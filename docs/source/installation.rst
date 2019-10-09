@@ -22,9 +22,13 @@ Run tests::
 
 Build docs::
 
+    conda create -y -n ioosqc37_docs python=3.7
+    conda activate ioosqc37_docs
+    conda install -y --file requirements.txt \
+        --file tests/requirements.txt \
+        --file docs/requirements.txt \
+        --file docs/source/examples/requirements.txt
     cd docs
-    conda activate ioosqc37
-    conda install --file requirements.txt --file source/examples/requirements.txt
     make html
 
 Then open a browser to ``build/html/index.html``.
