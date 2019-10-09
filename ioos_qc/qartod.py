@@ -649,9 +649,13 @@ def flat_line_test(inp: Sequence[N],
 
 @add_flag_metadata('attenuated_signal_test_quality_flag', 'Attenuated Signal Test Quality Flag')
 def attenuated_signal_test(inp : Sequence[N],
+                           tinp : Sequence[N],
                            suspect_threshold: N,
                            fail_threshold: N,
-                           check_type : str = 'std'
+                           test_period: N = None,
+                           check_type : str = 'std',
+                           *args,
+                           **kwargs,
                            ) -> np.ma.MaskedArray:
     """Check for near-flat-line conditions using a range or standard deviation.
 
@@ -659,8 +663,10 @@ def attenuated_signal_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
+        tinp: Time data as a numpy array of dtype `datetime64`.
         suspect_threshold: Any deviation below this amount will be flagged as SUSPECT. In observations units.
         fail_threshold: Any deviation below this amount will be flagged as FAIL. In observations units.
+        test_period: Period of time to test over in seconds.
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
@@ -670,29 +676,37 @@ def attenuated_signal_test(inp : Sequence[N],
         input data is flagged together.
     """
 
+    tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
 
     # Save original shape
     original_shape = inp.shape
-    inp = inp.flatten()
-
-    if check_type == 'std':
-        check_val = np.std(inp)
-    elif check_type == 'range':
-        check_val = np.ptp(inp)
-    else:
-        raise ValueError('Check type "{}" is not defined'.format(check_type))
+    series = pd.Series(inp.flatten(), index=tinp.flatten())
 
     # Start with everything as passing (1)
-    flag_arr = np.ma.ones(inp.size, dtype='uint8')
+    flag_arr = np.full((inp.size,), QartodFlags.GOOD)
 
-    if check_val < suspect_threshold:
-        flag_arr.fill(QartodFlags.FAIL)
-    elif check_val < fail_threshold:
-        flag_arr.fill(QartodFlags.SUSPECT)
+    if test_period:
+        if check_type == 'std':
+            check_val = series.rolling(f'{test_period}s').apply(np.sum, raw=True)
+        elif check_type == 'range':
+            check_val = series.rolling(f'{test_period}s').apply(np.ptp, raw=True)
+        else:
+            raise ValueError('Check type "{}" is not defined'.format(check_type))
+    else:
+        if check_type == 'std':
+            check_val = np.ones_like(flag_arr) * np.std(series)
+        elif check_type == 'range':
+            check_val = np.ones_like(flag_arr) * np.ptp(series)
+        else:
+            raise ValueError('Check type "{}" is not defined'.format(check_type))
 
+    flag_arr[check_val < suspect_threshold] = QartodFlags.SUSPECT
+    # If NaN after window operation, mark as suspect
+    flag_arr[np.isnan(check_val)] = QartodFlags.SUSPECT
+    flag_arr[check_val < fail_threshold] = QartodFlags.FAIL
     # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING
 
