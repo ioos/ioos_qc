@@ -1,5 +1,5 @@
-Other QARTOD Implmentations
-===========================
+Other QARTOD Implementations
+============================
 
 Surveys
 
@@ -16,8 +16,12 @@ Python
 
 R
 
-- `Cooperative Institute for Great Lakes Research - University of Michigan. Contact: Joe Smith 734-741-2252 <joeseph@umich.edu>`_
+- Cooperative Institute for Great Lakes Research - University of Michigan. Contact: Joe Smith 734-741-2252 (joeseph at umich.edu)
 
 SensorML
 
 - `QARTOD to OGC <https://q2o.whoi.edu/node/89.html>`_
+
+Java
+
+- SECOORA has a Java implementation, along with a UI for manually updating flags `Presentation slides <http://secoora.org/wp-content/uploads/2018/06/03_Leonard-UNCW-Coastal-Ocean-Research-Monitoring-Program-.pdf>`_

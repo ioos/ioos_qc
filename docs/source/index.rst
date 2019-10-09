@@ -21,6 +21,7 @@ observing systems.
    resources
    examples
    releases
+   other
 
 
 API documentation
