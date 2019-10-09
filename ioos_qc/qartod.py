@@ -649,7 +649,8 @@ def flat_line_test(inp: Sequence[N],
 
 @add_flag_metadata('attenuated_signal_test_quality_flag', 'Attenuated Signal Test Quality Flag')
 def attenuated_signal_test(inp : Sequence[N],
-                           threshold : Tuple[N, N],
+                           suspect_threshold: N,
+                           fail_threshold: N,
                            check_type : str = 'std'
                            ) -> np.ma.MaskedArray:
     """Check for near-flat-line conditions using a range or standard deviation.
@@ -658,9 +659,8 @@ def attenuated_signal_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        threshold: 2-tuple representing the minimum thresholds to use for SUSPECT
-            and FAIL checks. The smaller of the two values is used in the SUSPECT
-            tests and the greater of the two values is used in the FAIL tests.
+        suspect_threshold: Any deviation below this amount will be flagged as SUSPECT. In observations units.
+        fail_threshold: Any deviation below this amount will be flagged as FAIL. In observations units.
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
@@ -669,9 +669,6 @@ def attenuated_signal_test(inp : Sequence[N],
         This array will always contain only a single unique value since all
         input data is flagged together.
     """
-
-    assert isfixedlength(threshold, 2)
-    threshold = span(*reversed(sorted(threshold)))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -691,9 +688,9 @@ def attenuated_signal_test(inp : Sequence[N],
     # Start with everything as passing (1)
     flag_arr = np.ma.ones(inp.size, dtype='uint8')
 
-    if check_val < threshold.maxv:
+    if check_val < suspect_threshold:
         flag_arr.fill(QartodFlags.FAIL)
-    elif check_val < threshold.minv:
+    elif check_val < fail_threshold:
         flag_arr.fill(QartodFlags.SUSPECT)
 
     # If the value is masked set the flag to MISSING
