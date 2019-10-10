@@ -666,7 +666,7 @@ def attenuated_signal_test(inp : Sequence[N],
         tinp: Time data as a numpy array of dtype `datetime64`.
         suspect_threshold: Any deviation below this amount will be flagged as SUSPECT. In observations units.
         fail_threshold: Any deviation below this amount will be flagged as FAIL. In observations units.
-        test_period: Period of time to test over in seconds.
+        test_period: Period of time to test over in seconds [optional].
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
