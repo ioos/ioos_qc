@@ -653,6 +653,7 @@ def attenuated_signal_test(inp : Sequence[N],
                            suspect_threshold: N,
                            fail_threshold: N,
                            test_period: N = None,
+                           min_obs: N = None,
                            check_type : str = 'std',
                            *args,
                            **kwargs,
@@ -663,10 +664,15 @@ def attenuated_signal_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
-        suspect_threshold: Any deviation below this amount will be flagged as SUSPECT. In observations units.
-        fail_threshold: Any deviation below this amount will be flagged as FAIL. In observations units.
-        test_period: Period of time to test over in seconds [optional].
+        tinp: Time input data as a numpy array of dtype `datetime64`.
+        suspect_threshold: Any calculated value below this amount will be flagged as SUSPECT.
+            In observations units.
+        fail_threshold: Any calculated values below this amount will be flagged as FAIL.
+            In observations units.
+        test_period: Length of time to test over in seconds [optional].
+            Otherwise, will test against entire `inp`.
+        min_obs: Minimum number of observations in window required to calculate a result [optional].
+            Otherwise, test will start at beginning of time series.
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
@@ -685,14 +691,14 @@ def attenuated_signal_test(inp : Sequence[N],
     original_shape = inp.shape
     series = pd.Series(inp.flatten(), index=tinp.flatten())
 
-    # Start with everything as passing (1)
+    # Start with everything as not tested (0)
     flag_arr = np.full((inp.size,), QartodFlags.GOOD)
 
     if test_period:
         if check_type == 'std':
-            check_val = series.rolling(f'{test_period}s').apply(np.sum, raw=True)
+            check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.sum, raw=True)
         elif check_type == 'range':
-            check_val = series.rolling(f'{test_period}s').apply(np.ptp, raw=True)
+            check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.ptp, raw=True)
         else:
             raise ValueError('Check type "{}" is not defined'.format(check_type))
     else:
