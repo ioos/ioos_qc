@@ -1392,7 +1392,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 inp=signal,
                 tinp=times,
                 suspect_threshold=150,
-                fail_threshold=50,
+                fail_threshold=40,
                 test_period=time_window,
                 check_type='std'
             ),

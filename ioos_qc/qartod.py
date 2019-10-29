@@ -689,19 +689,21 @@ def attenuated_signal_test(inp : Sequence[N],
 
     # Save original shape
     original_shape = inp.shape
-    series = pd.Series(inp.flatten(), index=tinp.flatten())
 
     # Start with everything as not tested (0)
-    flag_arr = np.full((inp.size,), QartodFlags.GOOD)
+    flag_arr = np.full((inp.size,), QartodFlags.UNKNOWN)
 
     if test_period:
+        series = pd.Series(inp.flatten(), index=tinp.flatten())
         if check_type == 'std':
-            check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.sum, raw=True)
+            check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.std, raw=True)
         elif check_type == 'range':
             check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.ptp, raw=True)
         else:
             raise ValueError('Check type "{}" is not defined'.format(check_type))
     else:
+        # applying np.ptp to Series causes warnings, this is a workaround
+        series = inp.flatten()
         if check_type == 'std':
             check_val = np.ones_like(flag_arr) * np.std(series)
         elif check_type == 'range':
@@ -709,11 +711,10 @@ def attenuated_signal_test(inp : Sequence[N],
         else:
             raise ValueError('Check type "{}" is not defined'.format(check_type))
 
+    flag_arr[check_val >= suspect_threshold] = QartodFlags.GOOD
     flag_arr[check_val < suspect_threshold] = QartodFlags.SUSPECT
-    # If NaN after window operation, mark as suspect
     flag_arr[np.isnan(check_val)] = QartodFlags.SUSPECT
     flag_arr[check_val < fail_threshold] = QartodFlags.FAIL
-    # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
