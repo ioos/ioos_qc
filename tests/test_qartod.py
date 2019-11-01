@@ -798,11 +798,9 @@ class QartodFlatLineTest(unittest.TestCase):
             npt.assert_array_equal(result, expected)
 
 
-@unittest.skip("only for running manually")
 class QartodFlatLinePerformanceTest(unittest.TestCase):
 
     def setUp(self):
-        # Before running this test, unzip the csv in tests/data and install pandas
         import pandas as pd
         from pathlib import Path
         data = pd.read_csv(Path(__file__).parent / 'data/20363_1000427.csv.gz')
@@ -817,9 +815,9 @@ class QartodFlatLinePerformanceTest(unittest.TestCase):
         import time
         start = time.time()
 
-        L.info("running {}...".format(method))
+        L.debug("running {}...".format(method))
         for i in range(0, self.n):
-            L.info("\t{}/{}".format(i + 1, self.n))
+            L.debug("\t{}/{}".format(i + 1, self.n))
             method(
                 inp=self.inp,
                 tinp=self.times,
