@@ -3,7 +3,7 @@
 import logging
 import warnings
 from collections import namedtuple
-from numbers import Real
+from numbers import Real as N
 from typing import Sequence, Tuple, Union, Dict
 
 import numpy as np
@@ -29,8 +29,6 @@ class QartodFlags(object):
 
 FLAGS = QartodFlags  # Default name for all check modules
 
-
-N = Real
 span = namedtuple('Span', 'minv maxv')
 
 
