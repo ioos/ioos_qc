@@ -266,18 +266,20 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
     def setUp(self):
         self.cc = qartod.ClimatologyConfig()
         self.cc.add(
-            tspan=(0, 2),
-            vspan=(10, 20),
+            tspan=(0, 2),       # jan thru march
+            vspan=(10, 20),     # range of valid values
             period='month'
         )
 
     def test_climatology_test_fail(self):
-        tests = [
+        test_inputs = [
+            # outside range of valid values
             (
                 np.datetime64('2011-01-02'),
                 9,
                 None
             ),
+            # within range of valid values
             (
                 np.datetime64('2011-01-02'),
                 11,
@@ -290,7 +292,7 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
                 None
             ),
         ]
-        times, values, depths = zip(*tests)
+        times, values, depths = zip(*test_inputs)
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
@@ -326,11 +328,13 @@ class QartodClimatologyTest(unittest.TestCase):
             tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
             vspan=(40, 50),
         )
+        # same time range as above, but with depths
         self.cc.add(
             tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
             vspan=(50, 60),
             zspan=(0, 10)
         )
+        # same as above, but different depths
         self.cc.add(
             tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
             vspan=(70, 80),
@@ -338,15 +342,14 @@ class QartodClimatologyTest(unittest.TestCase):
         )
 
     def test_climatology_test(self):
-        tests = [
+        test_inputs = [
             (
                 np.datetime64('2011-01-02'),
                 11,
                 None
             )
         ]
-
-        times, values, depths = zip(*tests)
+        times, values, depths = zip(*test_inputs)
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
@@ -366,7 +369,7 @@ class QartodClimatologyTest(unittest.TestCase):
             )
 
     def test_climatology_test_fail(self):
-        tests = [
+        test_inputs = [
             (
                 np.datetime64('2011-01-02'),
                 9,
@@ -382,8 +385,14 @@ class QartodClimatologyTest(unittest.TestCase):
                 21,
                 None
             ),
+            # not run, outside given time ranges
+            (
+                np.datetime64('2015-01-02'),
+                21,
+                None
+            ),
         ]
-        times, values, depths = zip(*tests)
+        times, values, depths = zip(*test_inputs)
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
@@ -399,38 +408,49 @@ class QartodClimatologyTest(unittest.TestCase):
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([3, 1, 3])
+                np.ma.array([3, 1, 3, 2])
             )
 
     def test_climatology_test_depths(self):
-        tests = [
+        test_inputs = [
+            # (0, 10) depth range, valid value
             (
                 np.datetime64('2012-01-02'),
                 51,
                 2
             ),
+            # (10, 100) depth range, valid value
             (
                 np.datetime64('2012-01-02'),
                 71,
                 90
             ),
+            # no depth range, valid value
             (
                 np.datetime64('2012-01-02'),
                 42,
                 None
             ),
+            # no depth range, invalid value
+            (
+                np.datetime64('2012-01-02'),
+                39,
+                None
+            ),
+            # (10, 100) depth range, invalid value
             (
                 np.datetime64('2012-01-02'),
                 59,
                 11
             ),
+            # Not run, has depth that's outside of given depth ranges
             (
                 np.datetime64('2012-01-02'),
                 79,
                 101
             )
         ]
-        times, values, depths = zip(*tests)
+        times, values, depths = zip(*test_inputs)
         inputs = [
             values,
             np.asarray(values, dtype=np.floating),
@@ -446,7 +466,7 @@ class QartodClimatologyTest(unittest.TestCase):
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([1, 1, 1, 3, 2])
+                np.ma.array([1, 1, 1, 3, 3, 2])
             )
 
 

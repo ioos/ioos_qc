@@ -211,7 +211,12 @@ def gross_range_test(inp : Sequence[N],
 class ClimatologyConfig(object):
     """
     Args:
-        period: The unit the tspan argument is in. Defaults to datetime object
+        tspan: 2-tuple range.
+                If period is defined, then this is a numeric range.
+                If period is not defined, then its a date range.
+        vspan: 2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
+        zspan: (optional) Vertical (depth) range, in meters positive down
+        period: (optional) The unit the tspan argument is in. Defaults to datetime object
                 but can also be any attribute supported by a pandas Timestamp object.
                 See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html                    
                     * year
@@ -300,6 +305,17 @@ class ClimatologyConfig(object):
             )
         )
 
+    @staticmethod
+    def convert(config):
+        # Create a ClimatologyConfig object if one was not passed in
+        if isinstance(config, ClimatologyConfig):
+            return config
+
+        c = ClimatologyConfig()
+        for climate_config_dict in config:
+            c.add(**climate_config_dict)
+        return c
+
 
 def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
                      inp : Sequence[N],
@@ -312,25 +328,21 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
 
     Args:
         config: A ClimatologyConfig object or a list of dicts containing tuples
-            that can be used to create a ClimatologyConfig object. Dict should be composed of
-            keywords 'tspan' and 'vspan' as well as an optional 'zspan'
+            that can be used to create a ClimatologyConfig object. See ClimatologyConfig
+            docs for more info.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
           This includes numpy datetime64, python datetime objects and pandas Timestamp object.
           ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
           If anything else is passed in the format is assumed to be seconds since the unix epoch.
         vinp: Input data as a numeric numpy array or a list of numbers.
-        zinp: Z (depth) data as a numeric numpy array or a list of numbers.
+        zinp: Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
     """
 
     # Create a ClimatologyConfig object if one was not passed in
-    if not isinstance(config, ClimatologyConfig):
-        c = ClimatologyConfig()
-        for climate_config_dict in config:
-            c.add(**climate_config_dict)
-        config = c
+    config = ClimatologyConfig.convert(config)
 
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
