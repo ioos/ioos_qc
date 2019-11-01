@@ -251,9 +251,9 @@ class ClimatologyConfigConversionTest(unittest.TestCase):
         json_climatology_config = ClimatologyConfig.convert(qc.config['qartod']['climatology_test']['config'])
         self._assert_cc_configs_equal(self.cc, json_climatology_config)
 
-    def _assert_cc_configs_equal(self,c1: ClimatologyConfig, c2: ClimatologyConfig):
+    def _assert_cc_configs_equal(self, c1: ClimatologyConfig, c2: ClimatologyConfig):
         assert len(c1.members) == len(c2.members)
-        for idx in range(0,len(c1.members)):
+        for idx in range(0, len(c1.members)):
             m1 = c1.members[idx]
             m2 = c2.members[idx]
             assert m1.tspan == m2.tspan, f"{idx} tspan did not match"

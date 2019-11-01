@@ -263,32 +263,42 @@ class QartodGrossRangeTest(unittest.TestCase):
 
 class QartodClimatologyPeriodTest(unittest.TestCase):
 
-    def setUp(self):
-        self.cc = qartod.ClimatologyConfig()
-        self.cc.add(
-            tspan=(0, 2),       # jan thru march
-            vspan=(10, 20),     # range of valid values
-            period='month'
+    def _run_test(self, tspan, period):
+        cc = qartod.ClimatologyConfig()
+        cc.add(
+            vspan=(10, 20),  # range of valid values
+            tspan=tspan,  # jan, feb and march
+            period=period
         )
-
-    def test_climatology_test_fail(self):
         test_inputs = [
-            # outside range of valid values
+            # in feb, but outside range of valid values
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64('2011-02-02'),
                 9,
                 None
             ),
-            # within range of valid values
+            # in feb, and within range of valid values
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64('2013-02-03'),
                 11,
                 None
             ),
+            # Not run, outside of time range
             (
-                # Not run, outside of months 1 and 2
-                np.datetime64('2011-03-01'),
+                np.datetime64('2011-04-01'),
                 21,
+                None
+            ),
+            # Not run, outside of time range
+            (
+                np.datetime64('2011-12-31'),
+                21,
+                None
+            ),
+            # leap day, with valid values
+            (
+                np.datetime64('2020-02-29'),
+                15,
                 None
             ),
         ]
@@ -301,15 +311,27 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
 
         for i in inputs:
             results = qartod.climatology_test(
-                config=self.cc,
+                config=cc,
                 tinp=times,
                 inp=i,
                 zinp=depths
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([3, 1, 2])
+                np.ma.array([3, 1, 2, 2, 1])
             )
+
+    def test_climatology_test_periods_monthly(self):
+        self._run_test((0, 3), 'month')
+
+    def test_climatology_test_periods_week_of_year(self):
+        self._run_test((0, 12), 'weekofyear')
+
+    def test_climatology_test_periods_day_of_year(self):
+        self._run_test((0, 90), 'dayofyear')
+
+    def test_climatology_test_periods_quarter(self):
+        self._run_test((0, 1), 'quarter')
 
 
 class QartodClimatologyTest(unittest.TestCase):
