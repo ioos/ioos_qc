@@ -7,6 +7,7 @@ from numbers import Real as N
 from typing import Sequence, Tuple, Union, Dict
 
 import numpy as np
+import pandas as pd
 from pygc import great_distance
 
 from ioos_qc.utils import (
@@ -204,11 +205,22 @@ def gross_range_test(inp : Sequence[N],
 
 
 class ClimatologyConfig(object):
-
+    """
+    Args:
+        period: The unit the tspan argument is in. Defaults to datetime object
+                but can also be any attribute supported by a pandas Timestamp object.
+                See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html                    
+                    * year
+                    * week / weekofyear
+                    * dayofyear
+                    * dayofweek
+                    * quarter
+    """
     mem = namedtuple('window', [
         'tspan',
         'vspan',
-        'zspan'
+        'zspan',
+        'period'
     ])
 
     def __init__(self, members=None):
@@ -219,9 +231,20 @@ class ClimatologyConfig(object):
     def members(self):
         return self._members
 
-    def values(self, tind, zind=None):
+    def values(self, tind : pd.Timestamp, zind=None):
+        """
+        Args:
+            tind: Value to test for inclusion between time bounds
+        """
         span = (None, None)
         for m in self._members:
+
+            # If a period is defined, extract the attribute from the
+            # pd.Timestamp object before comparison. The min and max
+            # values are in this period unit already.
+            if m.period is not None:
+                tind = getattr(tind, m.period)
+
             # If we are between times
             if tind > m.tspan.minv and tind <= m.tspan.maxv:
                 if not isnan(zind) and not isnan(m.zspan):
@@ -235,11 +258,20 @@ class ClimatologyConfig(object):
     def add(self,
             tspan : Tuple[N, N],
             vspan : Tuple[N, N],
-            zspan : Tuple[N, N] = None) -> None:
+            zspan : Tuple[N, N] = None,
+            period : str = None
+            ) -> None:
 
         assert isfixedlength(tspan, 2)
-        tspan = mapdates(tspan)
-        tspan = span(*sorted(tspan))
+        # If period is defined, tspan is a numeric
+        # if it isn't defined, its a parsable date
+        if period is not None:
+            tspan = span(*sorted(tspan))
+        else:
+            tspan = span(*sorted([
+                pd.Timestamp(tspan[0]),
+                pd.Timestamp(tspan[1])
+            ]))
 
         assert isfixedlength(vspan, 2)
         vspan = span(*sorted(vspan))
@@ -248,11 +280,19 @@ class ClimatologyConfig(object):
             assert isfixedlength(zspan, 2)
             zspan = span(*sorted(zspan))
 
+        if period is not None:
+            # Test to make sure this is callable on a Timestamp
+            try:
+                getattr(pd.Timestamp.now(), period)
+            except AttributeError:
+                raise ValueError('The period "{period}" is not recognized')
+
         self._members.append(
             self.mem(
                 tspan,
                 vspan,
-                zspan
+                zspan,
+                period
             )
         )
 
@@ -270,7 +310,9 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
         config: A ClimatologyConfig object or a list of dicts containing tuples
             that can be used to create a ClimatologyConfig object. Dict should be composed of
             keywords 'tspan' and 'vspan' as well as an optional 'zspan'
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+          This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+          ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
         vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data as a numeric numpy array or a list of numbers.
 
@@ -294,7 +336,10 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     # Save original shape
     original_shape = inp.shape
 
-    tinp = tinp.flatten()
+    # We compare using a pandas Timestamp for helper functions like
+    # 'week' and 'dayofyear'. It is surprisingly hard to pull these out
+    # of a plain datetime64 object.
+    tinp = pd.DatetimeIndex(tinp.flatten())
     inp = inp.flatten()
     zinp = zinp.flatten()
 

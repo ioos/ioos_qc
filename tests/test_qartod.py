@@ -261,6 +261,55 @@ class QartodGrossRangeTest(unittest.TestCase):
             )
 
 
+class QartodClimatologyPeriodTest(unittest.TestCase):
+
+    def setUp(self):
+        self.cc = qartod.ClimatologyConfig()
+        self.cc.add(
+            tspan=(0, 2),
+            vspan=(10, 20),
+            period='month'
+        )
+
+    def test_climatology_test_fail(self):
+        tests = [
+            (
+                np.datetime64('2011-01-02'),
+                9,
+                None
+            ),
+            (
+                np.datetime64('2011-01-02'),
+                11,
+                None
+            ),
+            (
+                # Not run, outside of months 1 and 2
+                np.datetime64('2011-03-01'),
+                21,
+                None
+            ),
+        ]
+        times, values, depths = zip(*tests)
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.floating),
+            dask_arr(np.asarray(values, dtype=np.floating))
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array([3, 1, 9])
+            )
+
+
 class QartodClimatologyTest(unittest.TestCase):
 
     def setUp(self):
