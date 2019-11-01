@@ -33,14 +33,18 @@ FLAGS = QartodFlags  # Default name for all check modules
 span = namedtuple('Span', 'minv maxv')
 
 
-# Convert dates to datetime and leave datetimes alone. This is also reducing all
-# objects to second precision
 def mapdates(dates):
     if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
+        # numpy datetime objects
         return dates.astype('datetime64[ns]')
     else:
-        return np.array(dates, dtype='datetime64[ns]')
-
+        try:
+            # Finally try unix epoch seconds
+            return pd.to_datetime(dates, unit='s').values.astype('datetime64[ns]')
+        except Exception:
+            # strings work here but we don't advertise that
+            return np.array(dates, dtype='datetime64[ns]')
+            
 
 def qartod_compare(vectors : Sequence[Sequence[N]]
                    ) -> np.ma.MaskedArray:
@@ -313,6 +317,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
           This includes numpy datetime64, python datetime objects and pandas Timestamp object.
           ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+          If anything else is passed in the format is assumed to be seconds since the unix epoch.
         vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data as a numeric numpy array or a list of numbers.
 
@@ -431,9 +436,12 @@ def rate_of_change_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+              If anything else is passed in the format is assumed to be seconds since the unix epoch.
         threshold: A float value representing a rate of change over time,
-                 in observation units per second.
+                   in observation units per second.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
@@ -451,7 +459,9 @@ def rate_of_change_test(inp : Sequence[N],
 
     # calculate rate of change in units/second
     roc = np.ma.zeros(inp.size, dtype='float')
-    roc[1:] = np.abs(np.diff(inp) / np.diff(tinp).astype(float))
+
+    tinp = mapdates(tinp).flatten()
+    roc[1:] = np.abs(np.diff(inp) / np.diff(tinp).astype('timedelta64[s]').astype(float))
 
     with np.errstate(invalid='ignore'):
         flag_arr[roc > threshold] = QartodFlags.SUSPECT
@@ -473,7 +483,10 @@ def flat_line_test(inp: Sequence[N],
     More information: https://github.com/ioos/ioos_qc/pull/11
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
+        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+              If anything else is passed in the format is assumed to be seconds since the unix epoch.
         suspect_threshold: The number of seconds within `tolerance` to
             allow before being flagged as SUSPECT.
         fail_threshold: The number of seconds within `tolerance` to
@@ -503,7 +516,10 @@ def flat_line_test(inp: Sequence[N],
         return flag_arr.reshape(original_shape)
 
     # determine median time interval
-    time_interval = np.median(np.diff(tinp)).astype(float)
+    tinp = mapdates(tinp).flatten()
+
+    # The thresholds are in seconds so we round make sure the interval is also in seconds
+    time_interval = np.median(np.diff(tinp)).astype('timedelta64[s]').astype(float)
 
     def rolling_window(a, window):
         """

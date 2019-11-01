@@ -567,6 +567,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
     def setUp(self):
         self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
                                step=np.timedelta64(15, 'm'), dtype=np.datetime64)
+        self.times_epoch_secs = [t.astype(int) for t in self.times]
         self.threshold = 5 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
 
     def test_rate_of_change(self):
@@ -585,6 +586,16 @@ class QartodRateOfChangeTest(unittest.TestCase):
                 threshold=self.threshold
             )
             npt.assert_array_equal(expected, result)
+
+        # test epoch secs - should return same result
+        npt.assert_array_equal(
+            qartod.rate_of_change_test(
+                inp=i,
+                tinp=self.times_epoch_secs,
+                threshold=self.threshold
+            ),
+            expected
+        )
 
     def test_rate_of_change_missing_values(self):
         times = self.times[0:8]
