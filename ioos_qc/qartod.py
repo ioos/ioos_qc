@@ -496,6 +496,7 @@ def flat_line_test(inp: Sequence[N],
 
     return flag_arr.reshape(original_shape)
 
+
 def attenuated_signal_test(inp : Sequence[N],
                            threshold : Tuple[N, N],
                            check_type : str = 'std'

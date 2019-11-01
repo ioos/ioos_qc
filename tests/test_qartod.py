@@ -24,6 +24,7 @@ def dask_arr(vals):
     except ImportError:
         return vals
 
+
 class QartodLocationTest(unittest.TestCase):
 
     def test_location(self):
@@ -436,8 +437,6 @@ class QartodSpikeTest(unittest.TestCase):
         """
         Test to make spike detection works properly for negative values.
         """
-        thresholds = (25, 50)
-
         arr = [-10, -12, -999.99, -13, -15, -40, -9, -9]
 
         # First and last elements should always be good data, unless someone
@@ -687,7 +686,7 @@ class QartodFlatLineTest(unittest.TestCase):
         suspect_threshold = 3
         fail_threshold = 6
         time = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        arr =      [1, 1, 1, 1, 1, 6, 5, 4, 3, 2]
+        arr = [1, 1, 1, 1, 1, 6, 5, 4, 3, 2]
         expected = [1, 1, 1, 3, 3, 1, 1, 1, 3, 3]
         result = qartod.flat_line_test(
             inp=arr,
