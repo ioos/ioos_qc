@@ -72,10 +72,10 @@ def check_timestamps(times : np.ndarray,
 
 def dict_update(d, u):
     # http://stackoverflow.com/a/3233356
-    import collections
+    from collections.abc import Mapping
     for k, v in u.items():
-        if isinstance(d, collections.Mapping):
-            if isinstance(v, collections.Mapping):
+        if isinstance(d, Mapping):
+            if isinstance(v, Mapping):
                 r = dict_update(d.get(k, {}), v)
                 d[k] = r
             else:
@@ -104,7 +104,7 @@ class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.generic):
-            return np.asscalar(obj)
+            return obj.item()
         # elif isinstance(obj, pd.Timestamp):
         #     return obj.to_pydatetime().isoformat()
         elif isinstance(obj, (datetime, date)):

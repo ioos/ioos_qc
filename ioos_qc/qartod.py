@@ -3,10 +3,11 @@
 import logging
 import warnings
 from collections import namedtuple
-from numbers import Real
+from numbers import Real as N
 from typing import Sequence, Tuple, Union, Dict
 
 import numpy as np
+import pandas as pd
 from pygc import great_distance
 
 from ioos_qc.utils import (
@@ -29,19 +30,21 @@ class QartodFlags(object):
 
 FLAGS = QartodFlags  # Default name for all check modules
 
-
-N = Real
 span = namedtuple('Span', 'minv maxv')
 
 
-# Convert dates to datetime and leave datetimes alone. This is also reducing all
-# objects to second precision
 def mapdates(dates):
     if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
+        # numpy datetime objects
         return dates.astype('datetime64[ns]')
     else:
-        return np.array(dates, dtype='datetime64[ns]')
-
+        try:
+            # Finally try unix epoch seconds
+            return pd.to_datetime(dates, unit='s').values.astype('datetime64[ns]')
+        except Exception:
+            # strings work here but we don't advertise that
+            return np.array(dates, dtype='datetime64[ns]')
+            
 
 def qartod_compare(vectors : Sequence[Sequence[N]]
                    ) -> np.ma.MaskedArray:
@@ -206,11 +209,27 @@ def gross_range_test(inp : Sequence[N],
 
 
 class ClimatologyConfig(object):
-
+    """
+    Args:
+        tspan: 2-tuple range.
+                If period is defined, then this is a numeric range.
+                If period is not defined, then its a date range.
+        vspan: 2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
+        zspan: (optional) Vertical (depth) range, in meters positive down
+        period: (optional) The unit the tspan argument is in. Defaults to datetime object
+                but can also be any attribute supported by a pandas Timestamp object.
+                See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html                    
+                    * year
+                    * week / weekofyear
+                    * dayofyear
+                    * dayofweek
+                    * quarter
+    """
     mem = namedtuple('window', [
         'tspan',
         'vspan',
-        'zspan'
+        'zspan',
+        'period'
     ])
 
     def __init__(self, members=None):
@@ -221,9 +240,20 @@ class ClimatologyConfig(object):
     def members(self):
         return self._members
 
-    def values(self, tind, zind=None):
+    def values(self, tind : pd.Timestamp, zind=None):
+        """
+        Args:
+            tind: Value to test for inclusion between time bounds
+        """
         span = (None, None)
         for m in self._members:
+
+            # If a period is defined, extract the attribute from the
+            # pd.Timestamp object before comparison. The min and max
+            # values are in this period unit already.
+            if m.period is not None:
+                tind = getattr(tind, m.period)
+
             # If we are between times
             if tind > m.tspan.minv and tind <= m.tspan.maxv:
                 if not isnan(zind) and not isnan(m.zspan):
@@ -237,11 +267,20 @@ class ClimatologyConfig(object):
     def add(self,
             tspan : Tuple[N, N],
             vspan : Tuple[N, N],
-            zspan : Tuple[N, N] = None) -> None:
+            zspan : Tuple[N, N] = None,
+            period : str = None
+            ) -> None:
 
         assert isfixedlength(tspan, 2)
-        tspan = mapdates(tspan)
-        tspan = span(*sorted(tspan))
+        # If period is defined, tspan is a numeric
+        # if it isn't defined, its a parsable date
+        if period is not None:
+            tspan = span(*sorted(tspan))
+        else:
+            tspan = span(*sorted([
+                pd.Timestamp(tspan[0]),
+                pd.Timestamp(tspan[1])
+            ]))
 
         assert isfixedlength(vspan, 2)
         vspan = span(*sorted(vspan))
@@ -250,13 +289,32 @@ class ClimatologyConfig(object):
             assert isfixedlength(zspan, 2)
             zspan = span(*sorted(zspan))
 
+        if period is not None:
+            # Test to make sure this is callable on a Timestamp
+            try:
+                getattr(pd.Timestamp.now(), period)
+            except AttributeError:
+                raise ValueError('The period "{period}" is not recognized')
+
         self._members.append(
             self.mem(
                 tspan,
                 vspan,
-                zspan
+                zspan,
+                period
             )
         )
+
+    @staticmethod
+    def convert(config):
+        # Create a ClimatologyConfig object if one was not passed in
+        if isinstance(config, ClimatologyConfig):
+            return config
+
+        c = ClimatologyConfig()
+        for climate_config_dict in config:
+            c.add(**climate_config_dict)
+        return c
 
 
 def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
@@ -270,22 +328,21 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
 
     Args:
         config: A ClimatologyConfig object or a list of dicts containing tuples
-            that can be used to create a ClimatologyConfig object. Dict should be composed of
-            keywords 'tspan' and 'vspan' as well as an optional 'zspan'
-        tinp: Time data as a numpy array of dtype `datetime64`.
+            that can be used to create a ClimatologyConfig object. See ClimatologyConfig
+            docs for more info.
+        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+          This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+          ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+          If anything else is passed in the format is assumed to be seconds since the unix epoch.
         vinp: Input data as a numeric numpy array or a list of numbers.
-        zinp: Z (depth) data as a numeric numpy array or a list of numbers.
+        zinp: Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
     """
 
     # Create a ClimatologyConfig object if one was not passed in
-    if not isinstance(config, ClimatologyConfig):
-        c = ClimatologyConfig()
-        for climate_config_dict in config:
-            c.add(**climate_config_dict)
-        config = c
+    config = ClimatologyConfig.convert(config)
 
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
@@ -296,7 +353,10 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     # Save original shape
     original_shape = inp.shape
 
-    tinp = tinp.flatten()
+    # We compare using a pandas Timestamp for helper functions like
+    # 'week' and 'dayofyear'. It is surprisingly hard to pull these out
+    # of a plain datetime64 object.
+    tinp = pd.DatetimeIndex(tinp.flatten())
     inp = inp.flatten()
     zinp = zinp.flatten()
 
@@ -309,7 +369,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     for i, (tind, ind, zind) in enumerate(zip(tinp, inp, zinp)):
         minv, maxv = config.values(tind, zind)
         if minv is None or maxv is None:
-            flag_arr[i] = QartodFlags.MISSING
+            # Data point is outside the time/depth
+            flag_arr[i] = QartodFlags.UNKNOWN
         else:
             # Flag suspect outside of climatology span
             with np.errstate(invalid='ignore'):
@@ -388,9 +449,12 @@ def rate_of_change_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`.
+        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+              If anything else is passed in the format is assumed to be seconds since the unix epoch.
         threshold: A float value representing a rate of change over time,
-                 in observation units per second.
+                   in observation units per second.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
@@ -408,7 +472,9 @@ def rate_of_change_test(inp : Sequence[N],
 
     # calculate rate of change in units/second
     roc = np.ma.zeros(inp.size, dtype='float')
-    roc[1:] = np.abs(np.diff(inp) / np.diff(tinp).astype(float))
+
+    tinp = mapdates(tinp).flatten()
+    roc[1:] = np.abs(np.diff(inp) / np.diff(tinp).astype('timedelta64[s]').astype(float))
 
     with np.errstate(invalid='ignore'):
         flag_arr[roc > threshold] = QartodFlags.SUSPECT
@@ -430,7 +496,10 @@ def flat_line_test(inp: Sequence[N],
     More information: https://github.com/ioos/ioos_qc/pull/11
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a numpy array of dtype `datetime64`, or seconds as type `int`.
+        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+              If anything else is passed in the format is assumed to be seconds since the unix epoch.
         suspect_threshold: The number of seconds within `tolerance` to
             allow before being flagged as SUSPECT.
         fail_threshold: The number of seconds within `tolerance` to
@@ -460,7 +529,10 @@ def flat_line_test(inp: Sequence[N],
         return flag_arr.reshape(original_shape)
 
     # determine median time interval
-    time_interval = np.median(np.diff(tinp)).astype(float)
+    tinp = mapdates(tinp).flatten()
+
+    # The thresholds are in seconds so we round make sure the interval is also in seconds
+    time_interval = np.median(np.diff(tinp)).astype('timedelta64[s]').astype(float)
 
     def rolling_window(a, window):
         """
@@ -497,6 +569,7 @@ def flat_line_test(inp: Sequence[N],
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
+
 
 def attenuated_signal_test(inp : Sequence[N],
                            threshold : Tuple[N, N],

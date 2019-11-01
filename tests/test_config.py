@@ -14,6 +14,7 @@ import numpy.testing as npt
 from ruamel import yaml
 
 from ioos_qc.config import QcConfig, NcQcConfig
+from ioos_qc.qartod import ClimatologyConfig
 from ioos_qc.utils import GeoNumpyDateEncoder
 
 import logging
@@ -156,11 +157,34 @@ class ConfigRunTest(unittest.TestCase):
         assert 'flat_line_test' not in r['qartod']
 
 
-class ConfigClimatologyTest(unittest.TestCase):
+class ClimatologyConfigConversionTest(unittest.TestCase):
+    # Verify that we can parse and convert configs into a ClimatologyConfig object
 
     def setUp(self):
 
-        self.config = {
+        # Explicitly defined config
+        self.cc = ClimatologyConfig()
+        self.cc.add(
+            tspan=(np.datetime64('2011-01'), np.datetime64('2011-07')),
+            vspan=(10, 20)
+        )
+        self.cc.add(
+            tspan=(np.datetime64('2011-07'), np.datetime64('2012-01')),
+            vspan=(30, 40)
+        )
+        self.cc.add(
+            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            vspan=(50, 60),
+            zspan=(0, 10)
+        )
+        self.cc.add(
+            tspan=(0, 2),
+            vspan=(10, 20),
+            period='month'
+        )
+
+        # JSON config, same definition as above
+        self.json_config = {
             'qartod': {
                 'climatology_test': {
                     'config': [
@@ -173,88 +197,21 @@ class ConfigClimatologyTest(unittest.TestCase):
                             'tspan': (np.datetime64('2011-07'), np.datetime64('2012-01')),
                         },
                         {
-                            'vspan': (40, 50),
-                            'tspan': (np.datetime64('2012-01'), np.datetime64('2013-01')),
-                        },
-                        {
                             'vspan': (50, 60),
                             'zspan': (0, 10),
                             'tspan': (np.datetime64('2012-01'), np.datetime64('2013-01'))
                         },
                         {
-                            'vspan': (70, 80),
-                            'zspan': (10, 100),
-                            'tspan': (np.datetime64('2012-01'), np.datetime64('2013-01'))
-                        },
+                            'vspan': (10, 20),
+                            'tspan': (0, 2),
+                            'period': 'month'
+                        }
                     ]
                 }
             }
         }
 
-    def test_climatology_config_test(self):
-        tests = [
-            (
-                np.datetime64('2011-01-02'),
-                11,
-                None
-            )
-        ]
-        times, values, depths = zip(*tests)
-        qc = QcConfig(self.config)
-        results = qc.run(
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results['qartod']['climatology_test'],
-            np.ma.array([1])
-        )
-
-    def test_climatology_test_depths(self):
-        tests = [
-            (
-                np.datetime64('2012-01-02'),
-                51,
-                2
-            ),
-            (
-                np.datetime64('2012-01-02'),
-                71,
-                90
-            ),
-            (
-                np.datetime64('2012-01-02'),
-                42,
-                None
-            ),
-            (
-                np.datetime64('2012-01-02'),
-                59,
-                11
-            ),
-            (
-                np.datetime64('2012-01-02'),
-                79,
-                101
-            )
-        ]
-        times, values, depths = zip(*tests)
-        qc = QcConfig(self.config)
-        results = qc.run(
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results['qartod']['climatology_test'],
-            np.ma.array([1, 1, 1, 3, 9])
-        )
-
-
-class ConfigClimatologyFromFileTest(unittest.TestCase):
-
-    def setUp(self):
+        # YAML config, same definition as above
         template = """
         qartod:
             climatology_test:
@@ -262,25 +219,19 @@ class ConfigClimatologyFromFileTest(unittest.TestCase):
                     - vspan: [10, 20]
                       tspan:
                         - !!timestamp 2011-01-01 00:00:00
-                        - !!timestamp 2011-07-01 23:59:59
+                        - !!timestamp 2011-07-01 00:00:00
                     - vspan: [30, 40]
                       tspan:
                         - !!timestamp 2011-07-01
                         - !!timestamp 2012-01-01
-                    - vspan: [40, 50]
-                      tspan:
-                        - !!timestamp 2012-01-01 00:00:00
-                        - !!timestamp 2013-01-01
                     - vspan: [50, 60]
                       zspan: [0, 10]
                       tspan:
                         - !!timestamp 2012-01-01
                         - !!timestamp 2013-01-01
-                    - vspan: [70, 80]
-                      zspan: [10, 100]
-                      tspan:
-                        - !!timestamp 2012-01-01
-                        - !!timestamp 2013-01-01
+                    - vspan: [10, 20]
+                      tspan: [0, 2]
+                      period: month
         """
         self.handle, self.yamlfile = tempfile.mkstemp(suffix='.yaml')
         with open(self.yamlfile, 'w') as f:
@@ -290,65 +241,25 @@ class ConfigClimatologyFromFileTest(unittest.TestCase):
         os.close(self.handle)
         os.remove(self.yamlfile)
 
-    def test_climatology_config_test(self):
-        tests = [
-            (
-                np.datetime64('2011-01-02 00:00:00'),
-                11,
-                None
-            )
-        ]
-        times, values, depths = zip(*tests)
+    def test_climatology_config_yaml_conversion(self):
         qc = QcConfig(self.yamlfile)
-        results = qc.run(
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results['qartod']['climatology_test'],
-            np.ma.array([1])
-        )
+        yaml_climatology_config = ClimatologyConfig.convert(qc.config['qartod']['climatology_test']['config'])
+        self._assert_cc_configs_equal(self.cc, yaml_climatology_config)
 
-    def test_climatology_test_depths(self):
-        tests = [
-            (
-                np.datetime64('2012-01-02 00:00:00'),
-                51,
-                2
-            ),
-            (
-                np.datetime64('2012-01-02 00:00:00'),
-                71,
-                90
-            ),
-            (
-                np.datetime64('2012-01-02 00:00:00'),
-                42,
-                None
-            ),
-            (
-                np.datetime64('2012-01-02 00:00:00'),
-                59,
-                11
-            ),
-            (
-                np.datetime64('2012-01-02 00:00:00'),
-                79,
-                101
-            )
-        ]
-        times, values, depths = zip(*tests)
-        qc = QcConfig(self.yamlfile)
-        results = qc.run(
-            tinp=times,
-            inp=values,
-            zinp=depths
-        )
-        npt.assert_array_equal(
-            results['qartod']['climatology_test'],
-            np.ma.array([1, 1, 1, 3, 9])
-        )
+    def test_climatology_json_conversion(self):
+        qc = QcConfig(self.json_config)
+        json_climatology_config = ClimatologyConfig.convert(qc.config['qartod']['climatology_test']['config'])
+        self._assert_cc_configs_equal(self.cc, json_climatology_config)
+
+    def _assert_cc_configs_equal(self, c1: ClimatologyConfig, c2: ClimatologyConfig):
+        assert len(c1.members) == len(c2.members)
+        for idx in range(0, len(c1.members)):
+            m1 = c1.members[idx]
+            m2 = c2.members[idx]
+            assert m1.tspan == m2.tspan, f"{idx} tspan did not match"
+            assert m1.vspan == m2.vspan, f"{idx} vspan did not match"
+            assert m1.zspan == m2.zspan, f"{idx} zspan did not match"
+            assert m1.period == m2.period, f"{idx} period did not match"
 
 
 class TestReadNcConfig(unittest.TestCase):
