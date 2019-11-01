@@ -248,7 +248,7 @@ class ConfigClimatologyTest(unittest.TestCase):
         )
         npt.assert_array_equal(
             results['qartod']['climatology_test'],
-            np.ma.array([1, 1, 1, 3, 9])
+            np.ma.array([1, 1, 1, 3, 2])
         )
 
 
@@ -347,7 +347,7 @@ class ConfigClimatologyFromFileTest(unittest.TestCase):
         )
         npt.assert_array_equal(
             results['qartod']['climatology_test'],
-            np.ma.array([1, 1, 1, 3, 9])
+            np.ma.array([1, 1, 1, 3, 2])
         )
 
 

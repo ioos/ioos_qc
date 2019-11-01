@@ -357,7 +357,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     for i, (tind, ind, zind) in enumerate(zip(tinp, inp, zinp)):
         minv, maxv = config.values(tind, zind)
         if minv is None or maxv is None:
-            flag_arr[i] = QartodFlags.MISSING
+            # Data point is outside the time/depth
+            flag_arr[i] = QartodFlags.UNKNOWN
         else:
             # Flag suspect outside of climatology span
             with np.errstate(invalid='ignore'):

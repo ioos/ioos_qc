@@ -306,7 +306,7 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([3, 1, 9])
+                np.ma.array([3, 1, 2])
             )
 
 
@@ -446,7 +446,7 @@ class QartodClimatologyTest(unittest.TestCase):
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([1, 1, 1, 3, 9])
+                np.ma.array([1, 1, 1, 3, 2])
             )
 
 
