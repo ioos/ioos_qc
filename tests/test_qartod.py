@@ -725,7 +725,8 @@ class QartodFlatLinePerformanceTest(unittest.TestCase):
     def setUp(self):
         # Before running this test, unzip the csv in tests/data and install pandas
         import pandas as pd
-        data = pd.read_csv('data/20363_1000427.csv')
+        from pathlib import Path
+        data = pd.read_csv(Path(__file__).parent / 'data/20363_1000427.csv.gz')
         self.times = data['time_epoch']
         self.inp = data['value']
         self.suspect_threshold = 43200
