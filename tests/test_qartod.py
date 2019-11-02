@@ -362,15 +362,8 @@ class QartodClimatologyTest(unittest.TestCase):
             vspan=(70, 80),
             zspan=(10, 100)
         )
-
-    def test_climatology_test(self):
-        test_inputs = [
-            (
-                np.datetime64('2011-01-02'),
-                11,
-                None
-            )
-        ]
+       
+    def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
@@ -387,8 +380,30 @@ class QartodClimatologyTest(unittest.TestCase):
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([1])
+                np.ma.array(expected_result)
             )
+
+    def test_climatology_test(self):
+        test_inputs = [
+            (
+                np.datetime64('2011-01-02'),
+                11,
+                None
+            )
+        ]
+        expected_result = [1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_climatology_test_seconds_since_epoch(self):
+        test_inputs = [
+            (
+                1293926400,
+                11,
+                None
+            )
+        ]
+        expected_result = [1]
+        self._run_test(test_inputs, expected_result)
 
     def test_climatology_test_fail(self):
         test_inputs = [
@@ -414,24 +429,8 @@ class QartodClimatologyTest(unittest.TestCase):
                 None
             ),
         ]
-        times, values, depths = zip(*test_inputs)
-        inputs = [
-            values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
-        ]
-
-        for i in inputs:
-            results = qartod.climatology_test(
-                config=self.cc,
-                tinp=times,
-                inp=i,
-                zinp=depths
-            )
-            npt.assert_array_equal(
-                results,
-                np.ma.array([3, 1, 3, 2])
-            )
+        expected_result = [3, 1, 3, 2]
+        self._run_test(test_inputs, expected_result)
 
     def test_climatology_test_depths(self):
         test_inputs = [
@@ -472,24 +471,8 @@ class QartodClimatologyTest(unittest.TestCase):
                 101
             )
         ]
-        times, values, depths = zip(*test_inputs)
-        inputs = [
-            values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
-        ]
-
-        for i in inputs:
-            results = qartod.climatology_test(
-                config=self.cc,
-                tinp=times,
-                inp=i,
-                zinp=depths
-            )
-            npt.assert_array_equal(
-                results,
-                np.ma.array([1, 1, 1, 3, 3, 2])
-            )
+        expected_result = [1, 1, 1, 3, 3, 2]
+        self._run_test(test_inputs, expected_result)
 
 
 class QartodSpikeTest(unittest.TestCase):
