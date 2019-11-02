@@ -820,43 +820,6 @@ class QartodFlatLineTest(unittest.TestCase):
             npt.assert_array_equal(result, expected)
 
 
-class QartodFlatLinePerformanceTest(unittest.TestCase):
-
-    def setUp(self):
-        import pandas as pd
-        from pathlib import Path
-        data = pd.read_csv(Path(__file__).parent / 'data/20363_1000427.csv.gz')
-        self.times = data['time_epoch']
-        self.inp = data['value']
-        self.suspect_threshold = 43200
-        self.fail_threshold = 86400
-        self.tolerance = 1
-        self.n = 10
-
-    def perf_test(self, method):
-        import time
-        start = time.time()
-
-        L.debug("running {}...".format(method))
-        for i in range(0, self.n):
-            L.debug("\t{}/{}".format(i + 1, self.n))
-            method(
-                inp=self.inp,
-                tinp=self.times,
-                suspect_threshold=self.suspect_threshold,
-                fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
-            )
-
-        end = time.time()
-        elapsed = end - start
-        avg_elapsed = elapsed / self.n
-        L.info("results for {}:\t\t{} runs\n\t{}s total\n\t{}s avg".format(method, self.n, elapsed, avg_elapsed))
-
-    def test_flat_line(self):
-        self.perf_test(qartod.flat_line_test)
-
-
 class QartodAttenuatedSignalTest(unittest.TestCase):
 
     def test_attenuated_signal(self):
