@@ -248,14 +248,18 @@ class ClimatologyConfig(object):
         span = (None, None)
         for m in self._members:
 
-            # If a period is defined, extract the attribute from the
-            # pd.Timestamp object before comparison. The min and max
-            # values are in this period unit already.
             if m.period is not None:
-                tind = getattr(tind, m.period)
+                # If a period is defined, extract the attribute from the
+                # pd.Timestamp object before comparison. The min and max
+                # values are in this period unit already.
+                tind_copy = getattr(tind, m.period)
+            else:
+                # If a period isn't defined, make a new Timestamp object
+                # to align with the above name 'tind_copy'
+                tind_copy = tind
 
             # If we are between times
-            if tind > m.tspan.minv and tind <= m.tspan.maxv:
+            if tind_copy > m.tspan.minv and tind_copy <= m.tspan.maxv:
                 if not isnan(zind) and not isnan(m.zspan):
                     # If we are between depths
                     if zind > m.zspan.minv and zind <= m.zspan.maxv:

@@ -6,6 +6,7 @@ import warnings
 
 import numpy as np
 import numpy.testing as npt
+import pandas as pd
 
 from ioos_qc import qartod as qartod
 
@@ -334,6 +335,115 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
         self._run_test((0, 1), 'quarter')
 
 
+class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
+    # Test that we can define climatology periods across the whole year,
+    # and test data ranges across several years
+
+    def setUp(self):
+        self.tinp = list(pd.date_range(start='2018-01-01', end='2020-12-31', freq='D'))
+        self.values = np.ones(len(self.tinp))
+        self.zinp = np.zeros(len(self.tinp))
+
+    def _run_test(self, cc):
+        # just run test and make sure we don't get any errors
+        qartod.climatology_test(
+            config=cc,
+            tinp=self.tinp,
+            inp=self.values,
+            zinp=self.zinp
+        )
+
+    def test_quarterly_periods(self):
+        vspan = (10, 20)
+        cc = qartod.ClimatologyConfig()
+        cc.add(
+            tspan=(0, 1),       # Q1
+            period='quarter',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(1, 3),       # Q2-Q3
+            period='quarter',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(3, 4),       # Q4
+            period='quarter',
+            vspan=vspan,
+        )
+        self._run_test(cc)
+
+    def test_monthly_periods(self):
+        vspan = (10, 20)
+        cc = qartod.ClimatologyConfig()
+        cc.add(
+            tspan=(0, 1),       # jan
+            period='month',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(1, 2),       # feb
+            period='month',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(2, 3),       # mar
+            period='month',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(3, 10),       # apr-nov
+            period='month',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(10, 11),       # dec
+            period='month',
+            vspan=vspan,
+        )
+        self._run_test(cc)
+
+    def test_dayofyear_periods(self):
+        vspan = (10, 20)
+        cc = qartod.ClimatologyConfig()
+        cc.add(
+            tspan=(0, 1),       # first day of year
+            period='dayofyear',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(1, 363),       # jan 2 thru dec 30
+            period='dayofyear',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(363, 364),       # last day of year
+            period='dayofyear',
+            vspan=vspan,
+        )
+        self._run_test(cc)
+
+    def test_weekofyear_periods(self):
+        vspan = (10, 20)
+        cc = qartod.ClimatologyConfig()
+        cc.add(
+            tspan=(0, 1),       # first week of year
+            period='weekofyear',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(1, 50),       # 2nd thru 51st week
+            period='weekofyear',
+            vspan=vspan,
+        )
+        cc.add(
+            tspan=(50, 51),       # last week of year
+            period='weekofyear',
+            vspan=vspan,
+        )
+        self._run_test(cc)
+
+
 class QartodClimatologyTest(unittest.TestCase):
 
     def setUp(self):
@@ -362,15 +472,8 @@ class QartodClimatologyTest(unittest.TestCase):
             vspan=(70, 80),
             zspan=(10, 100)
         )
-
-    def test_climatology_test(self):
-        test_inputs = [
-            (
-                np.datetime64('2011-01-02'),
-                11,
-                None
-            )
-        ]
+       
+    def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
@@ -387,8 +490,30 @@ class QartodClimatologyTest(unittest.TestCase):
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([1])
+                np.ma.array(expected_result)
             )
+
+    def test_climatology_test(self):
+        test_inputs = [
+            (
+                np.datetime64('2011-01-02'),
+                11,
+                None
+            )
+        ]
+        expected_result = [1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_climatology_test_seconds_since_epoch(self):
+        test_inputs = [
+            (
+                1293926400,
+                11,
+                None
+            )
+        ]
+        expected_result = [1]
+        self._run_test(test_inputs, expected_result)
 
     def test_climatology_test_fail(self):
         test_inputs = [
@@ -414,24 +539,8 @@ class QartodClimatologyTest(unittest.TestCase):
                 None
             ),
         ]
-        times, values, depths = zip(*test_inputs)
-        inputs = [
-            values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
-        ]
-
-        for i in inputs:
-            results = qartod.climatology_test(
-                config=self.cc,
-                tinp=times,
-                inp=i,
-                zinp=depths
-            )
-            npt.assert_array_equal(
-                results,
-                np.ma.array([3, 1, 3, 2])
-            )
+        expected_result = [3, 1, 3, 2]
+        self._run_test(test_inputs, expected_result)
 
     def test_climatology_test_depths(self):
         test_inputs = [
@@ -472,24 +581,8 @@ class QartodClimatologyTest(unittest.TestCase):
                 101
             )
         ]
-        times, values, depths = zip(*test_inputs)
-        inputs = [
-            values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
-        ]
-
-        for i in inputs:
-            results = qartod.climatology_test(
-                config=self.cc,
-                tinp=times,
-                inp=i,
-                zinp=depths
-            )
-            npt.assert_array_equal(
-                results,
-                np.ma.array([1, 1, 1, 3, 3, 2])
-            )
+        expected_result = [1, 1, 1, 3, 3, 2]
+        self._run_test(test_inputs, expected_result)
 
 
 class QartodSpikeTest(unittest.TestCase):
