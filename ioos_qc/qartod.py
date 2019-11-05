@@ -309,6 +309,61 @@ class ClimatologyConfig(object):
             )
         )
 
+    def check(self, tinp, inp, zinp):
+
+        # Start with everything as UNKNOWN (1)
+        flag_arr = np.ma.empty(inp.size, dtype='uint8')
+        flag_arr.fill(QartodFlags.UNKNOWN)
+
+        # If the value is masked set the flag to MISSING
+        flag_arr[inp.mask] = QartodFlags.MISSING
+
+        # Iterate over each member and apply its spans on the input data.
+        # Member spans are applied in order and any data points that fall into
+        # more than one member are flagged by each one.
+        for m in self._members:
+            
+            if m.period is not None:
+                # If a period is defined, extract the attribute from the
+                # pd.DatetimeIndex object before comparison. The min and max
+                # values are in this period unit already.
+                tinp_copy = getattr(tinp, m.period).to_series()
+            else:
+                # If a period isn't defined, make a new Timestamp object
+                # to align with the above name 'tinp_copy'
+                tinp_copy = tinp
+
+            # If a zspan is defined but we don't have z input (zinp), skip this member
+            # Note: `zinp.any()` can return `np.ma.masked` so we also check using isnan
+            if not isnan(m.zspan) and (not zinp.any() or isnan(zinp.any())):
+                continue
+
+            # Indexes that align with the T
+            t_idx = (tinp_copy > m.tspan.minv) & (tinp_copy <= m.tspan.maxv)
+
+            # Indexes that align with the Z
+            if not isnan(m.zspan):
+                # Only test non-masked values between the min and max
+                z_idx = (~zinp.mask) & (zinp > m.zspan.minv) & (zinp <= m.zspan.maxv)
+            else:
+                # Only test the values with masked Z, ie values with no Z
+                z_idx = zinp.mask
+                
+            # Combine the T and Z indexes
+            values_idx = (t_idx & z_idx)
+
+            # Suspect data for this value span. Combined with the values_idx it
+            # represents the subset ofdata that should be suspect for this member.
+            # We split it into two indexes so we can also set all values outside of the
+            # suspect range to GOOD by taking the inverse of the suspect_idx
+            suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
+            
+            with np.errstate(invalid='ignore'):
+                flag_arr[(values_idx & suspect_idx)] = QartodFlags.SUSPECT
+                flag_arr[(values_idx & ~suspect_idx)] = QartodFlags.GOOD
+
+        return flag_arr
+
     @staticmethod
     def convert(config):
         # Create a ClimatologyConfig object if one was not passed in
@@ -364,23 +419,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     inp = inp.flatten()
     zinp = zinp.flatten()
 
-    # Start with everything as passing (1)
-    flag_arr = np.ma.ones(inp.size, dtype='uint8')
-
-    # If the value is masked set the flag to MISSING
-    flag_arr[inp.mask] = QartodFlags.MISSING
-
-    for i, (tind, ind, zind) in enumerate(zip(tinp, inp, zinp)):
-        minv, maxv = config.values(tind, zind)
-        if minv is None or maxv is None:
-            # Data point is outside the time/depth
-            flag_arr[i] = QartodFlags.UNKNOWN
-        else:
-            # Flag suspect outside of climatology span
-            with np.errstate(invalid='ignore'):
-                if ind < minv or ind > maxv:
-                    flag_arr[i] = QartodFlags.SUSPECT
-
+    flag_arr = config.check(tinp, inp, zinp)
     return flag_arr.reshape(original_shape)
 
 

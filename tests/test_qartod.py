@@ -444,6 +444,73 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         self._run_test(cc)
 
 
+class QartodClimatologyDepthTest(unittest.TestCase):
+
+    def setUp(self):
+        self.cc = qartod.ClimatologyConfig()
+        # with depths
+        self.cc.add(
+            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            vspan=(50, 60),
+            zspan=(0, 10)
+        )
+        # same as above, but different depths
+        self.cc.add(
+            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            vspan=(70, 80),
+            zspan=(10, 100)
+        )
+       
+    def _run_test(self, test_inputs, expected_result):
+        times, values, depths = zip(*test_inputs)
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.floating),
+            dask_arr(np.asarray(values, dtype=np.floating))
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array(expected_result)
+            )
+
+    def test_climatology_test_all_unknown(self):
+        # Our configs only define depths, so this is never run if no
+        # depths are passed in for any of the values
+        test_inputs = [
+            (
+                np.datetime64('2011-01-02'),
+                9,
+                None
+            ),
+            (
+                np.datetime64('2011-01-02'),
+                11,
+                None
+            ),
+            (
+                np.datetime64('2011-01-02'),
+                21,
+                None
+            ),
+            # not run, outside given time ranges
+            (
+                np.datetime64('2015-01-02'),
+                21,
+                None
+            ),
+        ]
+        expected_result = [2, 2, 2, 2]
+        self._run_test(test_inputs, expected_result)
+
+
 class QartodClimatologyTest(unittest.TestCase):
 
     def setUp(self):
@@ -507,7 +574,7 @@ class QartodClimatologyTest(unittest.TestCase):
     def test_climatology_test_seconds_since_epoch(self):
         test_inputs = [
             (
-                1293926400,
+                1293926400,  # Sunday, January 2, 2011 12:00:00 AM UTC
                 11,
                 None
             )
