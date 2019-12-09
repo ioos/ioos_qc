@@ -770,7 +770,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
                                step=np.timedelta64(15, 'm'), dtype=np.datetime64)
         self.times_epoch_secs = [t.astype(int) for t in self.times]
-        self.threshold = 5 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
+        self.threshold = 5.0 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
 
     def test_rate_of_change(self):
         times = self.times

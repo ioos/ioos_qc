@@ -1,5 +1,5 @@
 package:
-  name: ioos_qc
+  name: ioos_qc_py2
   version: "0.2.1"
 
 source:
@@ -15,6 +15,8 @@ requirements:
     - python
     - pip
   run:
+    - funcsigs
+    - pathlib
     - python
     - geojson
     - netCDF4

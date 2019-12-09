@@ -1,6 +1,8 @@
+funcsigs
 geojson
 netCDF4
 numpy>=1.14
+pathlib
 pygc
 ruamel.yaml
 simplejson

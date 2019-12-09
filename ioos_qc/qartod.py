@@ -4,7 +4,6 @@ import logging
 import warnings
 from collections import namedtuple
 from numbers import Real as N
-from typing import Sequence, Tuple, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -46,8 +45,7 @@ def mapdates(dates):
             return np.array(dates, dtype='datetime64[ns]')
             
 
-def qartod_compare(vectors : Sequence[Sequence[N]]
-                   ) -> np.ma.MaskedArray:
+def qartod_compare(vectors):
     """Aggregates an array of flags by precedence into a single array.
 
     Args:
@@ -80,11 +78,7 @@ def qartod_compare(vectors : Sequence[Sequence[N]]
     return result
 
 
-def location_test(lon : Sequence[N],
-                  lat : Sequence[N],
-                  bbox : Tuple[N, N, N, N] = (-180, -90, 180, 90),
-                  range_max : N = None
-                  ) -> np.ma.core.MaskedArray:
+def location_test(lon, lat, bbox = (-180, -90, 180, 90), range_max = None):
     """Checks that a location is within reasonable bounds.
 
     Checks that longitude and latitude are within reasonable bounds defaulting
@@ -157,10 +151,7 @@ def location_test(lon : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-def gross_range_test(inp : Sequence[N],
-                     fail_span : Tuple[N, N],
-                     suspect_span : Tuple[N, N] = None
-                     ) -> np.ma.core.MaskedArray:
+def gross_range_test(inp, fail_span, suspect_span = None):
     """Checks that values are within reasonable range bounds.
 
     Given a 2-tuple of minimum/maximum values, flag data outside of the given
@@ -240,7 +231,7 @@ class ClimatologyConfig(object):
     def members(self):
         return self._members
 
-    def values(self, tind : pd.Timestamp, zind=None):
+    def values(self, tind, zind=None):
         """
         Args:
             tind: Value to test for inclusion between time bounds
@@ -268,12 +259,7 @@ class ClimatologyConfig(object):
                     span = m.vspan
         return span
 
-    def add(self,
-            tspan : Tuple[N, N],
-            vspan : Tuple[N, N],
-            zspan : Tuple[N, N] = None,
-            period : str = None
-            ) -> None:
+    def add(self, tspan, vspan, zspan = None, period = None):
 
         assert isfixedlength(tspan, 2)
         # If period is defined, tspan is a numeric
@@ -376,11 +362,7 @@ class ClimatologyConfig(object):
         return c
 
 
-def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
-                     inp : Sequence[N],
-                     tinp : Sequence[N],
-                     zinp : Sequence[N],
-                     ) -> np.ma.core.MaskedArray:
+def climatology_test(config, inp, tinp, zinp):
     """Checks that values are within reasonable range bounds and flags as SUSPECT.
 
     Data for which no ClimatologyConfig member exists is marked as UNKNOWN.
@@ -423,10 +405,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     return flag_arr.reshape(original_shape)
 
 
-def spike_test(inp : Sequence[N],
-               suspect_threshold: N,
-               fail_threshold: N
-               ) -> np.ma.core.MaskedArray:
+def spike_test(inp, suspect_threshold, fail_threshold):
     """Check for spikes by checking neighboring data against thresholds
 
     Determine if there is a spike at data point n-1 by subtracting
@@ -479,10 +458,7 @@ def spike_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-def rate_of_change_test(inp : Sequence[N],
-                        tinp : Sequence[N],
-                        threshold : float
-                        ) -> np.ma.core.MaskedArray:
+def rate_of_change_test(inp, tinp, threshold):
     """Checks the first order difference of a series of values to see if
     there are any values exceeding a threshold defined by the inputs.
     These are then marked as SUSPECT.  It is up to the test operator
@@ -528,12 +504,7 @@ def rate_of_change_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-def flat_line_test(inp: Sequence[N],
-                   tinp: Sequence[N],
-                   suspect_threshold: int,
-                   fail_threshold: int,
-                   tolerance: N = 0
-                   ) -> np.ma.MaskedArray:
+def flat_line_test(inp, tinp, suspect_threshold, fail_threshold, tolerance = 0):
     """Check for consecutively repeated values within a tolerance.
     Missing and masked data is flagged as UNKNOWN.
     More information: https://github.com/ioos/ioos_qc/pull/11
@@ -614,10 +585,7 @@ def flat_line_test(inp: Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-def attenuated_signal_test(inp : Sequence[N],
-                           threshold : Tuple[N, N],
-                           check_type : str = 'std'
-                           ) -> np.ma.MaskedArray:
+def attenuated_signal_test(inp, threshold, check_type = 'std'):
     """Check for near-flat-line conditions using a range or standard deviation.
 
     Missing and masked data is flagged as UNKNOWN.
