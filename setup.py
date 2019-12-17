@@ -14,7 +14,7 @@ def readme():
 reqs = [line.strip() for line in open('requirements.txt') if not line.startswith('#')]
 
 setup(
-    name                = 'ioos_qc',
+    name                = 'ioos_qc_py2',
     version             = version(),
     description         = 'IOOS QARTOD and Quality Control tests implemented in Python',
     long_description    = readme(),
@@ -29,8 +29,7 @@ setup(
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: GIS',
         'Topic :: Scientific/Engineering :: Information Analysis',

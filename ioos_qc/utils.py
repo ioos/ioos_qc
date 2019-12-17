@@ -3,7 +3,6 @@
 import geojson
 import logging
 from datetime import datetime, date
-from typing import Union
 from numbers import Real
 
 import numpy as np
@@ -12,9 +11,7 @@ N = Real
 L = logging.getLogger(__name__)  # noqa
 
 
-def isfixedlength(lst : Union[list, tuple],
-                  length : int
-                  ) -> bool:
+def isfixedlength(lst, length):
     if not isinstance(lst, (list, tuple)):
         raise ValueError('Required: list/tuple, Got: {}'.format(type(lst)))
 
@@ -38,8 +35,7 @@ def isnan(v):
     )
 
 
-def check_timestamps(times : np.ndarray,
-                     max_time_interval : N = None):
+def check_timestamps(times, max_time_interval = None):
     """Sanity checks for timestamp arrays
 
     Checks that the times supplied are in monotonically increasing
@@ -72,7 +68,7 @@ def check_timestamps(times : np.ndarray,
 
 def dict_update(d, u):
     # http://stackoverflow.com/a/3233356
-    from collections.abc import Mapping
+    from collections import Mapping
     for k, v in u.items():
         if isinstance(d, Mapping):
             if isinstance(v, Mapping):

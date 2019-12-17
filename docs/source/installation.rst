@@ -11,8 +11,8 @@ Development and Testing
 
 Create a conda environment::
 
-    conda create -n ioosqc37 python=3.7
-    conda activate ioosqc37
+    conda create -n ioosqc27 python=2.7
+    conda activate ioosqc27
     conda install --file requirements.txt --file tests/requirements.txt
 
 Run tests::
@@ -22,8 +22,8 @@ Run tests::
 
 Build docs::
 
-    conda create -y -n ioosqc37_docs python=3.7
-    conda activate ioosqc37_docs
+    conda create -y -n ioosqc27_docs python=2.7
+    conda activate ioosqc27_docs
     conda install -y --file requirements.txt \
         --file tests/requirements.txt \
         --file docs/requirements.txt \

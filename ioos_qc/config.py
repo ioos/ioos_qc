@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 import simplejson as json
 from copy import deepcopy
-from inspect import signature
+from funcsigs import signature
 from collections import OrderedDict
 from importlib import import_module
 
@@ -57,7 +57,7 @@ class QcConfig(object):
                     # Get our own copy of the kwargs object so we can change it
                     testkwargs = deepcopy(passedkwargs)
                     # Merges dicts
-                    testkwargs = { **kwargs, **testkwargs }  # noqa
+                    testkwargs = dict(kwargs, **testkwargs) # noqa
 
                     # Get the arguments that the test functions support
                     runfunc = getattr(testpackage, testname)
