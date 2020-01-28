@@ -134,7 +134,8 @@ class QartodPerformanceTest(unittest.TestCase):
         qc = QcConfig({
             'qartod': {
                 'attenuated_signal_test': {
-                    'threshold': (2.5, 5),
+                    'suspect_threshold': 5,
+                    'fail_threshold': 2.5,
                 }
             }
         })
