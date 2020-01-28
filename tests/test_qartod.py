@@ -1204,20 +1204,22 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             expected
         )
 
-        # # test epoch secs - should return same result
-        # times_epoch_secs = [t.astype(int) for t in times]
-        # npt.assert_array_equal(
-        #     qartod.attenuated_signal_test(
-        #         inp=signal,
-        #         tinp=times_epoch_secs,
-        #         suspect_threshold=suspect_threshold,
-        #         fail_threshold=fail_threshold,
-        #         check_type=check_type
-        #     ),
-        #     expected
-        # )
+        # test epoch secs - should return same result
+        times_epoch_secs = [np.datetime64(t, 's').astype(int) for t in times]
+        npt.assert_array_equal(
+            qartod.attenuated_signal_test(
+                inp=signal,
+                tinp=times_epoch_secs,
+                suspect_threshold=suspect_threshold,
+                fail_threshold=fail_threshold,
+                test_period=test_period,
+                check_type=check_type
+            ),
+            expected
+        )
 
     def test_attenuated_signal(self):
+        # good signal, all pass
         signal = np.array([1, 2, 3, 4])
         times = np.array([
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
