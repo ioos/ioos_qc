@@ -1191,22 +1191,41 @@ class QartodFlatLineTest(unittest.TestCase):
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
 
+    def _run_test(self, times, signal, suspect_threshold, fail_threshold, check_type, expected, test_period=None):
+        npt.assert_array_equal(
+            qartod.attenuated_signal_test(
+                inp=signal,
+                tinp=times,
+                suspect_threshold=suspect_threshold,
+                fail_threshold=fail_threshold,
+                test_period=test_period,
+                check_type=check_type
+            ),
+            expected
+        )
+
+        # # test epoch secs - should return same result
+        # times_epoch_secs = [t.astype(int) for t in times]
+        # npt.assert_array_equal(
+        #     qartod.attenuated_signal_test(
+        #         inp=signal,
+        #         tinp=times_epoch_secs,
+        #         suspect_threshold=suspect_threshold,
+        #         fail_threshold=fail_threshold,
+        #         check_type=check_type
+        #     ),
+        #     expected
+        # )
+
     def test_attenuated_signal(self):
         signal = np.array([1, 2, 3, 4])
         times = np.array([
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([1, 1, 1, 1])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=0.75,
-                fail_threshold=0.5,
-                check_type='std'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=0.75, fail_threshold=0.5, check_type='std',
+                       expected=expected)
 
         # Only suspect
         signal = np.array([1, 2, 3, 4])
@@ -1214,33 +1233,19 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([3, 3, 3, 3])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=5,
-                fail_threshold=0,
-                check_type='std'
-            ),
-            expected
-        )
- 
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=5, fail_threshold=0, check_type='std',
+                       expected=expected)
+
         # Not changing should fail
         signal = np.array([1, 1, 1, 1])
         times = np.array([
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([4, 4, 4, 4])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=10,
-                fail_threshold=8,
-                check_type='std'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=10, fail_threshold=8, check_type='std',
+                       expected=expected)
 
         # std deviation less than fail threshold
         signal = np.array([10, 20, 30, 40])
@@ -1248,16 +1253,9 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([4, 4, 4, 4])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=100000,
-                fail_threshold=1000,
-                check_type='std'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=100000, fail_threshold=1000, check_type='std',
+                       expected=expected)
 
     def test_attenuated_signal_range(self):
         # range less than fail threshold
@@ -1266,16 +1264,9 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([4, 4, 4, 4])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=50,
-                fail_threshold=31,
-                check_type='range'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=50, fail_threshold=31, check_type='range',
+                       expected=expected)
 
         # range less than suspect threshold
         signal = np.array([10, 20, 30, 40])
@@ -1283,32 +1274,18 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([3, 3, 3, 3])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=31,
-                fail_threshold=10,
-                check_type='range'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=31, fail_threshold=10, check_type='range',
+                       expected=expected)
 
         signal = np.array([3, 4, 5, 8.1, 9, 8.5, 8.7, 8.4, 8.2, 8.35, 2, 1])
         times = np.array([
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=0.15,
-                fail_threshold=0.1,
-                check_type='range'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=0.15, fail_threshold=0.1, check_type='range',
+                       expected=expected)
 
     def test_attenuated_signal_missing(self):
         signal = np.array([None, 2, 3, 4])
@@ -1316,32 +1293,18 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([9, 1, 1, 1])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=0.75,
-                fail_threshold=0.5,
-                check_type='std'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=0.75, fail_threshold=0.5, check_type='std',
+                       expected=expected)
 
         signal = np.array([None, None, None, None])
         times = np.array([
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
         ])
         expected = np.array([9, 9, 9, 9])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=0.75,
-                fail_threshold=0.5,
-                check_type='std'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=0.75, fail_threshold=0.5, check_type='std',
+                       expected=expected)
 
         # range less than 30
         signal = [10, None, None, 40]
@@ -1349,16 +1312,9 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
         ])
         expected = np.array([4, 9, 9, 4])
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=50,
-                fail_threshold=31,
-                check_type='range'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=50, fail_threshold=31, check_type='range',
+                       expected=expected)
 
     def test_attenuated_signal_missing_time_window(self):
         # test time windowed range
@@ -1368,17 +1324,10 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         ])
         expected = [4, 9, 3, 3, 1]
         time_window = 2 * 86400
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=100,
-                fail_threshold=50,
-                test_period=time_window,
-                check_type='range'
-            ),
-            expected
-        )
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=100, fail_threshold=50, check_type='range',
+                       expected=expected,
+                       test_period=time_window)
 
         # test time windowed std
         signal = [1, None, 10, 100, 1000]
@@ -1387,18 +1336,10 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         ])
         expected = [4, 9, 3, 3, 1]
         time_window = 2 * 86400
-        npt.assert_array_equal(
-            qartod.attenuated_signal_test(
-                inp=signal,
-                tinp=times,
-                suspect_threshold=150,
-                fail_threshold=40,
-                test_period=time_window,
-                check_type='std'
-            ),
-            expected
-        )
-
+        self._run_test(times=times, signal=signal,
+                       suspect_threshold=150, fail_threshold=40, check_type='std',
+                       expected=expected,
+                       test_period=time_window)
 
 
 class QartodUtilsTests(unittest.TestCase):
