@@ -19,6 +19,8 @@ Run tests::
 
     pytest
 
+Docs
+-----
 
 Build docs::
 
@@ -33,6 +35,13 @@ Build docs::
 
 Then open a browser to ``build/html/index.html``.
 
+*Note:* If you encounter problems during the build, delete the ``docs/source/examples/.ipynb_checkpoints/`` folder and try again.
+
+Run Jupyter server and edit notebook examples::
+
+    conda activate ioosqc37_docs
+    cd docs/source/examples
+    jupyter notebook
+
 *Note:* If you add or edit the notebook examples, you should save the result with the *output cleared on all cells*.
-This way, ``nbsphinx`` will build the notebook output during the build stage. If you encounter problems during the build,
-delete the ``docs/source/examples/.ipynb_checkpoints/`` folder and try again.
+This way, ``nbsphinx`` will build the notebook output during the build stage.

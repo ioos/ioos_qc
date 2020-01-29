@@ -1,3 +1,5 @@
 bokeh
-pandas
+jupyter
+matplotlib>=3
 numpy
+pandas
