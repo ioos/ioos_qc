@@ -1,23 +1,22 @@
 #!/usr/bin/env python
 # coding=utf-8
+import logging
 import os
-import simplejson as json
-import unittest
 import tempfile
-from pathlib import Path
+import unittest
 from copy import deepcopy
+from pathlib import Path
 
-import numpy as np
 import netCDF4 as nc4
+import numpy as np
 import numpy.testing as npt
-
+import simplejson as json
 from ruamel import yaml
 
 from ioos_qc.config import QcConfig, NcQcConfig
 from ioos_qc.qartod import ClimatologyConfig
 from ioos_qc.utils import GeoNumpyDateEncoder
 
-import logging
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
@@ -94,6 +93,31 @@ class ConfigRunTest(unittest.TestCase):
             r['qartod']['gross_range_test'],
             expected
         )
+        assert 'aggregate_flag' not in r['qartod']
+
+    def test_run_with_agg(self):
+        qc = QcConfig({'qartod': {
+            'gross_range_test': {
+                'fail_span': [0, 12],
+            },
+            'spike_test': {
+                'suspect_threshold': 3,
+                'fail_threshold': 10,
+            }
+        }})
+        inp = [-1, 0, 1, 2, 10, 3]
+        expected_gross_range = np.array([4, 1, 1, 1, 1, 1])
+        expected_spike = np.array([1, 1, 1, 3, 3, 1])
+        expected_agg = np.array([4, 1, 1, 3, 3, 1])
+
+        r = qc.run(
+            gen_agg=True,
+            inp=inp
+        )
+
+        npt.assert_array_equal(r['qartod']['gross_range_test'], expected_gross_range)
+        npt.assert_array_equal(r['qartod']['spike_test'], expected_spike)
+        npt.assert_array_equal(r['qartod']['aggregate_flag'], expected_agg)
 
     def test_different_kwargs_run(self):
 
