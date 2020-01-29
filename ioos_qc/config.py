@@ -13,6 +13,7 @@ import xarray as xr
 import netCDF4 as nc4
 from ruamel import yaml
 
+from ioos_qc import qartod
 from ioos_qc.utils import dict_update, cf_safe_name, GeoNumpyDateEncoder
 
 L = logging.getLogger(__name__)  # noqa
@@ -36,9 +37,15 @@ class QcConfig(object):
 
         self.config = y
 
-    def run(self, **passedkwargs):
+    def run(self, gen_agg=False, **passedkwargs):
         """ Runs the tests that are defined in the config object.
-            Returns a dictionary of the results as defined by the config
+
+            Args:
+                gen_agg: Whether or not to call `qartod_compare` and generate the aggregate/rollup flag.
+                    If given, will store the aggregate flag in the results as `results['qartod']['aggregate_flag']`
+
+            Returns:
+                A dictionary of the results as defined by the config
         """
         results = OrderedDict()
         for modu, tests in self.config.items():
@@ -67,7 +74,16 @@ class QcConfig(object):
                     testkwargs = { k: v for k, v in testkwargs.items() if k in valid_keywords }
                     results[modu][testname] = runfunc(**testkwargs)  # noqa
 
+            QcConfig.generate_aggregate_flag(gen_agg, results)
+
         return results
+
+    @staticmethod
+    def generate_aggregate_flag(gen_agg, results):
+        if gen_agg and 'qartod' in results:
+            all_tests = [results['qartod'][test_name] for test_name in list(results['qartod'])]
+            results['qartod']['aggregate_flag'] = qartod.qartod_compare(all_tests)
+
 
     def __str__(self):
         """ A human friendly representation of the tests that this QcConfig object defines. """
