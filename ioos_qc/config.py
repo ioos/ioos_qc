@@ -258,9 +258,19 @@ class NcQcConfig(QcConfig):
                         else:
                             v = ncd[qcvarname]
 
-                        # TODO fix standard name (https://github.com/cf-convention/cf-conventions/issues/216)
-                        # TODO add long_name
-                        v.setncattr('standard_name', 'status_flag')
+                        # determine standard name (https://github.com/cf-convention/cf-conventions/issues/216)
+                        try:
+                            testfn = getattr(testpackage, testname)
+                            standard_name = testfn.standard_name
+                            long_name = testfn.long_name
+                        except AttributeError:
+                            standard_name = 'quality_flag'
+                            long_name = None
+
+                        # write test to netcdf
+                        v.setncattr('standard_name', standard_name)
+                        if long_name:
+                            v.setncattr('long_name', long_name)
                         v.setncattr('flag_values', np.byte(varflagvalues))
                         v.setncattr('flag_meanings', ' '.join(varflagnames))
                         v.setncattr('ioos_qc_config', varconfig)

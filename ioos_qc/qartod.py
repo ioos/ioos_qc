@@ -34,6 +34,14 @@ NOTEVAL_VALUE = QartodFlags.UNKNOWN
 span = namedtuple('Span', 'minv maxv')
 
 
+def add_metadata(standard_name, long_name=None):
+    def dec(fn):
+        fn.standard_name = standard_name
+        fn.long_name = long_name
+        return fn
+    return dec
+
+
 def mapdates(dates):
     if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
         # numpy datetime objects
@@ -47,6 +55,7 @@ def mapdates(dates):
             return np.array(dates, dtype='datetime64[ns]')
 
 
+@add_metadata('aggregate_quality_flag', 'Aggregate Quality Flag')
 def aggregate(results: dict) -> np.ma.MaskedArray:
     """
     Runs qartod_compare against all other qartod tests in results.
@@ -90,6 +99,7 @@ def qartod_compare(vectors : Sequence[Sequence[N]]
     return result
 
 
+@add_metadata('location_test_quality_flag', 'Location Test Quality Flag')
 def location_test(lon : Sequence[N],
                   lat : Sequence[N],
                   bbox : Tuple[N, N, N, N] = (-180, -90, 180, 90),
@@ -167,6 +177,7 @@ def location_test(lon : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
+@add_metadata('gross_range_test_quality_flag', 'Gross Range Test Quality Flag')
 def gross_range_test(inp : Sequence[N],
                      fail_span : Tuple[N, N],
                      suspect_span : Tuple[N, N] = None
@@ -401,6 +412,7 @@ class ClimatologyConfig(object):
         return c
 
 
+@add_metadata('climatology_test_quality_flag', 'Climatology Test Quality Flag')
 def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
                      inp : Sequence[N],
                      tinp : Sequence[N],
@@ -448,6 +460,7 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     return flag_arr.reshape(original_shape)
 
 
+@add_metadata('spike_test_quality_flag', 'Spike Test Quality Flag')
 def spike_test(inp : Sequence[N],
                suspect_threshold: N,
                fail_threshold: N
@@ -504,6 +517,7 @@ def spike_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
+@add_metadata('rate_of_change_test_quality_flag', 'Rate of Change Test Quality Flag')
 def rate_of_change_test(inp : Sequence[N],
                         tinp : Sequence[N],
                         threshold : float
@@ -553,6 +567,7 @@ def rate_of_change_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
+@add_metadata('flat_line_test_quality_flag', 'Flat Line Test Quality Flag')
 def flat_line_test(inp: Sequence[N],
                    tinp: Sequence[N],
                    suspect_threshold: int,
@@ -639,6 +654,7 @@ def flat_line_test(inp: Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
+@add_metadata('attenuated_signal_test_quality_flag', 'Attenuated Signal Test Quality Flag')
 def attenuated_signal_test(inp : Sequence[N],
                            threshold : Tuple[N, N],
                            check_type : str = 'std'
