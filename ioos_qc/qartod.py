@@ -46,6 +46,15 @@ def mapdates(dates):
             return np.array(dates, dtype='datetime64[ns]')
             
 
+def aggregate(results: dict) -> np.ma.MaskedArray:
+    """
+    Runs qartod_compare against all other qartod tests in results.
+    """
+    all_tests = [results['qartod'][test_name] for test_name in list(results['qartod'])]
+    results['qartod']['aggregate'] = qartod_compare(all_tests)
+    return results
+
+
 def qartod_compare(vectors : Sequence[Sequence[N]]
                    ) -> np.ma.MaskedArray:
     """Aggregates an array of flags by precedence into a single array.

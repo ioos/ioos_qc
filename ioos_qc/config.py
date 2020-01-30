@@ -22,6 +22,14 @@ L = logging.getLogger(__name__)  # noqa
 class QcConfig(object):
 
     def __init__(self, path_or_dict):
+        """
+        Use this object to define test configuration one time,
+        and then run checks against multiple streams of input data.
+
+        :param path_or_dict: test configuration, one of the following formats:
+            python dict or OrderedDict
+            JSON/YAML filepath (str or Path object)
+        """
         if isinstance(path_or_dict, OrderedDict):
             y = path_or_dict
         elif isinstance(path_or_dict, dict):
@@ -37,15 +45,15 @@ class QcConfig(object):
 
         self.config = y
 
-    def run(self, gen_agg=False, **passedkwargs):
+    def run(self, **passedkwargs):
         """ Runs the tests that are defined in the config object.
 
-            Args:
-                gen_agg: Whether or not to call `qartod_compare` and generate the aggregate/rollup flag.
-                    If given, will store the aggregate flag in the results as `results['qartod']['aggregate_flag']`
+            Your input arguments should include whatever is necessary for the tests you want to run.
+            For example: inp, tinp, lat, lon, etc.
 
             Returns:
-                A dictionary of the results as defined by the config
+                A dictionary of results that has the same structure as the config object.
+                The leaves (test parameters) are replaced by the results of each test.
         """
         results = OrderedDict()
         for modu, tests in self.config.items():
@@ -60,6 +68,8 @@ class QcConfig(object):
                     L.warning('No test named "{}.{}" was found, skipping'.format(modu, testname))
                 elif kwargs is None:
                     L.debug('Test "{}.{}" had no config, skipping'.format(modu, testname))
+                elif modu == 'qartod' and testname == 'aggregate':
+                    L.debug("Skip aggregate (will run after all other tests)")
                 else:
                     # Get our own copy of the kwargs object so we can change it
                     testkwargs = deepcopy(passedkwargs)
@@ -74,16 +84,10 @@ class QcConfig(object):
                     testkwargs = { k: v for k, v in testkwargs.items() if k in valid_keywords }
                     results[modu][testname] = runfunc(**testkwargs)  # noqa
 
-            QcConfig.generate_aggregate_flag(gen_agg, results)
+            if modu == 'qartod' and  'aggregate' in tests:
+                results = qartod.aggregate(results)
 
         return results
-
-    @staticmethod
-    def generate_aggregate_flag(gen_agg, results):
-        if gen_agg and 'qartod' in results:
-            all_tests = [results['qartod'][test_name] for test_name in list(results['qartod'])]
-            results['qartod']['aggregate_flag'] = qartod.qartod_compare(all_tests)
-
 
     def __str__(self):
         """ A human friendly representation of the tests that this QcConfig object defines. """
