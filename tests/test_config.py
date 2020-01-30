@@ -295,13 +295,7 @@ class TestReadNcConfig(unittest.TestCase):
             'fail_span': [0, 12],
         }
         self.data = list(range(13))
-        self.expected = np.array([3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3])
         with nc4.Dataset(self.fp, 'w') as ncd:
-            ncd.createDimension('time', len(self.data))
-            data1 = ncd.createVariable('data1', 'f8', ('time',))
-            data1.standard_name = 'air_temperature'
-            data1[:] = self.data
-
             qc1 = ncd.createVariable('qc1', 'b')
             qc1.setncattr('ioos_qc_config', json.dumps(self.config))
             qc1.setncattr('ioos_qc_module', 'qartod')
@@ -312,7 +306,7 @@ class TestReadNcConfig(unittest.TestCase):
         os.close(self.fh)
         os.remove(self.fp)
 
-    def test_loading_netcdf(self):
+    def test_loading_netcdf_path(self):
         c = NcQcConfig(self.fp)
         assert 'data1' in c.config
         assert c.config['data1']['qartod']['gross_range_test'] == self.config
@@ -328,44 +322,8 @@ class TestReadNcConfig(unittest.TestCase):
         assert 'data1' in c.config
         assert c.config['data1']['qartod']['gross_range_test'] == self.config
 
-    def test_comparing_nc_and_qc_from_nc(self):
-        c = NcQcConfig(self.fp)
-        ncresults = c.run(self.fp)
 
-        qcr = QcConfig(c.config['data1'])
-        result = qcr.run(
-            inp=list(range(13))
-        )
-
-        npt.assert_array_equal(
-            ncresults['data1']['qartod']['gross_range_test'],
-            result['qartod']['gross_range_test'],
-            self.expected
-        )
-
-    def test_comparing_nc_and_qc_from_dict(self):
-        c = NcQcConfig({
-            'data1': {
-                'qartod': {
-                    'gross_range_test': self.config
-                }
-            }
-        })
-        ncresults = c.run(self.fp)
-
-        qcr = QcConfig(c.config['data1'])
-        result = qcr.run(
-            inp=list(range(13))
-        )
-
-        npt.assert_array_equal(
-            ncresults['data1']['qartod']['gross_range_test'],
-            result['qartod']['gross_range_test'],
-            self.expected
-        )
-
-
-class TestLoadNcConfigFromFile(unittest.TestCase):
+class TestReadNcConfigFromYaml(unittest.TestCase):
 
     def setUp(self):
         template = """
@@ -421,52 +379,106 @@ class TestRunNcConfig(unittest.TestCase):
     def setUp(self):
         self.fh, self.fp = tempfile.mkstemp(suffix='.nc', prefix='ioos_qc_tests_')
         self.config = {
-            'suspect_span': [1, 11],
-            'fail_span': [0, 12],
+            'data1': {
+                'qartod': {
+                    'gross_range_test': {
+                        'suspect_span': [1, 11],
+                        'fail_span': [0, 12],
+                    }
+                }
+            }
         }
         self.expected = [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3]
         self.data = list(range(13))
         with nc4.Dataset(self.fp, 'w') as ncd:
-            ncd.createDimension('time', len(self.data))
+            ncd.createDimension('time')
             data1 = ncd.createVariable('data1', 'f8', ('time',))
             data1.standard_name = 'air_temperature'
             data1[:] = self.data
 
-            qc1 = ncd.createVariable('qc1', 'b', ('time',))
-            qc1.setncattr('ioos_qc_config', json.dumps(self.config))
-            qc1.setncattr('ioos_qc_module', 'qartod')
-            qc1.setncattr('ioos_qc_test', 'gross_range_test')
-            qc1.setncattr('ioos_qc_target', 'data1')
+    def tearDown(self):
+        os.close(self.fh)
+        os.remove(self.fp)
 
-    def test_running_save_nc(self):
-        c = NcQcConfig(self.fp)
-        ncresults = c.run(self.fp)
-        c.save_to_netcdf(self.fp, ncresults)
+    def test_comparing_nc_and_qc_config(self):
+        # Compare results from QcConfig to those from NcQcConfig
 
-        with nc4.Dataset(self.fp) as ncd:
+        nc_config = NcQcConfig(self.config)
+        nc_results = nc_config.run(self.fp)
+
+        qc_config = QcConfig(self.config['data1'])
+        qc_results = qc_config.run(
+            inp=self.data
+        )
+
+        npt.assert_array_equal(
+            nc_results['data1']['qartod']['gross_range_test'],
+            qc_results['qartod']['gross_range_test'],
+            self.expected
+        )
+
+    def test_run_and_save_to_netcdf(self):
+        # Config is defined as a dict externally, and passed to NcQcConfig
+        c = NcQcConfig(self.config)
+
+        # Run tests against the input file
+        nc_results = c.run(self.fp)
+        npt.assert_array_equal(
+            nc_results['data1']['qartod']['gross_range_test'],
+            self.expected
+        )
+
+        # Save results to netcdf file
+        c.save_to_netcdf(self.fp, nc_results)
+
+        with nc4.Dataset(self.fp, 'r') as ncd:
             assert 'data1' in ncd.variables
-            assert 'qc1' in ncd.variables
+            assert 'data1_qartod_gross_range_test' in ncd.variables
 
-            qcv = ncd.variables['qc1']
+            qcv = ncd.variables['data1_qartod_gross_range_test']
             datav = ncd.variables['data1']
 
-            assert datav.ancillary_variables == 'qc1'
             assert datav.standard_name == 'air_temperature'
             npt.assert_array_equal(
                 datav[:],
                 self.data
             )
+            assert datav.ancillary_variables == 'data1_qartod_gross_range_test'
 
             assert qcv.standard_name  == 'status_flag'
             assert qcv.ioos_qc_module == 'qartod'
             assert qcv.ioos_qc_test   == 'gross_range_test'
             assert qcv.ioos_qc_target == 'data1'
-            assert qcv.ioos_qc_config == json.dumps(self.config)
+            assert qcv.ioos_qc_config == json.dumps(self.config['data1']['qartod']['gross_range_test'])
             npt.assert_array_equal(
                 qcv[:],
                 self.expected
             )
 
+        # Now we can update data and run again with the config in the file
+
+        # Update data
+        with nc4.Dataset(self.fp, 'r+') as ncd_upd:
+            data1_upd = ncd_upd.variables['data1']
+            data1_upd[:] = np.append(data1_upd[:], 13)
+            assert len(datav) == 14
+            assert len(ncd_upd['data1_qartod_gross_range_test']) == 14
+            assert np.ma.is_masked(ncd_upd['data1_qartod_gross_range_test'][13])
+
+        # Run tests again. This will re-use the config saved to the netcdf
+        c_upd = NcQcConfig(self.fp)
+        nc_results_upd = c_upd.run(self.fp)
+        npt.assert_array_equal(
+            nc_results_upd['data1']['qartod']['gross_range_test'],
+            self.expected + [4]
+        )
+        c_upd.save_to_netcdf(self.fp, nc_results_upd)
+        with nc4.Dataset(self.fp, 'r') as ncd_final:
+            assert ncd_final['data1_qartod_gross_range_test'][13] == 4
+
+    def test_run_with_aggregate(self):
+        # TODO implement
+        pass
 
 class TestRunNcConfigClimatology(unittest.TestCase):
 

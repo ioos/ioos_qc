@@ -96,29 +96,38 @@ class QcConfig(object):
 
 class NcQcConfig(QcConfig):
 
-    def __init__(self, path_or_ncd_or_dict):
+    def __init__(self, path_or_dict):
+        """
+        Use this object to define test configuration one time,
+        and then run checks against multiple streams of input data.
+
+        :param path_or_dict: test configuration, in one of the following formats:
+            python dict or OrderedDict
+            JSON/YAML filepath (str or Path object)
+            netCDF4 filepath (str or Path object)
+        """
 
         load_as_dataset = False
-        if isinstance(path_or_ncd_or_dict, OrderedDict):
-            y = path_or_ncd_or_dict
-        elif isinstance(path_or_ncd_or_dict, dict):
-            y = OrderedDict(path_or_ncd_or_dict)
-        elif isinstance(path_or_ncd_or_dict, str):
+        if isinstance(path_or_dict, OrderedDict):
+            y = path_or_dict
+        elif isinstance(path_or_dict, dict):
+            y = OrderedDict(path_or_dict)
+        elif isinstance(path_or_dict, str):
             try:
-                with open(path_or_ncd_or_dict) as f:
+                with open(path_or_dict) as f:
                     y = OrderedDict(yaml.load(f.read(), Loader=yaml.Loader))
             except BaseException:
                 load_as_dataset = True
-        elif isinstance(path_or_ncd_or_dict, Path):
+        elif isinstance(path_or_dict, Path):
             try:
-                with path_or_ncd_or_dict.open() as f:
+                with path_or_dict.open() as f:
                     y = OrderedDict(yaml.load(f.read(), Loader=yaml.Loader))
             except BaseException:
                 load_as_dataset = True
 
         if load_as_dataset is True:
             y = OrderedDict()
-            with xr.open_dataset(path_or_ncd_or_dict, decode_cf=False) as ds:
+            with xr.open_dataset(path_or_dict, decode_cf=False) as ds:
                 ds = ds.filter_by_attrs(
                     ioos_qc_module=lambda x: x is not None,
                     ioos_qc_test=lambda x: x is not None,
@@ -147,6 +156,8 @@ class NcQcConfig(QcConfig):
     def run(self, path_or_ncd, **passedkwargs):
         """ Runs the tests that are defined in the config object.
             Returns a dictionary of the results as defined by the config
+
+            :param path_or_ncd: data to run tests against
         """
         results = OrderedDict()
 
@@ -166,6 +177,9 @@ class NcQcConfig(QcConfig):
         return results
 
     def save_to_netcdf(self, path_or_ncd, results):
+        """
+        TODO docs
+        """
         try:
             ncd = None
             should_close = True
@@ -236,15 +250,19 @@ class NcQcConfig(QcConfig):
                         varflagvalues = [ getattr(flags, d) for d in varflagnames ]
 
                         if qcvarname not in ncd.variables:
-                            v = ncd.createVariable(qcvarname, np.byte, source_var.dimensions)
+                            try:
+                                fill_value = getattr(testpackage, 'NOTEVAL_VALUE')
+                            except ValueError:
+                                fill_value = None
+                            v = ncd.createVariable(qcvarname, np.byte, source_var.dimensions, fill_value=fill_value)
                         else:
                             v = ncd[qcvarname]
 
+                        # TODO fix standard name (https://github.com/cf-convention/cf-conventions/issues/216)
+                        # TODO add long_name
                         v.setncattr('standard_name', 'status_flag')
                         v.setncattr('flag_values', np.byte(varflagvalues))
                         v.setncattr('flag_meanings', ' '.join(varflagnames))
-                        v.setncattr('valid_min', np.byte(min(varflagvalues)))
-                        v.setncattr('valid_max', np.byte(max(varflagvalues)))
                         v.setncattr('ioos_qc_config', varconfig)
                         v.setncattr('ioos_qc_module', modu)
                         v.setncattr('ioos_qc_test', testname)

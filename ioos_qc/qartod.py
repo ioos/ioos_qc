@@ -29,6 +29,7 @@ class QartodFlags(object):
 
 
 FLAGS = QartodFlags  # Default name for all check modules
+NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
 span = namedtuple('Span', 'minv maxv')
 
