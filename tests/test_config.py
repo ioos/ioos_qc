@@ -445,7 +445,7 @@ class TestRunNcConfig(unittest.TestCase):
             )
             assert datav.ancillary_variables == 'data1_qartod_gross_range_test'
 
-            assert qcv.standard_name  == 'status_flag'
+            assert qcv.standard_name  == 'gross_range_test_quality_flag'
             assert qcv.ioos_qc_module == 'qartod'
             assert qcv.ioos_qc_test   == 'gross_range_test'
             assert qcv.ioos_qc_target == 'data1'
@@ -652,7 +652,7 @@ class TestRunNcConfigClimatology(unittest.TestCase):
             )
 
             qc1 = ncd.variables['qc1']
-            assert qc1.standard_name  == 'status_flag'
+            assert qc1.standard_name  == 'gross_range_test_quality_flag'
             assert qc1.ioos_qc_module == 'qartod'
             assert qc1.ioos_qc_test   == 'gross_range_test'
             assert qc1.ioos_qc_target == 'data1'
@@ -663,7 +663,7 @@ class TestRunNcConfigClimatology(unittest.TestCase):
             )
 
             qc2 = ncd.variables['qc2']
-            assert qc2.standard_name  == 'status_flag'
+            assert qc2.standard_name  == 'climatology_test_quality_flag'
             assert qc2.ioos_qc_module == 'qartod'
             assert qc2.ioos_qc_test   == 'climatology_test'
             assert qc2.ioos_qc_target == 'data1'
