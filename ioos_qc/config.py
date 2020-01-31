@@ -46,14 +46,15 @@ class QcConfig(object):
         self.config = y
 
     def run(self, **passedkwargs):
-        """ Runs the tests that are defined in the config object.
+        """
+        Runs the tests that are defined in the config object.
 
-            Your input arguments should include whatever is necessary for the tests you want to run.
-            For example: inp, tinp, lat, lon, etc.
+        Your input arguments should include whatever is necessary for the tests you want to run.
+        For example: inp, tinp, lat, lon, etc.
 
-            Returns:
-                A dictionary of results that has the same structure as the config object.
-                The leaves (test parameters) are replaced by the results of each test.
+        Returns:
+            A dictionary of results that has the same structure as the config object.
+            The leaves (test parameters) are replaced by the results of each test.
         """
         results = OrderedDict()
         for modu, tests in self.config.items():
@@ -96,16 +97,40 @@ class QcConfig(object):
 
 class NcQcConfig(QcConfig):
 
-    def __init__(self, path_or_dict):
+    def __init__(self, path_or_dict, tinp='time', zinp='z', lon='longitude', lat='latitude'):
         """
         Use this object to define test configuration one time,
         and then run checks against multiple streams of input data.
 
-        :param path_or_dict: test configuration, in one of the following formats:
-            python dict or OrderedDict
-            JSON/YAML filepath (str or Path object)
-            netCDF4 filepath (str or Path object)
+        For example, if you have a netcdf with variables time, depth, and air_temp:
+
+        config = {
+                    'air_temp': {
+                        'qartod': {
+                            'gross_range_test': {
+                                'suspect_span': [1, 11],
+                                'fail_span': [0, 12],
+                            }
+                        }
+                    }
+                }
+        c = NcQcConfig(config, tinp='time', zinp='depth')
+
+        :param path_or_dict: Test configuration, in one of the following formats:
+                python dict or OrderedDict
+                JSON/YAML filepath (str or Path object)
+                netCDF4 filepath (str or Path object)
+            Configurations should be keyed by target variable name.
+        :param tinp: name of time variable
+        :param zinp: name of depth variable
+        :param lon: name of longitude variable
+        :param lat: name of latitude variable
         """
+
+        self.tinp = tinp
+        self.zinp = zinp
+        self.lon = lon
+        self.lat = lat
 
         load_as_dataset = False
         if isinstance(path_or_dict, OrderedDict):
@@ -135,6 +160,8 @@ class NcQcConfig(QcConfig):
                     ioos_qc_target=lambda x: x is not None,
                 )
                 for dv in ds.variables:
+                    if dv in ds.dims:
+                        continue
                     vobj = ds[dv]
 
                     # Because a data variables can have more than one check
@@ -154,10 +181,11 @@ class NcQcConfig(QcConfig):
         self.config = y
 
     def run(self, path_or_ncd, **passedkwargs):
-        """ Runs the tests that are defined in the config object.
-            Returns a dictionary of the results as defined by the config
+        """
+        Runs the tests that are defined in the config object.
+        Returns a dictionary of the results as defined by the config
 
-            :param path_or_ncd: data to run tests against
+        :param path_or_ncd: data to run tests against
         """
         results = OrderedDict()
 
@@ -170,6 +198,14 @@ class NcQcConfig(QcConfig):
                     continue
 
                 varkwargs = { 'inp': ds.variables[vname].values }
+                if self.tinp in ds.variables:
+                    varkwargs['tinp'] = ds.variables[self.tinp].values
+                if self.zinp in ds.variables:
+                    varkwargs['zinp'] = ds.variables[self.zinp].values
+                if self.lon in ds.variables:
+                    varkwargs['lon'] = ds.variables[self.lon].values
+                if self.lat in ds.variables:
+                    varkwargs['lat'] = ds.variables[self.lat].values
                 if vname in passedkwargs:
                     varkwargs = dict_update(varkwargs, passedkwargs[vname])
 
@@ -178,7 +214,12 @@ class NcQcConfig(QcConfig):
 
     def save_to_netcdf(self, path_or_ncd, results):
         """
-        TODO docs
+        Updates the given netcdf with test configuration and results.
+        If there is already a variable for a given test, it will update that variable with the latest results.
+        Otherwise, it will create a new variable.
+
+        :param path_or_ncd: path or netcdf4 Dataset in which to store results
+        :param results: output of run()
         """
         try:
             ncd = None

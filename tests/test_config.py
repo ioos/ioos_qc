@@ -476,9 +476,113 @@ class TestRunNcConfig(unittest.TestCase):
         with nc4.Dataset(self.fp, 'r') as ncd_final:
             assert ncd_final['data1_qartod_gross_range_test'][13] == 4
 
-    def test_run_with_aggregate(self):
-        # TODO implement
-        pass
+
+class TestRunNcConfigMultipleTests(unittest.TestCase):
+
+    def setUp(self):
+        self.fh, self.fp = tempfile.mkstemp(suffix='.nc', prefix='ioos_qc_tests_')
+
+    def tearDown(self):
+        os.close(self.fh)
+        os.remove(self.fp)
+
+    def test_run(self):
+        # setup data
+        config = {
+            'data1': {
+                'qartod': {
+                    'gross_range_test': {
+                        'suspect_span': [2, 10],
+                        'fail_span': [0, 12],
+                    },
+                    'flat_line_test': {
+                        'suspect_threshold': 10,
+                        'fail_threshold': 100,
+                    },
+                    'location_test': {
+                        'bbox': [-80, 40, -70, 60]
+                    },
+                    'aggregate': {}
+                }
+            }
+        }
+        time_vals = [1, 2, 3, 4, 5]
+        data_vals = [1, 1, 2, 3, 4]
+        lon_vals = [80, -78, -71, -79, 500]
+        lat_vals = [50, 50, 59, 10, -60]
+        gross_range_expected = [3, 3, 1, 1, 1]
+        flat_line_expected = [1, 1, 1, 1, 1]
+        location_expected = [4, 1, 1, 4, 4]
+        aggregate_expected = [4, 3, 1, 4, 4]
+
+        with nc4.Dataset(self.fp, 'w') as ncd:
+            ncd.createDimension('time')
+            ncd.createDimension('lon')
+            ncd.createDimension('lat')
+
+            time = ncd.createVariable('time', 'i4', ('time',))
+            time[:] = time_vals
+            lon = ncd.createVariable('lon', 'f8', ('time',))
+            lon[:] = lon_vals
+            lat = ncd.createVariable('lat', 'f8', ('time',))
+            lat[:] = lat_vals
+
+            data1 = ncd.createVariable('data1', 'f8', ('time',))
+            data1.standard_name = 'air_temperature'
+            data1[:] = data_vals
+
+        # run tests
+        c = NcQcConfig(config, tinp='time', lon='lon', lat='lat')
+        nc_results = c.run(self.fp)
+        npt.assert_array_equal(
+            nc_results['data1']['qartod']['gross_range_test'],
+            gross_range_expected
+        )
+        npt.assert_array_equal(
+            nc_results['data1']['qartod']['flat_line_test'],
+            flat_line_expected
+        )
+        npt.assert_array_equal(
+            nc_results['data1']['qartod']['location_test'],
+            location_expected
+        )
+        npt.assert_array_equal(
+            nc_results['data1']['qartod']['aggregate'],
+            aggregate_expected
+        )
+
+        # Save results to netcdf file
+        c.save_to_netcdf(self.fp, nc_results)
+        with nc4.Dataset(self.fp, 'r') as ncd:
+            assert 'data1' in ncd.variables
+            assert 'data1_qartod_gross_range_test' in ncd.variables
+            assert 'data1_qartod_flat_line_test' in ncd.variables
+            assert 'data1_qartod_location_test' in ncd.variables
+            assert 'data1_qartod_aggregate' in ncd.variables
+
+            datav = ncd.variables['data1']
+            av = datav.ancillary_variables
+            assert set(av.split(' ')) == set(['data1_qartod_gross_range_test',
+                                              'data1_qartod_flat_line_test',
+                                              'data1_qartod_location_test',
+                                              'data1_qartod_aggregate'])
+
+            qc_grt = ncd.variables['data1_qartod_gross_range_test']
+            assert qc_grt.standard_name == 'gross_range_test_quality_flag'
+            npt.assert_array_equal(qc_grt[:], gross_range_expected)
+
+            qc_flt = ncd.variables['data1_qartod_flat_line_test']
+            assert qc_flt.standard_name == 'flat_line_test_quality_flag'
+            npt.assert_array_equal(qc_flt[:], flat_line_expected)
+
+            qc_loc = ncd.variables['data1_qartod_location_test']
+            assert qc_loc.standard_name == 'location_test_quality_flag'
+            npt.assert_array_equal(qc_loc[:], location_expected)
+
+            qc_agg = ncd.variables['data1_qartod_aggregate']
+            assert qc_agg.standard_name == 'aggregate_quality_flag'
+            npt.assert_array_equal(qc_agg[:], aggregate_expected)
+
 
 class TestRunNcConfigClimatology(unittest.TestCase):
 
@@ -574,6 +678,14 @@ class TestRunNcConfigClimatology(unittest.TestCase):
 
         with nc4.Dataset(self.fp, 'w') as ncd:
             ncd.createDimension('time', len(self.values))
+            ncd.createDimension('depth', len(self.values))
+
+            time = ncd.createVariable('time', 'i4', ('time',))
+            time[:] = [np.datetime64(t, 's').astype(int) for t in self.times]
+
+            depth = ncd.createVariable('depth', 'f4', ('depth',))
+            depth[:] = self.depths
+
             data1 = ncd.createVariable('data1', 'f8', ('time',))
             data1.standard_name = 'air_temperature'
             data1[:] = self.values
@@ -595,15 +707,8 @@ class TestRunNcConfigClimatology(unittest.TestCase):
         os.remove(self.fp)
 
     def test_load_climatology_from_netcdf(self):
-        qc = NcQcConfig(self.fp)
-
-        ncresults = qc.run(
-            self.fp,
-            data1={
-                'tinp': np.array(self.times),
-                'zinp': self.depths
-            }
-        )
+        qc = NcQcConfig(self.fp, tinp='time', zinp='depth')
+        ncresults = qc.run(self.fp)
 
         npt.assert_array_equal(
             ncresults['data1']['qartod']['climatology_test'],
@@ -616,15 +721,8 @@ class TestRunNcConfigClimatology(unittest.TestCase):
         )
 
     def test_running_climatology_save_netcdf(self):
-        qc = NcQcConfig(self.config)
-
-        ncresults = qc.run(
-            self.fp,
-            data1={
-                'tinp': self.times,
-                'zinp': self.depths
-            }
-        )
+        qc = NcQcConfig(self.fp, tinp='time', zinp='depth')
+        ncresults = qc.run(self.fp)
 
         npt.assert_array_equal(
             ncresults['data1']['qartod']['climatology_test'],
