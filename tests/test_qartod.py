@@ -444,6 +444,215 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         self._run_test(cc)
 
 
+class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
+    # Test that the various configuration spans (tspan, vspan, fspan, zspan) are
+    # inclusive of both endpoints.
+    def setUp(self):
+        self.cc = qartod.ClimatologyConfig()
+        self.cc.add(
+            tspan=(np.datetime64('2019-11-01'), np.datetime64('2020-02-04')),
+            fspan=(40, 70),
+            vspan=(50, 60),
+            zspan=(0, 10)
+        )
+
+    def _run_test(self, test_inputs, expected_result):
+        times, values, depths = zip(*test_inputs)
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.floating),
+            dask_arr(np.asarray(values, dtype=np.floating))
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array(expected_result)
+            )
+
+    def test_tspan_out_of_range_low(self):
+        test_inputs = [
+            (
+                np.datetime64('2019-10-31'),
+                55,
+                5
+            )
+        ]
+        expected_result=[2]
+        self._run_test(test_inputs, expected_result)
+
+    def test_tspan_minimum(self):
+        test_inputs = [
+            (
+                np.datetime64('2019-11-01'),
+                55,
+                5
+            )
+        ]
+        expected_result=[1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_tspan_maximum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-02-04'),
+                55,
+                5
+            )
+        ]
+        expected_result=[1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_tspan_out_of_range_high(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-02-05'),
+                55,
+                5
+            )
+        ]
+        expected_result=[2]
+        self._run_test(test_inputs, expected_result)
+
+    def test_vspan_out_of_range_low(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                49,
+                5
+            )
+        ]
+        expected_result=[3]
+        self._run_test(test_inputs, expected_result)
+
+    def test_vspan_minimum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                50,
+                5
+            )
+        ]
+        expected_result=[1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_vspan_maximum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                60,
+                5
+            )
+        ]
+        expected_result=[1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_vspan_out_of_range_high(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                61,
+                5
+            )
+        ]
+        expected_result=[3]
+        self._run_test(test_inputs, expected_result)
+
+    def test_fspan_out_of_range_low(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                30,
+                5
+            )
+        ]
+        expected_result=[4]
+        self._run_test(test_inputs, expected_result)
+
+    def test_fspan_minimum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                40,
+                5
+            )
+        ]
+        expected_result=[3]
+        self._run_test(test_inputs, expected_result)
+
+    def test_fspan_maximum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                70,
+                5
+            )
+        ]
+        expected_result=[3]
+        self._run_test(test_inputs, expected_result)
+
+    def test_fspan_out_of_range_high(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                71,
+                5
+            )
+        ]
+        expected_result=[4]
+        self._run_test(test_inputs, expected_result)
+
+    def test_zspan_out_of_range_low(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                55,
+                -1
+            )
+        ]
+        expected_result=[2]
+        self._run_test(test_inputs, expected_result)
+
+    def test_zspan_minimum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                55,
+                0
+            )
+        ]
+        expected_result=[1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_zspan_maximum(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                55,
+                10
+            )
+        ]
+        expected_result=[1]
+        self._run_test(test_inputs, expected_result)
+
+    def test_zspan_out_of_range_high(self):
+        test_inputs = [
+            (
+                np.datetime64('2020-01-01'),
+                55,
+                11
+            )
+        ]
+        expected_result=[2]
+        self._run_test(test_inputs, expected_result)
+
+
 class QartodClimatologyDepthTest(unittest.TestCase):
 
     def setUp(self):
