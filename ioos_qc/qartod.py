@@ -214,6 +214,7 @@ class ClimatologyConfig(object):
         tspan: 2-tuple range.
                 If period is defined, then this is a numeric range.
                 If period is not defined, then its a date range.
+        fspan: (optional) 2-tuple range of valid values. This is passed in as the fail_span to the gross_range_test.
         vspan: 2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
         zspan: (optional) Vertical (depth) range, in meters positive down
         period: (optional) The unit the tspan argument is in. Defaults to datetime object
@@ -227,6 +228,7 @@ class ClimatologyConfig(object):
     """
     mem = namedtuple('window', [
         'tspan',
+        'fspan',
         'vspan',
         'zspan',
         'period'
@@ -271,6 +273,7 @@ class ClimatologyConfig(object):
     def add(self,
             tspan : Tuple[N, N],
             vspan : Tuple[N, N],
+            fspan : Tuple[N, N] = None,
             zspan : Tuple[N, N] = None,
             period : str = None
             ) -> None:
@@ -289,6 +292,10 @@ class ClimatologyConfig(object):
         assert isfixedlength(vspan, 2)
         vspan = span(*sorted(vspan))
 
+        if fspan is not None:
+            assert isfixedlength(fspan, 2)
+            fspan = span(*sorted(fspan))
+
         if zspan is not None:
             assert isfixedlength(zspan, 2)
             zspan = span(*sorted(zspan))
@@ -303,6 +310,7 @@ class ClimatologyConfig(object):
         self._members.append(
             self.mem(
                 tspan,
+                fspan,
                 vspan,
                 zspan,
                 period
@@ -334,17 +342,17 @@ class ClimatologyConfig(object):
                 tinp_copy = tinp
 
             # If a zspan is defined but we don't have z input (zinp), skip this member
-            # Note: `zinp.any()` can return `np.ma.masked` so we also check using isnan
-            if not isnan(m.zspan) and (not zinp.any() or isnan(zinp.any())):
+            # Note: `zinp.count()` can return `np.ma.masked` so we also check using isnan
+            if not isnan(m.zspan) and (not zinp.count() or isnan(zinp.any())):
                 continue
 
             # Indexes that align with the T
-            t_idx = (tinp_copy > m.tspan.minv) & (tinp_copy <= m.tspan.maxv)
+            t_idx = (tinp_copy >= m.tspan.minv) & (tinp_copy <= m.tspan.maxv)
 
             # Indexes that align with the Z
             if not isnan(m.zspan):
                 # Only test non-masked values between the min and max
-                z_idx = (~zinp.mask) & (zinp > m.zspan.minv) & (zinp <= m.zspan.maxv)
+                z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
             else:
                 # Only test the values with masked Z, ie values with no Z
                 z_idx = zinp.mask
@@ -352,15 +360,20 @@ class ClimatologyConfig(object):
             # Combine the T and Z indexes
             values_idx = (t_idx & z_idx)
 
-            # Suspect data for this value span. Combined with the values_idx it
-            # represents the subset ofdata that should be suspect for this member.
-            # We split it into two indexes so we can also set all values outside of the
-            # suspect range to GOOD by taking the inverse of the suspect_idx
+            # Failed and suspect data for this value span. Combining fail_idx or 
+            # suspect_idx with values_idx represents the subsets of data that should be
+            # fail and suspect respectively.
+            if not isnan(m.fspan):
+                fail_idx = (inp < m.fspan.minv) | (inp > m.fspan.maxv)
+            else:
+                fail_idx = np.zeros(inp.size, dtype=bool)
+
             suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
             
             with np.errstate(invalid='ignore'):
-                flag_arr[(values_idx & suspect_idx)] = QartodFlags.SUSPECT
-                flag_arr[(values_idx & ~suspect_idx)] = QartodFlags.GOOD
+                flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
+                flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
+                flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
 
         return flag_arr
 
