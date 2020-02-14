@@ -291,11 +291,7 @@ class NcQcConfig(QcConfig):
                         varflagvalues = [ getattr(flags, d) for d in varflagnames ]
 
                         if qcvarname not in ncd.variables:
-                            try:
-                                fill_value = getattr(testpackage, 'NOTEVAL_VALUE')
-                            except ValueError:
-                                fill_value = None
-                            v = ncd.createVariable(qcvarname, np.byte, source_var.dimensions, fill_value=fill_value)
+                            v = ncd.createVariable(qcvarname, np.byte, source_var.dimensions)
                         else:
                             v = ncd[qcvarname]
 
