@@ -84,7 +84,7 @@ class QcConfig(object):
                     testkwargs = { k: v for k, v in testkwargs.items() if k in valid_keywords }
                     results[modu][testname] = runfunc(**testkwargs)  # noqa
 
-            if modu == 'qartod' and  'aggregate' in tests:
+            if modu == 'qartod' and 'aggregate' in tests:
                 results = qartod.aggregate(results)
 
         return results
