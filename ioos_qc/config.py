@@ -313,6 +313,8 @@ class NcQcConfig(QcConfig):
                         v.setncattr('long_name', long_name)
                         v.setncattr('flag_values', np.byte(varflagvalues))
                         v.setncattr('flag_meanings', ' '.join(varflagnames))
+                        v.setncattr('valid_min', np.byte(min(varflagvalues)))
+                        v.setncattr('valid_max', np.byte(max(varflagvalues)))
                         v.setncattr('ioos_qc_config', varconfig)
                         v.setncattr('ioos_qc_module', modu)
                         v.setncattr('ioos_qc_test', testname)
