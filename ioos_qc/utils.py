@@ -12,6 +12,14 @@ N = Real
 L = logging.getLogger(__name__)  # noqa
 
 
+def add_flag_metadata(standard_name, long_name=None):
+    def dec(fn):
+        fn.standard_name = standard_name
+        fn.long_name = long_name
+        return fn
+    return dec
+
+
 def isfixedlength(lst : Union[list, tuple],
                   length : int
                   ) -> bool:
