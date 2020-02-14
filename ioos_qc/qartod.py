@@ -682,6 +682,13 @@ def attenuated_signal_test(inp : Sequence[N],
         input data is flagged together.
     """
 
+    if check_type == 'std':
+        check_func = np.std
+    elif check_type == 'range':
+        check_func = np.ptp
+    else:
+        raise ValueError('Check type "{}" is not one of ["std", "range"]'.format(check_type))
+
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -695,21 +702,12 @@ def attenuated_signal_test(inp : Sequence[N],
 
     if test_period:
         series = pd.Series(inp.flatten(), index=tinp.flatten())
-        if check_type == 'std':
-            check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.std, raw=True)
-        elif check_type == 'range':
-            check_val = series.rolling(f'{test_period}s', min_periods=min_obs).apply(np.ptp, raw=True)
-        else:
-            raise ValueError('Check type "{}" is not defined'.format(check_type))
+        windows = series.rolling(f'{test_period}s', min_periods=min_obs)
+        check_val = windows.apply(check_func, raw=True)
     else:
         # applying np.ptp to Series causes warnings, this is a workaround
         series = inp.flatten()
-        if check_type == 'std':
-            check_val = np.ones_like(flag_arr) * np.std(series)
-        elif check_type == 'range':
-            check_val = np.ones_like(flag_arr) * np.ptp(series)
-        else:
-            raise ValueError('Check type "{}" is not defined'.format(check_type))
+        check_val = np.ones_like(flag_arr) * check_func(series)
 
     flag_arr[check_val >= suspect_threshold] = QartodFlags.GOOD
     flag_arr[check_val < suspect_threshold] = QartodFlags.SUSPECT
