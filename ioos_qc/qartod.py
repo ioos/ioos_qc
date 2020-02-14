@@ -711,7 +711,7 @@ def attenuated_signal_test(inp : Sequence[N],
 
     flag_arr[check_val >= suspect_threshold] = QartodFlags.GOOD
     flag_arr[check_val < suspect_threshold] = QartodFlags.SUSPECT
-    flag_arr[np.isnan(check_val)] = QartodFlags.SUSPECT
+    flag_arr[np.isnan(check_val)] = QartodFlags.UNKNOWN
     flag_arr[check_val < fail_threshold] = QartodFlags.FAIL
     flag_arr[inp.mask] = QartodFlags.MISSING
 

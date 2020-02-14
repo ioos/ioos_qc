@@ -1191,7 +1191,8 @@ class QartodFlatLineTest(unittest.TestCase):
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
 
-    def _run_test(self, times, signal, suspect_threshold, fail_threshold, check_type, expected, test_period=None):
+    def _run_test(self, times, signal, suspect_threshold, fail_threshold, check_type, expected,
+                  test_period=None, min_obs=None):
         npt.assert_array_equal(
             qartod.attenuated_signal_test(
                 inp=signal,
@@ -1199,6 +1200,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
                 test_period=test_period,
+                min_obs=min_obs,
                 check_type=check_type
             ),
             expected
@@ -1213,6 +1215,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
                 test_period=test_period,
+                min_obs=min_obs,
                 check_type=check_type
             ),
             expected
@@ -1289,6 +1292,31 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                        suspect_threshold=0.15, fail_threshold=0.1, check_type='range',
                        expected=expected)
 
+    def test_attenuated_signal_time_window(self):
+        # test time windowed range
+        signal = [1, 2, 3, 100, 1000]
+        times = np.array([
+            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
+        ])
+        time_window = 2 * 86400     # 2 days
+
+        def _run_test_time_window(min_obs, expected):
+            self._run_test(times=times, signal=signal,
+                           suspect_threshold=100, fail_threshold=10, check_type='range',
+                           expected=expected,
+                           test_period=time_window,
+                           min_obs=min_obs)
+
+        # no min_obs -- initial values should fail
+        min_obs = 0
+        expected = [4, 4, 4, 3, 1]
+        _run_test_time_window(min_obs, expected)
+
+        # min_obs the same size as time_window -- first window should be UNKNOWN
+        min_obs = 2     # 2 days (since 1 obs per day)
+        expected = [2, 4, 4, 3, 1]
+        _run_test_time_window(min_obs, expected)
+
     def test_attenuated_signal_missing(self):
         signal = np.array([None, 2, 3, 4])
         times = np.array([
@@ -1319,29 +1347,30 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                        expected=expected)
 
     def test_attenuated_signal_missing_time_window(self):
-        # test time windowed range
+        # test time windowed range with missing values
         signal = [1, None, 10, 100, 1000]
         times = np.array([
             np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
         ])
-        expected = [4, 9, 3, 3, 1]
-        time_window = 2 * 86400
+        time_window = 2 * 86400     # 2 days
+        min_obs = 2                 # 2 days (since 1 obs per day)
+
+        # test time windowed range
+        expected = [2, 9, 2, 3, 1]
         self._run_test(times=times, signal=signal,
                        suspect_threshold=100, fail_threshold=50, check_type='range',
                        expected=expected,
-                       test_period=time_window)
+                       test_period=time_window,
+                       min_obs=min_obs)
 
         # test time windowed std
-        signal = [1, None, 10, 100, 1000]
-        times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
-        ])
-        expected = [4, 9, 3, 3, 1]
+        expected = [2, 9, 2, 3, 1]
         time_window = 2 * 86400
         self._run_test(times=times, signal=signal,
                        suspect_threshold=150, fail_threshold=40, check_type='std',
                        expected=expected,
-                       test_period=time_window)
+                       test_period=time_window,
+                       min_obs=min_obs)
 
 
 class QartodUtilsTests(unittest.TestCase):
