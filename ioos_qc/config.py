@@ -306,12 +306,11 @@ class NcQcConfig(QcConfig):
                             long_name = testfn.long_name
                         except AttributeError:
                             standard_name = 'quality_flag'
-                            long_name = None
+                            long_name = 'Quality Flag'
 
                         # write test to netcdf
                         v.setncattr('standard_name', standard_name)
-                        if long_name:
-                            v.setncattr('long_name', long_name)
+                        v.setncattr('long_name', long_name)
                         v.setncattr('flag_values', np.byte(varflagvalues))
                         v.setncattr('flag_meanings', ' '.join(varflagnames))
                         v.setncattr('ioos_qc_config', varconfig)
