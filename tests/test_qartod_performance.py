@@ -134,7 +134,34 @@ class QartodPerformanceTest(unittest.TestCase):
         qc = QcConfig({
             'qartod': {
                 'attenuated_signal_test': {
-                    'threshold': (2.5, 5),
+                    'suspect_threshold': 5,
+                    'fail_threshold': 2.5,
+                }
+            }
+        })
+        self.perf_test(qc)
+
+    def test_attenuated_signal_with_time_period_test_std(self):
+        qc = QcConfig({
+            'qartod': {
+                'attenuated_signal_test': {
+                    'suspect_threshold': 5,
+                    'fail_threshold': 2.5,
+                    'test_period': 86400,
+                    'check_type': 'std'
+                }
+            }
+        })
+        self.perf_test(qc)
+
+    def test_attenuated_signal_with_time_period_test_range(self):
+        qc = QcConfig({
+            'qartod': {
+                'attenuated_signal_test': {
+                    'suspect_threshold': 5,
+                    'fail_threshold': 2.5,
+                    'test_period': 86400,
+                    'check_type': 'range'
                 }
             }
         })

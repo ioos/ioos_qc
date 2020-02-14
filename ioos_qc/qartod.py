@@ -649,8 +649,14 @@ def flat_line_test(inp: Sequence[N],
 
 @add_flag_metadata('attenuated_signal_test_quality_flag', 'Attenuated Signal Test Quality Flag')
 def attenuated_signal_test(inp : Sequence[N],
-                           threshold : Tuple[N, N],
-                           check_type : str = 'std'
+                           tinp : Sequence[N],
+                           suspect_threshold: N,
+                           fail_threshold: N,
+                           test_period: N = None,
+                           min_obs: N = None,
+                           check_type : str = 'std',
+                           *args,
+                           **kwargs,
                            ) -> np.ma.MaskedArray:
     """Check for near-flat-line conditions using a range or standard deviation.
 
@@ -658,9 +664,15 @@ def attenuated_signal_test(inp : Sequence[N],
 
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
-        threshold: 2-tuple representing the minimum thresholds to use for SUSPECT
-            and FAIL checks. The smaller of the two values is used in the SUSPECT
-            tests and the greater of the two values is used in the FAIL tests.
+        tinp: Time input data as a numpy array of dtype `datetime64`.
+        suspect_threshold: Any calculated value below this amount will be flagged as SUSPECT.
+            In observations units.
+        fail_threshold: Any calculated values below this amount will be flagged as FAIL.
+            In observations units.
+        test_period: Length of time to test over in seconds [optional].
+            Otherwise, will test against entire `inp`.
+        min_obs: Minimum number of observations in window required to calculate a result [optional].
+            Otherwise, test will start at beginning of time series.
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
@@ -670,33 +682,43 @@ def attenuated_signal_test(inp : Sequence[N],
         input data is flagged together.
     """
 
-    assert isfixedlength(threshold, 2)
-    threshold = span(*reversed(sorted(threshold)))
+    # window_func: Applied to each window when `time_period` is supplied
+    # check_func: Applied to a flattened numpy array when no `time_period` is supplied
+    # These are split for performance reasons
+    if check_type == 'std':
+        window_func = lambda x: x.std()  # noqa
+        check_func = np.std
+    elif check_type == 'range':
+        # When requiring pandas>=1.0, try the `engine='numba'` argument to apply
+        window_func = lambda x: x.apply(np.ptp, raw=True)  # noqa
+        check_func = np.ptp
+    else:
+        raise ValueError('Check type "{}" is not one of ["std", "range"]'.format(check_type))
 
+    tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
 
     # Save original shape
     original_shape = inp.shape
-    inp = inp.flatten()
 
-    if check_type == 'std':
-        check_val = np.std(inp)
-    elif check_type == 'range':
-        check_val = np.ptp(inp)
+    # Start with everything as not tested (0)
+    flag_arr = np.full((inp.size,), QartodFlags.UNKNOWN)
+
+    if test_period:
+        series = pd.Series(inp.flatten(), index=tinp.flatten())
+        windows = series.rolling(f'{test_period}s', min_periods=min_obs)
+        check_val = window_func(windows)
     else:
-        raise ValueError('Check type "{}" is not defined'.format(check_type))
+        # applying np.ptp to Series causes warnings, this is a workaround
+        series = inp.flatten()
+        check_val = np.ones_like(flag_arr) * check_func(series)
 
-    # Start with everything as passing (1)
-    flag_arr = np.ma.ones(inp.size, dtype='uint8')
-
-    if check_val < threshold.maxv:
-        flag_arr.fill(QartodFlags.FAIL)
-    elif check_val < threshold.minv:
-        flag_arr.fill(QartodFlags.SUSPECT)
-
-    # If the value is masked set the flag to MISSING
+    flag_arr[check_val >= suspect_threshold] = QartodFlags.GOOD
+    flag_arr[check_val < suspect_threshold] = QartodFlags.SUSPECT
+    flag_arr[np.isnan(check_val)] = QartodFlags.UNKNOWN
+    flag_arr[check_val < fail_threshold] = QartodFlags.FAIL
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
