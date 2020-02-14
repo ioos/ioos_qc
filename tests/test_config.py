@@ -93,7 +93,7 @@ class ConfigRunTest(unittest.TestCase):
             r['qartod']['gross_range_test'],
             expected
         )
-        assert 'aggregate_flag' not in r['qartod']
+        assert 'aggregate' not in r['qartod']
 
     def test_run_with_agg(self):
         qc = QcConfig({'qartod': {
@@ -103,7 +103,8 @@ class ConfigRunTest(unittest.TestCase):
             'spike_test': {
                 'suspect_threshold': 3,
                 'fail_threshold': 10,
-            }
+            },
+            'aggregate': {}
         }})
         inp = [-1, 0, 1, 2, 10, 3]
         expected_gross_range = np.array([4, 1, 1, 1, 1, 1])
@@ -111,13 +112,12 @@ class ConfigRunTest(unittest.TestCase):
         expected_agg = np.array([4, 1, 1, 3, 3, 1])
 
         r = qc.run(
-            gen_agg=True,
             inp=inp
         )
 
         npt.assert_array_equal(r['qartod']['gross_range_test'], expected_gross_range)
         npt.assert_array_equal(r['qartod']['spike_test'], expected_spike)
-        npt.assert_array_equal(r['qartod']['aggregate_flag'], expected_agg)
+        npt.assert_array_equal(r['qartod']['aggregate'], expected_agg)
 
     def test_different_kwargs_run(self):
 

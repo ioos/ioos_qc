@@ -44,7 +44,16 @@ def mapdates(dates):
         except Exception:
             # strings work here but we don't advertise that
             return np.array(dates, dtype='datetime64[ns]')
-            
+
+
+def aggregate(results: dict) -> np.ma.MaskedArray:
+    """
+    Runs qartod_compare against all other qartod tests in results.
+    """
+    all_tests = [results['qartod'][test_name] for test_name in list(results['qartod'])]
+    results['qartod']['aggregate'] = qartod_compare(all_tests)
+    return results
+
 
 def qartod_compare(vectors : Sequence[Sequence[N]]
                    ) -> np.ma.MaskedArray:
@@ -219,7 +228,7 @@ class ClimatologyConfig(object):
         zspan: (optional) Vertical (depth) range, in meters positive down
         period: (optional) The unit the tspan argument is in. Defaults to datetime object
                 but can also be any attribute supported by a pandas Timestamp object.
-                See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html                    
+                See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html
                     * year
                     * week / weekofyear
                     * dayofyear
@@ -330,7 +339,7 @@ class ClimatologyConfig(object):
         # Member spans are applied in order and any data points that fall into
         # more than one member are flagged by each one.
         for m in self._members:
-            
+
             if m.period is not None:
                 # If a period is defined, extract the attribute from the
                 # pd.DatetimeIndex object before comparison. The min and max
@@ -351,16 +360,18 @@ class ClimatologyConfig(object):
 
             # Indexes that align with the Z
             if not isnan(m.zspan):
-                # Only test non-masked values between the min and max
-                z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
+                # Only test non-masked values between the min and max.
+                # Ignore warnings about comparing masked values
+                with np.errstate(invalid='ignore'):
+                    z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
             else:
                 # Only test the values with masked Z, ie values with no Z
                 z_idx = zinp.mask
-                
+
             # Combine the T and Z indexes
             values_idx = (t_idx & z_idx)
 
-            # Failed and suspect data for this value span. Combining fail_idx or 
+            # Failed and suspect data for this value span. Combining fail_idx or
             # suspect_idx with values_idx represents the subsets of data that should be
             # fail and suspect respectively.
             if not isnan(m.fspan):
@@ -369,7 +380,7 @@ class ClimatologyConfig(object):
                 fail_idx = np.zeros(inp.size, dtype=bool)
 
             suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
-            
+
             with np.errstate(invalid='ignore'):
                 flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
                 flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
