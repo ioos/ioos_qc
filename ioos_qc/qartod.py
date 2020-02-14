@@ -682,9 +682,15 @@ def attenuated_signal_test(inp : Sequence[N],
         input data is flagged together.
     """
 
+    # window_func: Applied to each window when `time_period` is supplied
+    # check_func: Applied to a flattened numpy array when no `time_period` is supplied
+    # These are split for performance reasons
     if check_type == 'std':
+        window_func = lambda x: x.std()  # noqa
         check_func = np.std
     elif check_type == 'range':
+        # When requiring pandas>=1.0, try the `engine='numba'` argument to apply
+        window_func = lambda x: x.apply(np.ptp, raw=True)  # noqa
         check_func = np.ptp
     else:
         raise ValueError('Check type "{}" is not one of ["std", "range"]'.format(check_type))
@@ -703,7 +709,7 @@ def attenuated_signal_test(inp : Sequence[N],
     if test_period:
         series = pd.Series(inp.flatten(), index=tinp.flatten())
         windows = series.rolling(f'{test_period}s', min_periods=min_obs)
-        check_val = windows.apply(check_func, raw=True)
+        check_val = window_func(windows)
     else:
         # applying np.ptp to Series causes warnings, this is a workaround
         series = inp.flatten()
