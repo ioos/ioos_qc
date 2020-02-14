@@ -360,8 +360,10 @@ class ClimatologyConfig(object):
 
             # Indexes that align with the Z
             if not isnan(m.zspan):
-                # Only test non-masked values between the min and max
-                z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
+                # Only test non-masked values between the min and max.
+                # Ignore warnings about comparing masked values
+                with np.errstate(invalid='ignore'):
+                    z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
             else:
                 # Only test the values with masked Z, ie values with no Z
                 z_idx = zinp.mask
@@ -369,7 +371,7 @@ class ClimatologyConfig(object):
             # Combine the T and Z indexes
             values_idx = (t_idx & z_idx)
 
-            # Failed and suspect data for this value span. Combining fail_idx or 
+            # Failed and suspect data for this value span. Combining fail_idx or
             # suspect_idx with values_idx represents the subsets of data that should be
             # fail and suspect respectively.
             if not isnan(m.fspan):
