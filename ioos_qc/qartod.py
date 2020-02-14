@@ -689,8 +689,12 @@ def attenuated_signal_test(inp : Sequence[N],
         window_func = lambda x: x.std()  # noqa
         check_func = np.std
     elif check_type == 'range':
-        # When requiring pandas>=1.0, try the `engine='numba'` argument to apply
-        window_func = lambda x: x.apply(np.ptp, raw=True)  # noqa
+        def window_func(w):
+            # When pandas>=1.0 and numba are installed, this is about twice as fast
+            try:
+                return w.apply(np.ptp, raw=True, engine='numba')
+            except (ImportError, TypeError):
+                return w.apply(np.ptp, raw=True)
         check_func = np.ptp
     else:
         raise ValueError('Check type "{}" is not one of ["std", "range"]'.format(check_type))
