@@ -660,6 +660,7 @@ def attenuated_signal_test(inp : Sequence[N],
                            fail_threshold: N,
                            test_period: N = None,
                            min_obs: N = None,
+                           min_period: int = None,
                            check_type : str = 'std',
                            *args,
                            **kwargs,
@@ -679,6 +680,10 @@ def attenuated_signal_test(inp : Sequence[N],
             Otherwise, will test against entire `inp`.
         min_obs: Minimum number of observations in window required to calculate a result [optional].
             Otherwise, test will start at beginning of time series.
+            Note: you can specify either `min_obs` or `min_period`, but not both.
+        min_period: Minimum number of seconds in test_period required to calculate a result [optional].
+            Otherwise, test will start at beginning of time series.
+            Note: you can specify either `min_obs` or `min_period`, but not both.
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
@@ -717,9 +722,16 @@ def attenuated_signal_test(inp : Sequence[N],
     flag_arr = np.full((inp.size,), QartodFlags.UNKNOWN)
 
     if test_period:
+        if min_obs is not None:
+            min_periods = min_obs
+        elif min_period is not None:
+            time_interval = np.median(np.diff(tinp)).astype('timedelta64[s]').astype(float)
+            min_periods = (min_period / time_interval).astype(int)
+        else:
+            min_periods = None
         series = pd.Series(inp.flatten(), index=tinp.flatten())
-        windows = series.rolling(f'{test_period}s', min_periods=min_obs)
-        check_val = window_func(windows)
+        windows = series.rolling(f'{test_period}s', min_periods=min_periods)
+        check_val = windows.apply(check_func, raw=True)
     else:
         # applying np.ptp to Series causes warnings, this is a workaround
         series = inp.flatten()
