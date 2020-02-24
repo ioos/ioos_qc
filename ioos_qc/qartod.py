@@ -223,22 +223,26 @@ def gross_range_test(inp : Sequence[N],
 
 
 class ClimatologyConfig(object):
-    """
+    """Objects to hold the config for a Climatology test
+
     Args:
         tspan: 2-tuple range.
-                If period is defined, then this is a numeric range.
-                If period is not defined, then its a date range.
+               If period is defined, then this is a numeric range.
+               If period is not defined, then its a date range.
         fspan: (optional) 2-tuple range of valid values. This is passed in as the fail_span to the gross_range_test.
         vspan: 2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
         zspan: (optional) Vertical (depth) range, in meters positive down
         period: (optional) The unit the tspan argument is in. Defaults to datetime object
                 but can also be any attribute supported by a pandas Timestamp object.
+
                 See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html
-                    * year
-                    * week / weekofyear
-                    * dayofyear
-                    * dayofweek
-                    * quarter
+
+                Options:
+                * year
+                * week / weekofyear
+                * dayofyear
+                * dayofweek
+                * quarter
     """
     mem = namedtuple('window', [
         'tspan',
@@ -570,6 +574,7 @@ def flat_line_test(inp: Sequence[N],
     """Check for consecutively repeated values within a tolerance.
     Missing and masked data is flagged as UNKNOWN.
     More information: https://github.com/ioos/ioos_qc/pull/11
+
     Args:
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
@@ -584,6 +589,7 @@ def flat_line_test(inp: Sequence[N],
             To determine if the current point `n` should be flagged, we use a rolling window, with endpoint at
             point `n`, and calculate the range of values in the window. If that range is less than `tolerance`,
             then the point is flagged.
+
     Returns:
         A masked array of flag values equal in size to that of the input.
     """
