@@ -7,15 +7,19 @@ env:
   global:
     - secure: "Aw4aBCh8vdSucdmJc3u/LyHkjkKK++9r/qPf24Xq/4MqYdnSiKuKkFRdvRF8wqnyca/1UctAJlULta75eB1/3tU/lkLh5n15C8ATYDH/17jCYU/Lh621B1uedP/N56q6FLWFxfRjHONMRxesa33Hr0G+hlQqMWiuwoGGlJQRgFeclhJ0SA1cBE10tQYBsBrph61OpnoMQ413PHpKH1UcCHMRyCLdYJhJ4LF9vCpLq+zULQ+irSwK8L1HjFGGvXulnT2DRodk1QTLYMTpAURUI+q6BSPd0AlWr2liykTJQyv4GawbCpHCHJ4yGjn9HHjb3Rn2iCTT1ij1UC/IlFOmAgN7IYZ1wCrCw3GX6XRL4oD/POSWTw2lOsqGct48qLzECouvv9Qa24QFnwInuWPAprjiKqaC231IWjatChcqAADj6o7X0JwTf7NwmDb/Bgon6BUsSJ7AIGeDmlauXbK2SXaO6mc+gUMAEWov4kOfiZqwk0+wU2LmOKvS/9tcP2PrW87xFHBJ11juIAp/guMhMEUyumXyNVnNdpozE9aYOZ+CehxI7ThiHBcJ+STltQxKEFb/cyPeyY1zt09PH3Mver3pZnXIug+VWffQ/tJS2iGC8ndwwPkEgOTA4bTmDbugjbKN02dVJlMxabz90orrp8haKUC9Aiu54kVp7hgZqx0="
 
-matrix:
+jobs:
   fast_finish: true
   include:
     - python: 3.6
       env: TEST_TARGET=default
     - python: 3.7
       env: TEST_TARGET=default
+    - python: 3.7
+      env: TEST_TARGET=default USE_NUMBA=true
     - python: 3.8
       env: TEST_TARGET=default
+    - python: 3.8
+      env: TEST_TARGET=default USE_NUMBA=true
     - python: 3.8
       env: TEST_TARGET=coding_standards
     - python: 3.8
@@ -65,6 +69,10 @@ install:
 
 script:
   - set -e
+
+  - if [[ -n "${USE_NUMBA}" ]]; then
+      conda install numba ;
+    fi
 
   - if [[ $TEST_TARGET == 'default' ]]; then
       py.test --disable-warnings ;

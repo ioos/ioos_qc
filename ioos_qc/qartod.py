@@ -731,7 +731,7 @@ def attenuated_signal_test(inp : Sequence[N],
             min_periods = None
         series = pd.Series(inp.flatten(), index=tinp.flatten())
         windows = series.rolling(f'{test_period}s', min_periods=min_periods)
-        check_val = windows.apply(check_func, raw=True)
+        check_val = window_func(windows)
     else:
         # applying np.ptp to Series causes warnings, this is a workaround
         series = inp.flatten()

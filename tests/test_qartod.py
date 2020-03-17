@@ -484,7 +484,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
     def test_tspan_minimum(self):
@@ -495,7 +495,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_tspan_maximum(self):
@@ -506,7 +506,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_tspan_out_of_range_high(self):
@@ -517,7 +517,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_out_of_range_low(self):
@@ -528,7 +528,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_minimum(self):
@@ -539,7 +539,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_maximum(self):
@@ -550,7 +550,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_out_of_range_high(self):
@@ -561,7 +561,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_out_of_range_low(self):
@@ -572,7 +572,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[4]
+        expected_result = [4]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_minimum(self):
@@ -583,7 +583,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_maximum(self):
@@ -594,7 +594,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_out_of_range_high(self):
@@ -605,7 +605,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[4]
+        expected_result = [4]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_out_of_range_low(self):
@@ -616,7 +616,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 -1
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_minimum(self):
@@ -627,7 +627,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 0
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_maximum(self):
@@ -638,7 +638,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 10
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_out_of_range_high(self):
@@ -649,7 +649,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 11
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
 
