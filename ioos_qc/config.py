@@ -6,22 +6,20 @@ from copy import deepcopy
 from inspect import signature
 from pathlib import Path
 from importlib import import_module
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 
 import numpy as np
 import xarray as xr
 import netCDF4 as nc4
-from ruamel import yaml
 
-from ioos_qc import qartod
-from ioos_qc.utils import dict_update, cf_safe_name, GeoNumpyDateEncoder
+from ioos_qc.utils import dict_update, cf_safe_name, GeoNumpyDateEncoder, load_config_as_dict
 
 L = logging.getLogger(__name__)  # noqa
 
 
 class QcConfig(object):
 
-    def __init__(self, path_or_dict):
+    def __init__(self, source):
         """
         Use this object to define test configuration one time,
         and then run checks against multiple streams of input data.
@@ -29,21 +27,10 @@ class QcConfig(object):
         :param path_or_dict: test configuration, one of the following formats:
             python dict or OrderedDict
             JSON/YAML filepath (str or Path object)
+            JSON/YAML str
+            JSON/YAML StringIO
         """
-        if isinstance(path_or_dict, OrderedDict):
-            y = path_or_dict
-        elif isinstance(path_or_dict, dict):
-            y = OrderedDict(path_or_dict)
-        elif isinstance(path_or_dict, str):
-            with open(path_or_dict) as f:
-                y = OrderedDict(yaml.load(f.read(), Loader=yaml.Loader))
-        elif isinstance(path_or_dict, Path):
-            with path_or_dict.open() as f:
-                y = OrderedDict(yaml.load(f.read(), Loader=yaml.Loader))
-        else:
-            return ValueError('Input is not valid file path or YAMLObject')
-
-        self.config = y
+        self.config = load_config_as_dict(source)
 
     def run(self, **passedkwargs):
         """
@@ -56,37 +43,48 @@ class QcConfig(object):
             A dictionary of results that has the same structure as the config object.
             The leaves (test parameters) are replaced by the results of each test.
         """
-        results = OrderedDict()
-        for modu, tests in self.config.items():
-            try:
-                testpackage = import_module('ioos_qc.{}'.format(modu))
-            except ImportError:
-                raise ValueError('No ioos_qc test package "{}" was found, skipping.'.format(modu))
+        aggregates = []
+        results = defaultdict(OrderedDict)
+        for package, tests in self.config.items():
 
-            results[modu] = OrderedDict()
+            try:
+                testpackage = import_module('ioos_qc.{}'.format(package))
+            except ImportError:
+                raise ValueError('No ioos_qc test package "{}" was found, skipping.'.format(package))
+
             for testname, kwargs in tests.items():
                 if not hasattr(testpackage, testname):
-                    L.warning('No test named "{}.{}" was found, skipping'.format(modu, testname))
+                    L.warning('No test named "{}.{}" was found, skipping'.format(package, testname))
                 elif kwargs is None:
-                    L.debug('Test "{}.{}" had no config, skipping'.format(modu, testname))
-                elif modu == 'qartod' and testname == 'aggregate':
-                    L.debug("Skip aggregate (will run after all other tests)")
+                    L.debug('Test "{}.{}" had no config, skipping'.format(package, testname))
                 else:
+                    runfunc = getattr(testpackage, testname)
+
+                    # Skip any aggregate flags and run them at the end
+                    if getattr(runfunc, 'aggregate', False) is True:
+                        L.debug("Skipping aggregate (will run after all other tests)")
+                        aggregates.append(runfunc)
+                        continue
+
                     # Get our own copy of the kwargs object so we can change it
                     testkwargs = deepcopy(passedkwargs)
                     # Merges dicts
-                    testkwargs = { **kwargs, **testkwargs }  # noqa
+                    testkwargs = { **kwargs, **testkwargs }
 
                     # Get the arguments that the test functions support
-                    runfunc = getattr(testpackage, testname)
                     sig = signature(runfunc)
-                    valid_keywords = [ p.name for p in sig.parameters.values() if p.kind == p.POSITIONAL_OR_KEYWORD ]
+                    valid_keywords = [
+                        p.name for p in sig.parameters.values()
+                        if p.kind == p.POSITIONAL_OR_KEYWORD
+                    ]
+                    testkwargs = {
+                        k: v for k, v in testkwargs.items()
+                        if k in valid_keywords
+                    }
+                    results[package][testname] = runfunc(**testkwargs)  # noqa
 
-                    testkwargs = { k: v for k, v in testkwargs.items() if k in valid_keywords }
-                    results[modu][testname] = runfunc(**testkwargs)  # noqa
-
-            if modu == 'qartod' and 'aggregate' in tests:
-                results = qartod.aggregate(results)
+        for agg in aggregates:
+            results = agg(results)
 
         return results
 
@@ -97,7 +95,7 @@ class QcConfig(object):
 
 class NcQcConfig(QcConfig):
 
-    def __init__(self, path_or_dict, tinp='time', zinp='z', lon='longitude', lat='latitude'):
+    def __init__(self, source, tinp='time', zinp='z', lon='longitude', lat='latitude'):
         """
         Use this object to define test configuration one time,
         and then run checks against multiple streams of input data.
@@ -116,10 +114,12 @@ class NcQcConfig(QcConfig):
                 }
         c = NcQcConfig(config, tinp='time', zinp='depth')
 
-        :param path_or_dict: Test configuration, in one of the following formats:
+        :param source: Test configuration, in one of the following formats:
                 python dict or OrderedDict
                 JSON/YAML filepath (str or Path object)
-                netCDF4 filepath (str or Path object)
+                JSON/YAML str
+                JSON/YAML StringIO
+                netCDF filepath (str or Path object)
             Configurations should be keyed by target variable name.
         :param tinp: name of time variable
         :param zinp: name of depth variable
@@ -132,27 +132,12 @@ class NcQcConfig(QcConfig):
         self.lon = lon
         self.lat = lat
 
-        load_as_dataset = False
-        if isinstance(path_or_dict, OrderedDict):
-            y = path_or_dict
-        elif isinstance(path_or_dict, dict):
-            y = OrderedDict(path_or_dict)
-        elif isinstance(path_or_dict, str):
-            try:
-                with open(path_or_dict) as f:
-                    y = OrderedDict(yaml.load(f.read(), Loader=yaml.Loader))
-            except BaseException:
-                load_as_dataset = True
-        elif isinstance(path_or_dict, Path):
-            try:
-                with path_or_dict.open() as f:
-                    y = OrderedDict(yaml.load(f.read(), Loader=yaml.Loader))
-            except BaseException:
-                load_as_dataset = True
-
-        if load_as_dataset is True:
+        try:
+            y = load_config_as_dict(source)
+        except Exception:
+            # Load as a dataset
             y = OrderedDict()
-            with xr.open_dataset(path_or_dict, decode_cf=False) as ds:
+            with xr.open_dataset(source, decode_cf=False) as ds:
                 ds = ds.filter_by_attrs(
                     ioos_qc_module=lambda x: x is not None,
                     ioos_qc_test=lambda x: x is not None,

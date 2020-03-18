@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 # coding=utf-8
+import io
 import logging
-from typing import Union
+import simplejson as json
+from typing import Any, Union
 from numbers import Real
 from pyproj import Geod
+from pathlib import Path
 from datetime import date, datetime
+from collections import OrderedDict
+from collections.abc import Mapping
 
 import pandas as pd
 import numpy as np
 import geojson
+from ruamel.yaml import YAML
 
 N = Real
 L = logging.getLogger(__name__)  # noqa
@@ -20,6 +26,41 @@ def add_flag_metadata(standard_name, long_name=None):
         fn.long_name = long_name
         return fn
     return dec
+
+
+def load_config_as_dict(source : Union[str, dict, OrderedDict, Path, io.StringIO]
+                        ) -> OrderedDict:
+    """Load an object as a config dict. The source can be a dict, OrderedDict,
+    YAML string, JSON string, a StringIO, or a file path to a valid YAML or JSON file.
+    """
+    yaml = YAML(typ='safe')
+    if isinstance(source, OrderedDict):
+        return source
+    elif isinstance(source, dict):
+        return OrderedDict(source)
+    elif isinstance(source, str):
+        # Try to load as YAML, then JSON, then file path
+        try:
+            return OrderedDict(yaml.load(source))
+        except Exception:
+            try:
+                return OrderedDict(json.loads(source))
+            except Exception:
+                with open(source) as f:
+                    return OrderedDict(yaml.load(f.read()))
+    elif isinstance(source, Path):
+        with source.open() as f:
+            try:
+                return OrderedDict(yaml.load(f))
+            except Exception:
+                return OrderedDict(json.load(f))
+    elif isinstance(source, io.StringIO):
+        try:
+            return OrderedDict(yaml.load(source.getvalue()))
+        except Exception:
+            return OrderedDict(json.load(source.getvalue()))
+
+    return ValueError('Config source is not valid!')
 
 
 def isfixedlength(lst : Union[list, tuple],
@@ -40,7 +81,7 @@ def isfixedlength(lst : Union[list, tuple],
     return True
 
 
-def isnan(v):
+def isnan(v : Any) -> bool:
     return (
         v is None or
         v is np.nan or
@@ -62,7 +103,8 @@ def mapdates(dates):
 
 
 def check_timestamps(times : np.ndarray,
-                     max_time_interval : N = None):
+                     max_time_interval : N = None
+                     ) -> bool:
     """Sanity checks for timestamp arrays
 
     Checks that the times supplied are in monotonically increasing
@@ -93,9 +135,8 @@ def check_timestamps(times : np.ndarray,
         return True
 
 
-def dict_update(d, u):
+def dict_update(d : Mapping, u : Mapping) -> Mapping:
     # http://stackoverflow.com/a/3233356
-    from collections.abc import Mapping
     for k, v in u.items():
         if isinstance(d, Mapping):
             if isinstance(v, Mapping):
@@ -108,7 +149,7 @@ def dict_update(d, u):
     return d
 
 
-def cf_safe_name(name):
+def cf_safe_name(name : str) -> str:
     import re
     if isinstance(name, str):
         if re.match('^[0-9_]', name):
@@ -121,7 +162,7 @@ def cf_safe_name(name):
 
 class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
 
-    def default(self, obj):
+    def default(self, obj : Any) -> Any:
         """If input object is an ndarray it will be converted into a list
         """
         if isinstance(obj, np.ndarray):

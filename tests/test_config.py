@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import io
 import os
 import logging
 import tempfile
@@ -11,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import netCDF4 as nc4
 import numpy.testing as npt
-from ruamel import yaml
+from ruamel.yaml import YAML
 
 from ioos_qc.utils import GeoNumpyDateEncoder
 from ioos_qc.config import QcConfig, NcQcConfig
@@ -20,6 +21,8 @@ from ioos_qc.qartod import ClimatologyConfig
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
+
+yaml = YAML(typ='safe')
 
 
 class ConfigLoadTest(unittest.TestCase):
@@ -57,16 +60,45 @@ class ConfigLoadTest(unittest.TestCase):
 
     def test_load_yaml_dict_object(self):
         with open(self.yamlfile) as f:
-            y = yaml.load(f.read(), Loader=yaml.Loader)
+            y = yaml.load(f.read())
             qc = QcConfig(y)
         assert qc.config == self.expected_dict
 
-    def test_load_file_path(self):
+    def test_load_yaml_str(self):
+        with open(self.yamlfile) as f:
+            qc = QcConfig(f.read())
+        assert qc.config == self.expected_dict
+
+    def test_load_json_str(self):
+        with open(self.yamlfile) as f:
+            js = json.dumps(yaml.load(f.read()))
+        qc = QcConfig(js)
+        assert qc.config == self.expected_dict
+
+    def test_load_yaml_file_path(self):
         qc = QcConfig(self.yamlfile)
         assert qc.config == self.expected_dict
 
-    def test_load_path_object(self):
+    def test_load_yaml_path_object(self):
         qc = QcConfig(Path(self.yamlfile))
+        assert qc.config == self.expected_dict
+
+    def test_load_json_stringio(self):
+        st = io.StringIO()
+        qc = QcConfig(self.yamlfile)
+        with open(self.yamlfile, 'rt') as f:
+            js = json.dumps(yaml.load(f.read()))
+            st.write(js)
+        qc = QcConfig(st)
+        st.close()
+        assert qc.config == self.expected_dict
+
+    def test_load_yaml_stringio(self):
+        st = io.StringIO()
+        with open(self.yamlfile, 'rt') as f:
+            st.write(f.read())
+        qc = QcConfig(st)
+        st.close()
         assert qc.config == self.expected_dict
 
 
@@ -361,7 +393,7 @@ class TestReadNcConfigFromYaml(unittest.TestCase):
 
     def test_load_yaml_dict_object(self):
         with open(self.yamlfile) as f:
-            y = yaml.load(f.read(), Loader=yaml.Loader)
+            y = yaml.load(f.read())
             qc = NcQcConfig(y)
         assert qc.config == self.expected_dict
 
