@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # coding=utf-8
-import logging
 import os
+import logging
 import tempfile
 import unittest
+import simplejson as json
 from copy import deepcopy
 from pathlib import Path
 
-import netCDF4 as nc4
 import numpy as np
+import netCDF4 as nc4
 import numpy.testing as npt
-import simplejson as json
 from ruamel import yaml
 
+from ioos_qc.utils import GeoNumpyDateEncoder
 from ioos_qc.config import QcConfig, NcQcConfig
 from ioos_qc.qartod import ClimatologyConfig
-from ioos_qc.utils import GeoNumpyDateEncoder
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)

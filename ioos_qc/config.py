@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # coding=utf-8
 import logging
-from pathlib import Path
 import simplejson as json
 from copy import deepcopy
 from inspect import signature
-from collections import OrderedDict
+from pathlib import Path
 from importlib import import_module
+from collections import OrderedDict
 
 import numpy as np
 import xarray as xr

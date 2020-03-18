@@ -5,8 +5,8 @@ import unittest
 import warnings
 
 import numpy as np
-import numpy.testing as npt
 import pandas as pd
+import numpy.testing as npt
 
 from ioos_qc import qartod as qartod
 

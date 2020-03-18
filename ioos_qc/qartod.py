@@ -3,13 +3,12 @@
 """Tests based on the IOOS QARTOD manuals."""
 import logging
 import warnings
-from collections import namedtuple
+from typing import Dict, Tuple, Union, Sequence
 from numbers import Real as N
-from typing import Sequence, Tuple, Union, Dict
+from collections import namedtuple
 
 import numpy as np
 import pandas as pd
-
 
 from ioos_qc.utils import (
     isnan,
