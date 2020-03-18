@@ -20,12 +20,13 @@ N = Real
 L = logging.getLogger(__name__)  # noqa
 
 
-def add_flag_metadata(standard_name, long_name=None):
-    def dec(fn):
-        fn.standard_name = standard_name
-        fn.long_name = long_name
-        return fn
-    return dec
+def add_flag_metadata(**kwargs):
+    def wrapper(func : callable):
+        for k, v in kwargs.items():
+            setattr(func, k, v)
+        return func
+    return wrapper
+
 
 
 def load_config_as_dict(source : Union[str, dict, OrderedDict, Path, io.StringIO]
