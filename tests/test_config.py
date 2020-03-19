@@ -20,7 +20,7 @@ from ioos_qc.qartod import ClimatologyConfig
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
-L.addHandler(logging.StreamHandler())
+L.handlers = [logging.StreamHandler()]
 
 yaml = YAML(typ='safe')
 

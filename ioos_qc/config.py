@@ -2,95 +2,22 @@
 # coding=utf-8
 import logging
 import simplejson as json
-from copy import deepcopy
-from inspect import signature
 from pathlib import Path
 from importlib import import_module
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 
 import numpy as np
 import xarray as xr
 import netCDF4 as nc4
 
+from ioos_qc.conf import StreamConfig
 from ioos_qc.utils import dict_update, cf_safe_name, GeoNumpyDateEncoder, load_config_as_dict
 
 L = logging.getLogger(__name__)  # noqa
 
 
-class QcConfig(object):
-
-    def __init__(self, source):
-        """
-        Use this object to define test configuration one time,
-        and then run checks against multiple streams of input data.
-
-        :param path_or_dict: test configuration, one of the following formats:
-            python dict or OrderedDict
-            JSON/YAML filepath (str or Path object)
-            JSON/YAML str
-            JSON/YAML StringIO
-        """
-        self.config = load_config_as_dict(source)
-
-    def run(self, **passedkwargs):
-        """
-        Runs the tests that are defined in the config object.
-
-        Your input arguments should include whatever is necessary for the tests you want to run.
-        For example: inp, tinp, lat, lon, etc.
-
-        Returns:
-            A dictionary of results that has the same structure as the config object.
-            The leaves (test parameters) are replaced by the results of each test.
-        """
-        aggregates = []
-        results = defaultdict(OrderedDict)
-        for package, tests in self.config.items():
-
-            try:
-                testpackage = import_module('ioos_qc.{}'.format(package))
-            except ImportError:
-                raise ValueError('No ioos_qc test package "{}" was found, skipping.'.format(package))
-
-            for testname, kwargs in tests.items():
-                if not hasattr(testpackage, testname):
-                    L.warning('No test named "{}.{}" was found, skipping'.format(package, testname))
-                elif kwargs is None:
-                    L.debug('Test "{}.{}" had no config, skipping'.format(package, testname))
-                else:
-                    runfunc = getattr(testpackage, testname)
-
-                    # Skip any aggregate flags and run them at the end
-                    if getattr(runfunc, 'aggregate', False) is True:
-                        L.debug("Skipping aggregate (will run after all other tests)")
-                        aggregates.append(runfunc)
-                        continue
-
-                    # Get our own copy of the kwargs object so we can change it
-                    testkwargs = deepcopy(passedkwargs)
-                    # Merges dicts
-                    testkwargs = { **kwargs, **testkwargs }
-
-                    # Get the arguments that the test functions support
-                    sig = signature(runfunc)
-                    valid_keywords = [
-                        p.name for p in sig.parameters.values()
-                        if p.kind == p.POSITIONAL_OR_KEYWORD
-                    ]
-                    testkwargs = {
-                        k: v for k, v in testkwargs.items()
-                        if k in valid_keywords
-                    }
-                    results[package][testname] = runfunc(**testkwargs)  # noqa
-
-        for agg in aggregates:
-            results = agg(results)
-
-        return results
-
-    def __str__(self):
-        """ A human friendly representation of the tests that this QcConfig object defines. """
-        return str(self.config)
+class QcConfig(StreamConfig):
+    pass
 
 
 class NcQcConfig(QcConfig):

@@ -8,11 +8,12 @@ from numbers import Real
 from pyproj import Geod
 from pathlib import Path
 from datetime import date, datetime
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
 
 import pandas as pd
 import numpy as np
+import pandas as pd
 import geojson
 from ruamel.yaml import YAML
 
@@ -146,7 +147,7 @@ def dict_update(d : Mapping, u : Mapping) -> Mapping:
             else:
                 d[k] = u[k]
         else:
-            d = {k: u[k] }
+            d = { k: u[k] }
     return d
 
 

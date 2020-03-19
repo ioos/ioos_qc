@@ -12,7 +12,7 @@ from ioos_qc import qartod as qartod
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
-L.addHandler(logging.StreamHandler())
+L.handlers = [logging.StreamHandler()]
 
 
 def dask_arr(vals):
