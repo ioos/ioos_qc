@@ -70,6 +70,8 @@ class ContextConfig:
                 self.region = GeometryCollection([
                     shape(config['region']['geometry']).buffer(0)
                 ])
+            else:
+                L.warning('Ignoring region because it could not be parsed, is it valid GeoJSON?')
 
         # Window
         tw = namedtuple('window', ('starting', 'ending'), defaults=[None, None])
