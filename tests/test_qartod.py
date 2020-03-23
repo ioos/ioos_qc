@@ -484,7 +484,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
     def test_tspan_minimum(self):
@@ -495,7 +495,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_tspan_maximum(self):
@@ -506,7 +506,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_tspan_out_of_range_high(self):
@@ -517,7 +517,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_out_of_range_low(self):
@@ -528,7 +528,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_minimum(self):
@@ -539,7 +539,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_maximum(self):
@@ -550,7 +550,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_vspan_out_of_range_high(self):
@@ -561,7 +561,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_out_of_range_low(self):
@@ -572,7 +572,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[4]
+        expected_result = [4]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_minimum(self):
@@ -583,7 +583,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_maximum(self):
@@ -594,7 +594,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[3]
+        expected_result = [3]
         self._run_test(test_inputs, expected_result)
 
     def test_fspan_out_of_range_high(self):
@@ -605,7 +605,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 5
             )
         ]
-        expected_result=[4]
+        expected_result = [4]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_out_of_range_low(self):
@@ -616,7 +616,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 -1
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_minimum(self):
@@ -627,7 +627,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 0
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_maximum(self):
@@ -638,7 +638,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 10
             )
         ]
-        expected_result=[1]
+        expected_result = [1]
         self._run_test(test_inputs, expected_result)
 
     def test_zspan_out_of_range_high(self):
@@ -649,7 +649,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 11
             )
         ]
-        expected_result=[2]
+        expected_result = [2]
         self._run_test(test_inputs, expected_result)
 
 
@@ -1192,7 +1192,7 @@ class QartodFlatLineTest(unittest.TestCase):
 class QartodAttenuatedSignalTest(unittest.TestCase):
 
     def _run_test(self, times, signal, suspect_threshold, fail_threshold, check_type, expected,
-                  test_period=None, min_obs=None):
+                  test_period=None, min_obs=None, min_period=None):
         npt.assert_array_equal(
             qartod.attenuated_signal_test(
                 inp=signal,
@@ -1201,6 +1201,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 fail_threshold=fail_threshold,
                 test_period=test_period,
                 min_obs=min_obs,
+                min_period=min_period,
                 check_type=check_type
             ),
             expected
@@ -1216,6 +1217,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 fail_threshold=fail_threshold,
                 test_period=test_period,
                 min_obs=min_obs,
+                min_period=min_period,
                 check_type=check_type
             ),
             expected
@@ -1300,22 +1302,37 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         ])
         time_window = 2 * 86400     # 2 days
 
-        def _run_test_time_window(min_obs, expected):
+        def _run_test_time_window(min_obs, min_period, expected):
             self._run_test(times=times, signal=signal,
                            suspect_threshold=100, fail_threshold=10, check_type='range',
                            expected=expected,
                            test_period=time_window,
-                           min_obs=min_obs)
+                           min_obs=min_obs,
+                           min_period=min_period)
 
-        # no min_obs -- initial values should fail
+        # zero min_obs -- initial values should fail
         min_obs = 0
+        min_period = None
         expected = [4, 4, 4, 3, 1]
-        _run_test_time_window(min_obs, expected)
+        _run_test_time_window(min_obs, min_period, expected)
+
+        # zero min_period -- initial values should fail
+        min_obs = None
+        min_period = 0
+        expected = [4, 4, 4, 3, 1]
+        _run_test_time_window(min_obs, min_period, expected)
 
         # min_obs the same size as time_window -- first window should be UNKNOWN
         min_obs = 2     # 2 days (since 1 obs per day)
+        min_period = None
         expected = [2, 4, 4, 3, 1]
-        _run_test_time_window(min_obs, expected)
+        _run_test_time_window(min_obs, min_period, expected)
+
+        # min_period the same size as time_window -- first window should be UNKNOWN
+        min_obs = None
+        min_period = time_window
+        expected = [2, 4, 4, 3, 1]
+        _run_test_time_window(min_obs, min_period, expected)
 
     def test_attenuated_signal_missing(self):
         signal = np.array([None, 2, 3, 4])
