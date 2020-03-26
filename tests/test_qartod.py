@@ -876,7 +876,7 @@ class QartodSpikeTest(unittest.TestCase):
 
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
-        expected = [1, 4, 4, 4, 1, 3, 1, 1]
+        expected = [2, 4, 4, 4, 1, 3, 1, 2]
 
         inputs = [
             arr,
@@ -901,7 +901,7 @@ class QartodSpikeTest(unittest.TestCase):
 
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
-        expected = [1, 4, 4, 4, 1, 3, 1, 1]
+        expected = [2, 4, 4, 4, 1, 3, 1, 2]
 
         inputs = [
             arr,
@@ -918,6 +918,22 @@ class QartodSpikeTest(unittest.TestCase):
                 expected
             )
 
+    def test_spike_initial_final_values(self):
+        """
+        The test is not defined for the initial and final values in the array
+        """
+        arr = [-100, -99, -99, -98]
+        expected = [2, 1, 1, 2]
+
+        npt.assert_array_equal(
+            qartod.spike_test(
+                inp=arr,
+                suspect_threshold=self.suspect_threshold,
+                fail_threshold=self.fail_threshold
+            ),
+            expected
+        )
+
     def test_spike_masked(self):
         """
         Test with missing data.
@@ -927,7 +943,7 @@ class QartodSpikeTest(unittest.TestCase):
 
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
-        expected = [1, 4, 4, 4, 1, 3, 1, 1, 9, 9, 4, 4, 4, 9]
+        expected = [2, 4, 4, 4, 1, 3, 1, 1, 9, 9, 4, 4, 4, 9]
 
         inputs = [
             arr,
@@ -955,7 +971,7 @@ class QartodSpikeTest(unittest.TestCase):
                -0.3932, -0.3383, -0.2804, -0.2347, -0.2134, -0.2347, -0.2926, -0.3597, -0.442, -0.509, 0, -0.5944,
                -0.57, -0.4267, -0.2926, -0.1585, -0.0945, -0.0762]
 
-        expected = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1]
+        expected = [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 2]
 
         inputs = [
             arr,

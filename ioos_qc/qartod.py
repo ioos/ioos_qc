@@ -508,6 +508,10 @@ def spike_test(inp : Sequence[N],
     with np.errstate(invalid='ignore'):
         flag_arr[diff > fail_threshold] = QartodFlags.FAIL
 
+    # test is undefined for first and last values
+    flag_arr[0] = QartodFlags.UNKNOWN
+    flag_arr[-1] = QartodFlags.UNKNOWN
+
     # If the value is masked or nan set the flag to MISSING
     flag_arr[diff.mask] = QartodFlags.MISSING
 

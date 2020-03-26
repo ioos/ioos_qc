@@ -108,7 +108,7 @@ class ConfigRunTest(unittest.TestCase):
         }})
         inp = [-1, 0, 1, 2, 10, 3]
         expected_gross_range = np.array([4, 1, 1, 1, 1, 1])
-        expected_spike = np.array([1, 1, 1, 3, 3, 1])
+        expected_spike = np.array([2, 1, 1, 3, 3, 2])
         expected_agg = np.array([4, 1, 1, 3, 3, 1])
 
         r = qc.run(
