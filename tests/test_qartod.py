@@ -456,6 +456,8 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
             zspan=(0, 10)
         )
 
+    # test_inputs is a tuple of (time, value, depth) values representing science data from an instrument
+    # time should be an object compatible with pandas DateTimeIndex; value and depth should be intergers or floats
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs)
         inputs = [
