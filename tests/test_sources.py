@@ -8,15 +8,14 @@ import pandas as pd
 import xarray as xr
 import numpy.testing as npt
 
-from ioos_qc.conf import Config
-from ioos_qc.sources import NumpySource, PandasSource, NetcdfSource
+from ioos_qc.streams import NumpyStream, PandasStream, NetcdfStream, Config
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.handlers = [logging.StreamHandler()]
 
 
-class PandasSourceTest(unittest.TestCase):
+class PandasStreamTest(unittest.TestCase):
     def setUp(self):
 
         config = """
@@ -45,7 +44,7 @@ class PandasSourceTest(unittest.TestCase):
         self.df = pd.DataFrame(data_inputs)
 
     def test_run(self):
-        ps = PandasSource(self.df)
+        ps = PandasStream(self.df)
         results = ps.run(self.config)
 
         # First ten (0-9 values) fail
@@ -82,7 +81,7 @@ class PandasSourceTest(unittest.TestCase):
         )
 
 
-class NumpySourceTest(unittest.TestCase):
+class NumpyStreamTest(unittest.TestCase):
     def setUp(self):
 
         config = """
@@ -110,7 +109,7 @@ class NumpySourceTest(unittest.TestCase):
         # Input is the values 0-49, easy testing
         inp = np.arange(0, self.tinp.size)
 
-        ns = NumpySource(inp, self.tinp, self.zinp, self.lat, self.lon)
+        ns = NumpyStream(inp, self.tinp, self.zinp, self.lat, self.lon)
         results = ns.run(self.config)
 
         # First ten (0-9 values) fail
@@ -147,7 +146,7 @@ class NumpySourceTest(unittest.TestCase):
         )
 
 
-class NetcdfSourceTest(unittest.TestCase):
+class NetcdfStreamTest(unittest.TestCase):
     def setUp(self):
 
         config = """
@@ -180,7 +179,7 @@ class NetcdfSourceTest(unittest.TestCase):
         self.ds.close()
 
     def test_run(self):
-        ns = NetcdfSource(self.ds)
+        ns = NetcdfStream(self.ds)
         results = ns.run(self.config)
 
         # First ten (0-9 values) fail
@@ -217,7 +216,7 @@ class NetcdfSourceTest(unittest.TestCase):
         )
 
 
-class PandasSourceManyContextTest(unittest.TestCase):
+class PandasStreamManyContextTest(unittest.TestCase):
     def setUp(self):
         config = """
             contexts:
@@ -270,7 +269,7 @@ class PandasSourceManyContextTest(unittest.TestCase):
         self.df = pd.DataFrame(data_inputs)
 
     def test_run(self):
-        ps = PandasSource(self.df)
+        ps = PandasStream(self.df)
         results = ps.run(self.config)
 
         # Variable 1

@@ -5,7 +5,7 @@ import unittest
 from datetime import datetime
 
 from ioos_qc import qartod
-from ioos_qc.conf import Config
+from ioos_qc.config import Config
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
