@@ -10,8 +10,6 @@ env:
 jobs:
   fast_finish: true
   include:
-    - python: 3.6
-      env: TEST_TARGET=default
     - python: 3.7
       env: TEST_TARGET=default
     - python: 3.7
@@ -24,7 +22,7 @@ jobs:
       env: TEST_TARGET=coding_standards
     - python: 3.8
       env: TEST_TARGET=docs
-    - python: 3.6
+    - python: 3.8
       env: TEST_TARGET=makerelease
   allow_failures:
     - python: 3.8
