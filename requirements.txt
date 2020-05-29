@@ -1,7 +1,8 @@
 geojson
 geopandas
 netCDF4
-numba
+# AttributeError: module 'numba' has no attribute 'targets' with 0.49.1
+numba<0.49.1
 numpy>=1.14
 pyproj
 ruamel.yaml
