@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 # coding=utf-8
 import logging
+import warnings
 import simplejson as json
 from pathlib import Path
 from importlib import import_module
-from collections import OrderedDict
+from collections import OrderedDict as odict
 
 import numpy as np
 import xarray as xr
 import netCDF4 as nc4
 
-from ioos_qc.conf import StreamConfig
+from ioos_qc.conf import QcConfig
 from ioos_qc.utils import dict_update, cf_safe_name, GeoNumpyDateEncoder, load_config_as_dict
 
 L = logging.getLogger(__name__)  # noqa
-
-
-class QcConfig(StreamConfig):
-    pass
 
 
 class NcQcConfig(QcConfig):
@@ -42,7 +39,7 @@ class NcQcConfig(QcConfig):
         c = NcQcConfig(config, tinp='time', zinp='depth')
 
         :param source: Test configuration, in one of the following formats:
-                python dict or OrderedDict
+                python dict or odict
                 JSON/YAML filepath (str or Path object)
                 JSON/YAML str
                 JSON/YAML StringIO
@@ -53,44 +50,16 @@ class NcQcConfig(QcConfig):
         :param lon: name of longitude variable
         :param lat: name of latitude variable
         """
+        warnings.warn(
+            "The NcQcConfig object is deprecated, please use StreamConfig",
+            DeprecationWarning
+        )
 
         self.tinp = tinp
         self.zinp = zinp
         self.lon = lon
         self.lat = lat
-
-        try:
-            y = load_config_as_dict(source)
-        except Exception:
-            # Load as a dataset
-            y = OrderedDict()
-            with xr.open_dataset(source, decode_cf=False) as ds:
-                ds = ds.filter_by_attrs(
-                    ioos_qc_module=lambda x: x is not None,
-                    ioos_qc_test=lambda x: x is not None,
-                    ioos_qc_config=lambda x: x is not None,
-                    ioos_qc_target=lambda x: x is not None,
-                )
-                for dv in ds.variables:
-                    if dv in ds.dims:
-                        continue
-                    vobj = ds[dv]
-
-                    # Because a data variables can have more than one check
-                    # associated with it we need to merge any existing configs
-                    # for this variable
-                    newdict = OrderedDict({
-                        vobj.ioos_qc_module: OrderedDict({
-                            vobj.ioos_qc_test: OrderedDict(json.loads(vobj.ioos_qc_config))
-                        })
-                    })
-                    merged = dict_update(
-                        y.get(vobj.ioos_qc_target, {}),
-                        newdict
-                    )
-                    y[vobj.ioos_qc_target] = merged
-
-        self.config = y
+        self.config = load_config_as_dict(source)
 
     def run(self, path_or_ncd, **passedkwargs):
         """
@@ -99,7 +68,7 @@ class NcQcConfig(QcConfig):
 
         :param path_or_ncd: data to run tests against
         """
-        results = OrderedDict()
+        results = odict()
 
         with xr.open_dataset(path_or_ncd, decode_cf=False) as ds:
             for vname, qcobj in self.config.items():

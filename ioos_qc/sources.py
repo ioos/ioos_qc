@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # coding=utf-8
 import logging
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict as odict
 
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from ioos_qc.conf import Config
 from ioos_qc.utils import mapdates
@@ -36,13 +38,11 @@ class PandasSource:
     def __init__(self, df, time=None, z=None, lat=None, lon=None, geom=None):
         """
         df: the dataframe
-        time_column: the column to use for time
-        z_column: the column to use for depth
-
-        lat_column: the column to use for latitude, this or geom is required if using regional subsets
-        lon_column: the column to use for latitude, this or geom is required if using regional subsets
-
-        columns: a subset of columns to process, list of str
+        time: the column to use for time
+        z: the column to use for depth
+        lat: the column to use for latitude, this or geom is required if using regional subsets
+        lon: the column to use for longitude, this or geom is required if using regional subsets
+        geom: the column containing the geometry, this or lat and lon are required if using regional subsets
         """
         self.df = df
         self.time_column = time or 'time'
@@ -62,12 +62,21 @@ class PandasSource:
 
     def run(self, config : Config):
 
+        # Magic for nested key generation
+        # https://stackoverflow.com/a/27809959
+        results = defaultdict(lambda: defaultdict(odict))
+
         rdf = self.df.copy()
+
+        # Start with everything as UNKNOWN (2)
+        fillnp = np.ma.empty(len(rdf), dtype='uint8')
+        fillnp.fill(QartodFlags.UNKNOWN)
+        results_to_fill = pd.Series(fillnp, index=rdf.index)
 
         for context in config.contexts:
 
-            # Subset first by the steam identifiers in each config
-            stream_ids = list(context.configs.keys())
+            # Subset first by the stream ids in each config
+            stream_ids = list(context.streams.keys())
             subset = self.df.loc[:, stream_ids + self.axis_columns]
 
             if context.region:
@@ -80,50 +89,63 @@ class PandasSource:
                 # subset = subset[[ subset[self.geom_column].within(context.region) ]]
                 pass
 
-            if context.window.starting:
-                subset = subset.loc[subset[self.time_column] >= context.window.starting, :]
-            if context.window.ending:
-                subset = subset.loc[subset[self.time_column] < context.window.ending, :]
+            if context.window.starting is not None or context.window.ending is not None:
+                if self.time_column in self.axis_columns:
+                    if context.window.starting:
+                        subset = subset.loc[subset[self.time_column] >= context.window.starting, :]
+                    if context.window.ending:
+                        subset = subset.loc[subset[self.time_column] < context.window.ending, :]
+                else:
+                    L.warning(f'Skipping window subset, {self.time_column} not in columns')
+                    pass
 
             # The source is subset, now the resulting rows need to be tested
             # Put together the static inputs that were subset for this config
-            subset_kwargs = dict(
-                tinp=subset.loc[:, self.time_column],
-                zinp=subset.loc[:, self.z_column],
-                lon=subset.loc[:, self.lon_column],
-                lat=subset.loc[:, self.lat_column],
-            )
+            subset_kwargs = {}
+            if self.time_column in self.axis_columns:
+                subset_kwargs['tinp'] = subset.loc[:, self.time_column]
+            if self.z_column in self.axis_columns:
+                subset_kwargs['zinp'] = subset.loc[:, self.z_column]
+            if self.lon_column in self.axis_columns:
+                subset_kwargs['lon'] = subset.loc[:, self.lon_column]
+            if self.lat_column in self.axis_columns:
+                subset_kwargs['lat'] = subset.loc[:, self.lat_column]
 
-            for stream_id, stream_config in context.configs.items():
+            for stream_id, stream in context.streams.items():
 
-                results = stream_config.run(
+                run_result = stream.run(
                     inp=subset.loc[:, stream_id],
                     **subset_kwargs
                 )
 
-                # Add the results back into the dataframe
-                for testpackage, test in results.items():
+                for testpackage, test in run_result.items():
                     for testname, testresults in test.items():
-                        test_column_name = f'{stream_id}.{testpackage}.{testname}'
-                        if test_column_name not in rdf:
-                            rdf.insert(len(rdf.columns), test_column_name, QartodFlags.UNKNOWN)
-                        rdf.loc[subset.index, test_column_name] = testresults
+                        if testname not in results[stream_id][testpackage]:
+                            results[stream_id][testpackage][testname] = results_to_fill.copy()
+                        results[stream_id][testpackage][testname].loc[subset.index] = testresults
 
-        return rdf
+                # This will add it back in as columns, reuse in the save method later on
+                # Add the results back into the dataframe
+                # for testpackage, test in run_result.items():
+                #     for testname, testresults in test.items():
+                #         test_column_name = f'{stream_id}.{testpackage}.{testname}'
+                #         if test_column_name not in rdf:
+                #             rdf.insert(len(rdf.columns), test_column_name, QartodFlags.UNKNOWN)
+                #         rdf.loc[subset.index, test_column_name] = testresults
+
+        return results
 
 
 class NumpySource:
 
     def __init__(self, inp, time=None, z=None, lat=None, lon=None, geom=None):
         """
-        df: the dataframe
-        time_column: the column to use for time
-        z_column: the column to use for depth
-
-        lat_column: the column to use for latitude, this or geom is required if using regional subsets
-        lon_column: the column to use for latitude, this or geom is required if using regional subsets
-
-        columns: a subset of columns to process, list of str
+        inp: a numpy array or a dictionary of numpy arrays where the keys are the stream ids
+        time: numpy array of date-like objects.
+        z: numpy array of z
+        lat: numpy array of latitude, this or geom is required if using regional subsets
+        lon: numpy array of longitude, this or geom is required if using regional subsets
+        geom: numpy array of geometry, this or lat and lon are required if using regional subsets
         """
         self.inp = inp
         self.tinp = pd.DatetimeIndex(mapdates(time))
@@ -136,7 +158,7 @@ class NumpySource:
 
         # Magic for nested key generation
         # https://stackoverflow.com/a/27809959
-        results = defaultdict(lambda: defaultdict(OrderedDict))
+        results = defaultdict(lambda: defaultdict(odict))
 
         for context in config.contexts:
 
@@ -150,34 +172,97 @@ class NumpySource:
                 else:
                     L.warning('Skipping region subset, "lat" and "lon" must be passed into NumpySource')
 
-            if self.tinp is not None:
-                if context.window.starting:
-                    subset = (subset) & (self.tinp >= context.window.starting)
-                if context.window.ending:
-                    subset = (subset) & (self.tinp < context.window.ending)
-            else:
-                L.warning('Skipping window subset, "tinp" must be passed into run function')
-                pass
+            if context.window.starting is not None or context.window.ending is not None:
+                if self.tinp is not None:
+                    if context.window.starting:
+                        subset = (subset) & (self.tinp >= context.window.starting)
+                    if context.window.ending:
+                        subset = (subset) & (self.tinp < context.window.ending)
+                else:
+                    L.warning('Skipping window subset, "time" array must be passed into "run"')
+                    pass
 
             subset_kwargs = dict(
                 tinp=self.tinp[subset],
                 zinp=self.zinp[subset],
                 lon=self.lon[subset],
                 lat=self.lat[subset],
-                inp=self.inp[subset],
             )
 
-            for stream_id, stream_config in context.configs.items():
+            for stream_id, stream in context.streams.items():
+
+                # Support more than one named inp, but fall back to a single
+                if isinstance(self.inp, dict):
+                    runinput = self.inp[stream_id]
+                elif isinstance(self.inp, np.ndarray):
+                    runinput = self.inp
+                else:
+                    L.error(f"Input is not a dict or np.ndarray, skipping {stream_id}")
+                    continue
+
                 # Start with everything as UNKNOWN (2)
-                result_to_fill = np.ma.empty(self.inp.size, dtype='uint8')
+                result_to_fill = np.ma.empty(runinput.size, dtype='uint8')
                 result_to_fill.fill(QartodFlags.UNKNOWN)
 
-                run_result = stream_config.run(
+                run_result = stream.run(
+                    inp=runinput[subset],
                     **subset_kwargs
                 )
 
                 for testpackage, test in run_result.items():
                     for testname, testresults in test.items():
-                        results[stream_id][testpackage][testname] = testresults
+                        if testname not in results[stream_id][testpackage]:
+                            results[stream_id][testpackage][testname] = result_to_fill
+                        results[stream_id][testpackage][testname][subset] = testresults
 
         return results
+
+
+class NetcdfSource:
+
+    def __init__(self, path_or_ncd, time=None, z=None, lat=None, lon=None, geom=None):
+        self.path_or_ncd = path_or_ncd
+
+        self.time_var = time or 'time'
+        self.z_var = z or 'z'
+        self.lat_var = lat or 'lat'
+        self.lon_var = lon or 'lon'
+        self.geom_var = geom or 'geom'
+
+    def run(self, config: Config):
+        # Set all of the class variables and then call `run`, which will use
+        # the NumpySource runner
+        if isinstance(self.path_or_ncd, str):
+            do_close = True
+            ds = xr.open_dataset(self.path_or_ncd, decode_cf=False)
+        else:
+            do_close = False
+            ds = self.path_or_ncd
+
+        stream_ids = []
+        for context in config.contexts:
+            for stream_id, stream in context.streams.items():
+                stream_ids.append(stream_id)
+
+        varkwargs = { 'inp': {} }
+        if self.time_var in ds.variables:
+            varkwargs['time'] = pd.DatetimeIndex(mapdates(ds.variables[self.time_var].values))
+        if self.z_var in ds.variables:
+            varkwargs['z'] = ds.variables[self.z_var].values
+        if self.lat_var in ds.variables:
+            varkwargs['lat'] = ds.variables[self.lat_var].values
+        if self.lon_var in ds.variables:
+            varkwargs['lon'] = ds.variables[self.lon_var].values
+        if self.geom_var in ds.variables:
+            varkwargs['geom'] = ds.variables[self.geom_var].values
+
+        # Now populate the `inp` dict for each valid data stream
+        for s in stream_ids:
+            if s in ds.variables:
+                varkwargs['inp'][s] = ds.variables[s].values
+
+        if do_close is True:
+            ds.close()
+
+        ns = NumpySource(**varkwargs)
+        return ns.run(config)

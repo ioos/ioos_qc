@@ -14,7 +14,7 @@ L.handlers = [logging.StreamHandler()]
 
 class StreamConfigLoadTest(unittest.TestCase):
     def setUp(self):
-        config = """
+        self.config_str = """
             variable1:
                 not_a_module:
                 qartod:
@@ -27,39 +27,39 @@ class StreamConfigLoadTest(unittest.TestCase):
                     not_a_test:
                         foo: [1, null]
         """
-        self.config = Config(config)
+        self.config = Config(self.config_str)
 
-    def test_load(self):
+    def test_config_load(self):
         # This config only produces one context
         context = self.config.contexts[0]
 
         # The `methods` has keys which are the actual functions. This is
         # totally valid as the python function implements the __hash__ method.
-        assert 'variable1' in context.configs.keys()
-        assert qartod.aggregate in context.configs['variable1'].methods
-        assert {} == context.configs['variable1'].methods[qartod.aggregate]
+        assert 'variable1' in context.streams.keys()
+        assert qartod.aggregate in context.streams['variable1'].methods
+        assert {} == context.streams['variable1'].methods[qartod.aggregate]
 
-        assert qartod.gross_range_test in context.configs['variable1'].methods
+        assert qartod.gross_range_test in context.streams['variable1'].methods
         assert {
             'suspect_span': [1, 11],
             'fail_span': [0, 12]
-        } == context.configs['variable1'].methods[qartod.gross_range_test]
+        } == context.streams['variable1'].methods[qartod.gross_range_test]
 
-        assert qartod.location_test in context.configs['variable1'].methods
+        assert qartod.location_test in context.streams['variable1'].methods
         assert {
             'bbox': [-80, 40, -70, 60]
-        } == context.configs['variable1'].methods[qartod.location_test]
+        } == context.streams['variable1'].methods[qartod.location_test]
 
         # Nothing will end up in `methods` that isn't a valid function.
         # These are just here as more of a documentation point
-        assert 'not_a_test' not in context.configs['variable1'].methods
-        assert 'not_a_module' not in context.configs['variable1'].methods
+        assert 'not_a_test' not in context.streams['variable1'].methods
+        assert 'not_a_module' not in context.streams['variable1'].methods
 
 
 class ContextConfigLoadTest(unittest.TestCase):
     def setUp(self):
         config = """
-            configs:
+            streams:
                 variable1:
                     qartod:
                         location_test:
@@ -76,18 +76,18 @@ class ContextConfigLoadTest(unittest.TestCase):
         # This config only produces one context
         context = self.config.contexts[0]
 
-        assert 'variable1' in context.configs.keys()
-        assert qartod.location_test in context.configs['variable1'].methods
+        assert 'variable1' in context.streams.keys()
+        assert qartod.location_test in context.streams['variable1'].methods
         assert {
             'bbox': [-80, 40, -70, 60]
-        } == context.configs['variable1'].methods[qartod.location_test]
+        } == context.streams['variable1'].methods[qartod.location_test]
 
-        assert 'variable2' in context.configs.keys()
-        assert qartod.gross_range_test in context.configs['variable2'].methods
+        assert 'variable2' in context.streams.keys()
+        assert qartod.gross_range_test in context.streams['variable2'].methods
         assert {
             'suspect_span': [1, 11],
             'fail_span': [0, 12]
-        } == context.configs['variable2'].methods[qartod.gross_range_test]
+        } == context.streams['variable2'].methods[qartod.gross_range_test]
 
 
 class ContextConfigRegionWindowLoadTeest(unittest.TestCase):
@@ -97,7 +97,7 @@ class ContextConfigRegionWindowLoadTeest(unittest.TestCase):
             window:
                 starting: 2020-01-01T00:00:00Z
                 ending: 2020-04-01T00:00:00Z
-            configs:
+            streams:
                 variable1:
                     qartod:
                         location_test:
@@ -118,18 +118,18 @@ class ContextConfigRegionWindowLoadTeest(unittest.TestCase):
         assert context.window.starting == datetime(2020, 1, 1, 0, 0, 0)
         assert context.window.ending == datetime(2020, 4, 1, 0, 0, 0)
 
-        assert 'variable1' in context.configs.keys()
-        assert qartod.location_test in context.configs['variable1'].methods
+        assert 'variable1' in context.streams.keys()
+        assert qartod.location_test in context.streams['variable1'].methods
         assert {
             'bbox': [-80, 40, -70, 60]
-        } == context.configs['variable1'].methods[qartod.location_test]
+        } == context.streams['variable1'].methods[qartod.location_test]
 
-        assert 'variable2' in context.configs.keys()
-        assert qartod.gross_range_test in context.configs['variable2'].methods
+        assert 'variable2' in context.streams.keys()
+        assert qartod.gross_range_test in context.streams['variable2'].methods
         assert {
             'suspect_span': [1, 11],
             'fail_span': [0, 12]
-        } == context.configs['variable2'].methods[qartod.gross_range_test]
+        } == context.streams['variable2'].methods[qartod.gross_range_test]
 
 
 class ContextListConfigLoadTest(unittest.TestCase):
@@ -140,7 +140,7 @@ class ContextListConfigLoadTest(unittest.TestCase):
                     window:
                         starting: 2020-01-01T00:00:00Z
                         ending: 2020-04-01T00:00:00Z
-                    configs:
+                    streams:
                         variable1:
                             qartod:
                                 location_test:
@@ -154,7 +154,7 @@ class ContextListConfigLoadTest(unittest.TestCase):
                     window:
                         starting: 2020-01-01T00:00:00Z
                         ending: 2020-04-01T00:00:00Z
-                    configs:
+                    streams:
                         variable1:
                             qartod:
                                 location_test:
@@ -174,15 +174,15 @@ class ContextListConfigLoadTest(unittest.TestCase):
             assert context.window.starting == datetime(2020, 1, 1, 0, 0, 0)
             assert context.window.ending == datetime(2020, 4, 1, 0, 0, 0)
 
-            assert 'variable1' in context.configs.keys()
-            assert qartod.location_test in context.configs['variable1'].methods
+            assert 'variable1' in context.streams.keys()
+            assert qartod.location_test in context.streams['variable1'].methods
             assert {
                 'bbox': [-80, 40, -70, 60]
-            } == context.configs['variable1'].methods[qartod.location_test]
+            } == context.streams['variable1'].methods[qartod.location_test]
 
-            assert 'variable2' in context.configs.keys()
-            assert qartod.gross_range_test in context.configs['variable2'].methods
+            assert 'variable2' in context.streams.keys()
+            assert qartod.gross_range_test in context.streams['variable2'].methods
             assert {
                 'suspect_span': [1, 11],
                 'fail_span': [0, 12]
-            } == context.configs['variable2'].methods[qartod.gross_range_test]
+            } == context.streams['variable2'].methods[qartod.gross_range_test]

@@ -8,12 +8,13 @@ from numbers import Real
 from pyproj import Geod
 from pathlib import Path
 from datetime import date, datetime
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict as odict
 from collections.abc import Mapping
 
 import pandas as pd
 import numpy as np
 import pandas as pd
+import xarray as xr
 import geojson
 from ruamel.yaml import YAML
 
@@ -29,40 +30,104 @@ def add_flag_metadata(**kwargs):
     return wrapper
 
 
+def openf(p, **kwargs):
+    """ Helper to allow one-line-lambdas to read file contents
+    """
+    with open(p, **kwargs) as f:
+        return f.read()
 
-def load_config_as_dict(source : Union[str, dict, OrderedDict, Path, io.StringIO]
-                        ) -> OrderedDict:
-    """Load an object as a config dict. The source can be a dict, OrderedDict,
+
+def load_config_from_xarray(source):
+    """Load an xarray dataset as a config dict
+    """
+
+    to_close = False
+    if not isinstance(source, xr.Dataset):
+        source = xr.open_dataset(source, decode_cf=False)
+        to_close = True
+
+    # If a global attribute exists, load as a YAML or JSON string and
+    # ignore any config at the variable level
+    if 'ioos_qc_config' in source.attrs:
+        L.info("Using global attribute ioos_qc_config for QC config")
+        return load_config_as_dict(source.attrs['ioos_qc_config'])
+
+    # Iterate over variables and construct a config object
+    y = odict()
+    source = source.filter_by_attrs(
+        ioos_qc_module=lambda x: x is not None,
+        ioos_qc_test=lambda x: x is not None,
+        ioos_qc_config=lambda x: x is not None,
+        ioos_qc_target=lambda x: x is not None,
+    )
+    for dv in source.variables:
+        if dv in source.dims:
+            continue
+        vobj = source[dv]
+
+        # Because a data variables can have more than one check
+        # associated with it we need to merge any existing configs
+        # for this variable
+        newdict = odict({
+            vobj.ioos_qc_module: odict({
+                vobj.ioos_qc_test: odict(json.loads(vobj.ioos_qc_config))
+            })
+        })
+        merged = dict_update(
+            y.get(vobj.ioos_qc_target, {}),
+            newdict
+        )
+        y[vobj.ioos_qc_target] = merged
+
+    # If we opened this xarray dataset from a file we should close it
+    if to_close is True:
+        source.close()
+
+    return y
+
+
+def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO]
+                        ) -> odict:
+    """Load an object as a config dict. The source can be a dict, odict,
     YAML string, JSON string, a StringIO, or a file path to a valid YAML or JSON file.
     """
     yaml = YAML(typ='safe')
-    if isinstance(source, OrderedDict):
+    if isinstance(source, odict):
         return source
     elif isinstance(source, dict):
-        return OrderedDict(source)
-    elif isinstance(source, str):
-        # Try to load as YAML, then JSON, then file path
-        try:
-            return OrderedDict(yaml.load(source))
-        except Exception:
-            try:
-                return OrderedDict(json.loads(source))
-            except Exception:
-                with open(source) as f:
-                    return OrderedDict(yaml.load(f.read()))
-    elif isinstance(source, Path):
-        with source.open() as f:
-            try:
-                return OrderedDict(yaml.load(f))
-            except Exception:
-                return OrderedDict(json.load(f))
-    elif isinstance(source, io.StringIO):
-        try:
-            return OrderedDict(yaml.load(source.getvalue()))
-        except Exception:
-            return OrderedDict(json.load(source.getvalue()))
+        return odict(source)
+    elif isinstance(source, xr.Dataset):
+        return load_config_from_xarray(source)
+    elif isinstance(source, (str, Path)):
+        source = str(source)
 
-    return ValueError('Config source is not valid!')
+        # Try to load as YAML, then JSON, then file path
+        load_funcs = [
+            lambda x: odict(yaml.load(x)),
+            lambda x: odict(json.loads(x)),
+            lambda x: load_config_from_xarray(x),
+            lambda x: odict(yaml.load(openf(x))),  # noqa
+            lambda x: odict(json.loads(openf(x))),  # noqa
+        ]
+        for lf in load_funcs:
+            try:
+                return lf(source)
+            except BaseException:
+                continue
+
+    elif isinstance(source, io.StringIO):
+        # Try to load as YAML, then JSON, then file path
+        load_funcs = [
+            lambda x: odict(yaml.load(x)),
+            lambda x: odict(json.load(x)),
+        ]
+        for lf in load_funcs:
+            try:
+                return lf(source.getvalue())
+            except BaseException:
+                continue
+
+    raise ValueError('Config source is not valid!')
 
 
 def isfixedlength(lst : Union[list, tuple],
@@ -149,6 +214,15 @@ def dict_update(d : Mapping, u : Mapping) -> Mapping:
         else:
             d = { k: u[k] }
     return d
+
+
+def dict_depth(d):
+    """ Get the depth of a dict
+    """
+    # https://stackoverflow.com/a/23499101
+    if isinstance(d, dict):
+        return 1 + (max(map(dict_depth, d.values())) if d else 0)
+    return 0
 
 
 def cf_safe_name(name : str) -> str:
