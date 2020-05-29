@@ -8,7 +8,7 @@ import pandas as pd
 import xarray as xr
 import numpy.testing as npt
 
-from ioos_qc.streams import NumpyStream, PandasStream, NetcdfStream, Config
+from ioos_qc.streams import NumpyStream, PandasStream, NetcdfStream, Config, XarrayStream
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
@@ -181,6 +181,76 @@ class NetcdfStreamTest(unittest.TestCase):
     def test_run(self):
         ns = NetcdfStream(self.ds)
         results = ns.run(self.config)
+
+        # First ten (0-9 values) fail
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+        )
+        # Next ten (10-19 values) suspect
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+        )
+        # Next ten (20-29 values) pass
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        )
+        # Next ten, first value (30) pass because the test is inclusive
+        # and (31-39 values) suspect
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+        )
+        # Next ten, first value (40) suspect because the test is inclusive
+        # and (41-49 values) fail
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+        )
+        # There is only one test, so assert the aggregate is the same as the single result
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'],
+            results['variable1']['qartod']['aggregate']
+        )
+
+
+class XarrayStreamTest(unittest.TestCase):
+    def setUp(self):
+
+        config = """
+            region: something
+            window:
+                starting: 2020-01-01T00:00:00Z
+                ending: 2020-04-01T00:00:00Z
+            streams:
+                variable1:
+                    qartod:
+                        aggregate:
+                        gross_range_test:
+                            suspect_span: [20, 30]
+                            fail_span: [10, 40]
+        """
+        self.config = Config(config)
+
+        rows = 50
+        data_inputs = {
+            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
+            'z': 2.0,
+            'lat': 36.1,
+            'lon': -76.5,
+            'variable1': np.arange(0, rows),
+        }
+        df = pd.DataFrame(data_inputs)
+        self.ds = xr.Dataset.from_dataframe(df)
+
+    def tearDown(self):
+        self.ds.close()
+
+    def test_run(self):
+        xs = XarrayStream(self.ds)
+        results = xs.run(self.config)
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
