@@ -130,12 +130,12 @@ class ContextConfig:
             # Convert region to a GeometryCollection Shapely object.
             # buffer(0) is a trick for fixing scenarios where polygons have overlapping coordinates
             # https://medium.com/@pramukta/recipe-importing-geojson-into-shapely-da1edf79f41d
-            if 'features' in self.config['region']:
+            if self.config['region'] and 'features' in self.config['region']:
                 # Feature based GeoJSON
                 self.region = GeometryCollection([
                     shape(feature['geometry']).buffer(0) for feature in self.config['region']['features']
                 ])
-            elif 'geometry' in self.config['region']:
+            elif self.config['region'] and 'geometry' in self.config['region']:
                 # Geometry based GeoJSON
                 self.region = GeometryCollection([
                     shape(self.config['region']['geometry']).buffer(0)
