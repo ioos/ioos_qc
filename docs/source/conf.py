@@ -42,7 +42,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx_autodoc_typehints',
-    "nbsphinx",
+    #"nbsphinx",
 ]
 
 napoleon_google_docstring = True
