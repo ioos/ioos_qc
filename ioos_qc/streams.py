@@ -113,6 +113,10 @@ class PandasStream:
 
             for stream_id, stream in context.streams.items():
 
+                if stream_id not in subset:
+                    L.warning(f'{stream_id} not a column in the input dataframe, skipping')
+                    continue
+
                 run_result = stream.run(
                     inp=subset.loc[:, stream_id],
                     **subset_kwargs
@@ -192,10 +196,14 @@ class NumpyStream:
             for stream_id, stream in context.streams.items():
 
                 # Support more than one named inp, but fall back to a single
-                if isinstance(self.inp, dict):
-                    runinput = self.inp[stream_id]
-                elif isinstance(self.inp, np.ndarray):
+                if isinstance(self.inp, np.ndarray):
                     runinput = self.inp
+                elif isinstance(self.inp, dict):
+                    if stream_id in self.inp:
+                        runinput = self.inp[stream_id]
+                    else:
+                        L.warning(f'{stream_id} not in input dict, skipping')
+                        continue
                 else:
                     L.error(f"Input is not a dict or np.ndarray, skipping {stream_id}")
                     continue
@@ -239,8 +247,12 @@ class NetcdfStream:
         stream_ids = []
         for context in config.contexts:
             for stream_id, stream in context.streams.items():
+                if stream_id not in ds.variables:
+                    L.warning(f'{stream_id} is not a variable in the netCDF dataset, skipping')
+                    continue
                 stream_ids.append(stream_id)
 
+        # Find any var specific kwargs to pass onto the run
         varkwargs = { 'inp': {} }
         if self.time_var in ds.variables:
             varkwargs['time'] = pd.DatetimeIndex(mapdates(ds.variables[self.time_var].values))
@@ -298,7 +310,7 @@ class XarrayStream:
 
                 # Find any var specific kwargs to pass onto the run
                 if stream_id not in ds.variables:
-                    L.warning('{stream_id} not in Dataset, skipping')
+                    L.warning(f'{stream_id} is not a variable in the xarray dataset, skipping')
                     continue
 
                 # Because the variables could have different dimensions
