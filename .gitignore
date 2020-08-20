@@ -18,3 +18,4 @@ tests/data/*.csv
 __pycache__
 .vscode
 build/
+docs/source/_build
