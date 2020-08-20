@@ -384,7 +384,7 @@ class XarrayStream:
                     for testname, testresults in test.items():
                         # Build up the results from every context using the subset
                         # into the final return dict
-                        if 'testname' not in results[stream_id][testpackage]:
+                        if testname not in results[stream_id][testpackage]:
                             results[stream_id][testpackage][testname] = result_to_fill.copy()
                         results[stream_id][testpackage][testname][subset] = testresults
 
