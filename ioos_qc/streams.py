@@ -388,9 +388,6 @@ class XarrayStream:
                             results[stream_id][testpackage][testname] = result_to_fill.copy()
                         results[stream_id][testpackage][testname][subset] = testresults
 
-                    # Reset the xarray DataArray back to a numpy array
-                    results[stream_id][testpackage][testname] = results[stream_id][testpackage][testname].data
-
         if do_close is True:
             ds.close()
 
