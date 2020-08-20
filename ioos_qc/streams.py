@@ -66,12 +66,10 @@ class PandasStream:
         # https://stackoverflow.com/a/27809959
         results = defaultdict(lambda: defaultdict(odict))
 
-        rdf = self.df.copy()
+        # rdf = self.df.copy()
 
         # Start with everything as UNKNOWN (2)
-        fillnp = np.ma.empty(len(rdf), dtype='uint8')
-        fillnp.fill(QartodFlags.UNKNOWN)
-        results_to_fill = pd.Series(fillnp, index=rdf.index)
+        results_to_fill = pd.Series(QartodFlags.UNKNOWN, index=self.df.index, dtype='uint8')
 
         for context in config.contexts:
 
@@ -166,7 +164,7 @@ class NumpyStream:
 
         for context in config.contexts:
 
-            subset = True
+            subset = np.full_like(self.tinp, 1, dtype=bool)
 
             if context.region:
                 # TODO: yeah this does nothing right now
@@ -329,7 +327,7 @@ class XarrayStream:
                         subset[self.time_var] = slice(context.window.starting, context.window.ending)
 
                 # Start with everything as UNKNOWN (2)
-                result_to_fill = xr.full_like(ds[stream_id], QartodFlags.UNKNOWN)
+                result_to_fill = xr.full_like(ds[stream_id], QartodFlags.UNKNOWN, dtype='uint8')
                 subset_stream = ds[stream_id][subset]
 
                 if self.time_var in subset_stream.coords:

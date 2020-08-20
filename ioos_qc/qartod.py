@@ -88,7 +88,7 @@ def qartod_compare(vectors : Sequence[Sequence[N]]
         for v in vectors:
             idx = np.where(v == p)[0]
             result[idx] = p
-    return result.astype(int)
+    return result.astype('uint8')
 
 
 @add_flag_metadata(standard_name='location_test_quality_flag',
