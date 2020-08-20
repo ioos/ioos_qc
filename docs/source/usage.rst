@@ -42,8 +42,8 @@ Usage
     from ioos_qc.config import StreamConfig
 
     config = {
-        'aggregate:': None,
         'qartod': {
+            'aggregate:': {},
             'gross_range_test': {
                 'suspect_span': [1, 11],
                 'fail_span': [0, 12],
