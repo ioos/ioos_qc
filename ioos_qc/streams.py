@@ -74,7 +74,12 @@ class PandasStream:
         for context in config.contexts:
 
             # Subset first by the stream ids in each config
-            stream_ids = list(context.streams.keys())
+            stream_ids = []
+            for stream_id, stream in context.streams.items():
+                if stream_id not in self.df:
+                    L.warning(f'{stream_id} is not a column in the dataframe, skipping')
+                    continue
+                stream_ids.append(stream_id)
             subset = self.df.loc[:, stream_ids + self.axis_columns]
 
             if context.region:
