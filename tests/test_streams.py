@@ -81,6 +81,68 @@ class PandasStreamTest(unittest.TestCase):
         )
 
 
+
+class NumpyStreamTestLightConfig(unittest.TestCase):
+    def setUp(self):
+
+        config = """
+            streams:
+                variable1:
+                    qartod:
+                        aggregate:
+                        gross_range_test:
+                            suspect_span: [20, 30]
+                            fail_span: [10, 40]
+        """
+        self.config = Config(config)
+
+        rows = 50
+        self.tinp = pd.date_range(start='01/01/2020', periods=rows, freq='D').values
+        self.zinp = np.full_like(self.tinp, 2.0)
+        self.lat = np.full_like(self.tinp, 36.1)
+        self.lon = np.full_like(self.tinp, -76.5)
+
+    def test_run(self):
+        # Input is the values 0-49, easy testing
+        inp = np.arange(0, self.tinp.size)
+
+        ns = NumpyStream(inp, self.tinp, self.zinp, self.lat, self.lon)
+        results = ns.run(self.config)
+
+        # First ten (0-9 values) fail
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+        )
+        # Next ten (10-19 values) suspect
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+        )
+        # Next ten (20-29 values) pass
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+        )
+        # Next ten, first value (30) pass because the test is inclusive
+        # and (31-39 values) suspect
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+        )
+        # Next ten, first value (40) suspect because the test is inclusive
+        # and (41-49 values) fail
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+        )
+        # There is only one test, so assert the aggregate is the same as the single result
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'],
+            results['variable1']['qartod']['aggregate']
+        )
+
+
 class NumpyStreamTest(unittest.TestCase):
     def setUp(self):
 
