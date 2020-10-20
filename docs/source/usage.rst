@@ -1,7 +1,53 @@
 Usage
 =====
 
-There are three main concepts in the `ioos_qc` project:
+Basic usage
+-----------
+
+At its core, ``ioos_qc`` is a set of methods to run quality control checks on an input stream of data.
+
+.. code-block:: python
+    :linenos:
+    :caption: Calling a test manually
+
+    from ioos_qc import qartod
+
+    results = qartod.gross_range_test(
+        inp=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        suspect_span=[0, 8],
+        fail_span=[0, 10]
+    )
+
+    print(results)
+
+    # prints a masked array with values:
+    # [1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 4, 4]
+
+
+In this example, we call the ``gross_range_test`` on a list of dummy data.
+We've configured the test to fail if the data is outside the range ``[0, 10]`` and be marked suspect if outside ``[0, 8]``.
+The test returns an array of qc results for each data point, where ``1`` is PASS, ``3`` is SUSPECT, and ``4`` is FAIL.
+
+
+Motivation
+----------
+
+If all you want to do is run a one-time test against a stream of data, then all you really need is the example above.
+However, in most projects, the hard part is not implementing the qc test methods themselves, rather it is problems such as:
+
+* How to store QC test configurations and manage them?
+* How to manage the inputs (data) going into the test, and the output (results) coming out?
+* How to share QC result with your users in a consistent way that follows community standards?
+* How to ensure that your test implementations perform well against large datasets?
+
+The ``ioos_qc`` project does not just implement QC algorithms -- it attempts to help you with these problems as well.
+
+The following sections explore concepts that ``ioos_qc`` uses to help you manage and run your tests efficiently.
+
+Concepts
+--------
+
+There are three main concepts in the ``ioos_qc`` project:
 
 - Configurations_: Quality control configuration
 - Streams_: Data source to run quality checks against
@@ -12,13 +58,13 @@ There are three main concepts in the `ioos_qc` project:
 Configurations
 --------------
 
-Configiration objects represent a collection of quality control tests to run and the parameters for each one. There three main types of `Config` objects:
+Configuration objects represent a collection of quality control tests to run and the parameters for each one.There three main types of `Config` objects:
 
-- StreamConfig_: Configures QC tests for a single stream of data like a ``list``, ``tuple``, ``numpy.ndarray``, ``dask.array``, ``pandas.Series``, ``netCDF4.Variable``, or ``xarray.DataArray``
-- ContextConfig_: A collection of a `region`, a `window` and a list of ``StreamConfig`` objects, suitable for configuring QC for collections of data in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``
+- StreamConfig_: This configures QC tests for a single stream of data like a ``list``, ``tuple``, ``numpy.ndarray``, ``dask.array``, ``pandas.Series``, ``netCDF4.Variable``, or ``xarray.DataArray``. This can be used standalone, or as a building block for the following more complex configs.
+- ContextConfig_: This defines a collection of ``StreamConfig`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``window``'s) -- and/or spatial domains (``region``'s).
 - Config_: A collection of ``ContextConfig`` objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.
 
-Each confuguration type can be initialized with the following:
+Each configuration type can be initialized with the following:
 
 - python ``dict`` or ``OrderedDict``
 - JSON/YAML filepath (``str`` or ``Path`` object), ``str``, or ``StringIO``
@@ -32,6 +78,10 @@ StreamConfig
 ~~~~~~~~~~~~
 A ``StreamConfig`` object defines a specific `ioos_qc` test module and test function along with the configuration parameters in which to run it with.
 
+.. note::
+
+    In earlier versions, ``StreamConfig`` was known as ``QcConfig``.
+
 Usage
 ^^^^^
 
@@ -43,7 +93,7 @@ Usage
 
     config = {
         'qartod': {
-            'aggregate:': {},
+            'aggregate': {},
             'gross_range_test': {
                 'suspect_span': [1, 11],
                 'fail_span': [0, 12],
@@ -356,3 +406,5 @@ XarrayStream
 
 Stores
 ------
+
+**TODO there's nothing here??**
