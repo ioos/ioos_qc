@@ -51,9 +51,6 @@ def speed_test(lon: Sequence[N],
         A masked array of flag values equal in size to that of the input.
     """
 
-    # TODO: lots of overlap with the location_test here
-    # TODO: add performance test
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         lat = np.ma.masked_invalid(np.array(lat).astype(np.floating))
