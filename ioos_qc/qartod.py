@@ -13,7 +13,7 @@ import pandas as pd
 from ioos_qc.utils import (
     isnan,
     isfixedlength,
-    add_flag_metadata, great_circle_distance
+    add_flag_metadata, great_circle_distance, mapdates
 )
 
 L = logging.getLogger(__name__)  # noqa
@@ -33,19 +33,6 @@ FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
 span = namedtuple('Span', 'minv maxv')
-
-
-def mapdates(dates):
-    if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
-        # numpy datetime objects
-        return dates.astype('datetime64[ns]')
-    else:
-        try:
-            # Finally try unix epoch seconds
-            return pd.to_datetime(dates, unit='s').values.astype('datetime64[ns]')
-        except Exception:
-            # strings work here but we don't advertise that
-            return np.array(dates, dtype='datetime64[ns]')
 
 
 @add_flag_metadata('aggregate_quality_flag', 'Aggregate Quality Flag')
@@ -152,13 +139,7 @@ def location_test(lon : Sequence[N],
     if range_max is not None and lon.size > 1:
         # Calculating the great_distance between each point
         # Flag suspect any distance over range_max
-        d = np.ma.zeros(lon.size, dtype=np.float64)
-        d[1:] = great_circle_distance(
-            lat[:-1],
-            lat[1:],
-            lon[:-1],
-            lon[1:]
-        )
+        d = great_circle_distance(lat, lon)
         flag_arr[d > range_max] = QartodFlags.SUSPECT
 
     # Ignore warnings when comparing NaN values even though they are masked
