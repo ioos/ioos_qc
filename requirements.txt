@@ -1,7 +1,7 @@
 geojson
 netCDF4
 numpy>=1.14
-pygc
+pyproj
 ruamel.yaml
 simplejson
 xarray

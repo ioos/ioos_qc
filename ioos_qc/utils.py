@@ -121,3 +121,10 @@ class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
             return None
 
         return geojson.factory.GeoJSON.to_instance(obj)
+
+
+def great_circle_distance(lat1, lat2, lon1, lon2):
+    from pyproj import Geod
+    g = Geod(ellps='WGS84')
+    _, _, dist = g.inv(lon1, lat1, lon2, lat2)
+    return dist

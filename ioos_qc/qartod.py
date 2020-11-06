@@ -8,12 +8,12 @@ from typing import Sequence, Tuple, Union, Dict
 
 import numpy as np
 import pandas as pd
-from pygc import great_distance
+
 
 from ioos_qc.utils import (
     isnan,
     isfixedlength,
-    add_flag_metadata
+    add_flag_metadata, great_circle_distance
 )
 
 L = logging.getLogger(__name__)  # noqa
@@ -153,12 +153,12 @@ def location_test(lon : Sequence[N],
         # Calculating the great_distance between each point
         # Flag suspect any distance over range_max
         d = np.ma.zeros(lon.size, dtype=np.float64)
-        d[1:] = great_distance(
-            start_latitude=lat[:-1],
-            end_latitude=lat[1:],
-            start_longitude=lon[:-1],
-            end_longitude=lon[1:]
-        )['distance']
+        d[1:] = great_circle_distance(
+            lat[:-1],
+            lat[1:],
+            lon[:-1],
+            lon[1:]
+        )
         flag_arr[d > range_max] = QartodFlags.SUSPECT
 
     # Ignore warnings when comparing NaN values even though they are masked
