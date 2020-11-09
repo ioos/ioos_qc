@@ -35,6 +35,8 @@ def speed_test(lon: Sequence[N],
     If this test fails, it typically means that either a position or time is bad data,
      or that a platform is mislabeled.
 
+    Ref: ARGO QC Manual 5. Impossible speed test
+
     Args:
         lon: Longitudes as a numeric numpy array or a list of numbers.
         lat: Latitudes as a numeric numpy array or a list of numbers.

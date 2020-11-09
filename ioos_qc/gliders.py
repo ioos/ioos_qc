@@ -9,6 +9,8 @@ def pressure_check(inp):
     Returns an array of flag values where each input is flagged with SUSPECT if
     it does not monotonically increase
 
+    Ref: ARGO QC Manual 8. Pressure increasing test
+
     :param numpy.ndarray inp:
     '''
     delta = np.diff(inp)
