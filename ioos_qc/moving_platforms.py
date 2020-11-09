@@ -101,6 +101,6 @@ def speed_test(lon: Sequence[N],
     flag_arr[0] = QartodFlags.UNKNOWN
 
     # If the value is masked set the flag to MISSING
-    flag_arr[lon.mask] = QartodFlags.MISSING
+    flag_arr[dist.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
