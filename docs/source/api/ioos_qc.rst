@@ -17,10 +17,10 @@ ioos\_qc.config module
     :undoc-members:
     :show-inheritance:
 
-ioos\_qc.gliders module
+ioos\_qc.argo module
 -----------------------
 
-.. automodule:: ioos_qc.gliders
+.. automodule:: ioos_qc.argo
     :members:
     :undoc-members:
     :show-inheritance:

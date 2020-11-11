@@ -5,7 +5,9 @@ import logging
 from datetime import datetime, date
 from typing import Union
 from numbers import Real
+from pyproj import Geod
 
+import pandas as pd
 import numpy as np
 
 N = Real
@@ -44,6 +46,19 @@ def isnan(v):
         v is np.nan or
         v is np.ma.masked
     )
+
+
+def mapdates(dates):
+    if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
+        # numpy datetime objects
+        return dates.astype('datetime64[ns]')
+    else:
+        try:
+            # Finally try unix epoch seconds
+            return pd.to_datetime(dates, unit='s').values.astype('datetime64[ns]')
+        except Exception:
+            # strings work here but we don't advertise that
+            return np.array(dates, dtype='datetime64[ns]')
 
 
 def check_timestamps(times : np.ndarray,
@@ -121,3 +136,10 @@ class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
             return None
 
         return geojson.factory.GeoJSON.to_instance(obj)
+
+
+def great_circle_distance(lat_arr, lon_arr):
+    dist = np.ma.zeros(lon_arr.size, dtype=np.float64)
+    g = Geod(ellps='WGS84')
+    _, _, dist[1:] = g.inv(lon_arr[:-1], lat_arr[:-1], lon_arr[1:], lat_arr[1:])
+    return dist

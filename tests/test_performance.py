@@ -11,7 +11,7 @@ L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
 
 
-class QartodPerformanceTest(unittest.TestCase):
+class PerformanceTest(unittest.TestCase):
 
     def setUp(self):
         import pandas as pd
@@ -25,7 +25,11 @@ class QartodPerformanceTest(unittest.TestCase):
         self.n = 10
 
     def perf_test(self, qc, method_name=None, run_fn=None):
-        method_name = method_name or list(qc.config['qartod'])[0]
+        method_name = method_name
+        if method_name is None and 'argo' in qc.config:
+            method_name = list(qc.config['argo'])[0]
+        if method_name is None:
+            method_name = list(qc.config['qartod'])[0]
         if run_fn is None:
             def run_fn():
                 qc.run(
@@ -66,6 +70,28 @@ class QartodPerformanceTest(unittest.TestCase):
                     'lat': self.lat,
                     'range_max': 1,
                 }
+            }
+        })
+        self.perf_test(qc)
+
+    def test_speed_test(self):
+        qc = QcConfig({
+            'argo': {
+                'speed_test': {
+                    'tinp': self.times,
+                    'lon': self.lon,
+                    'lat': self.lat,
+                    'suspect_threshold': 1,
+                    'fail_threshold': 3,
+                }
+            }
+        })
+        self.perf_test(qc)
+
+    def test_pressure_increasing_test(self):
+        qc = QcConfig({
+            'argo': {
+                'pressure_increasing_test': {}
             }
         })
         self.perf_test(qc)

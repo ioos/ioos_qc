@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+"""Tests based on the IOOS QARTOD manuals."""
 import logging
 import warnings
 from collections import namedtuple
@@ -8,12 +9,12 @@ from typing import Sequence, Tuple, Union, Dict
 
 import numpy as np
 import pandas as pd
-from pygc import great_distance
+
 
 from ioos_qc.utils import (
     isnan,
     isfixedlength,
-    add_flag_metadata
+    add_flag_metadata, great_circle_distance, mapdates
 )
 
 L = logging.getLogger(__name__)  # noqa
@@ -33,19 +34,6 @@ FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
 span = namedtuple('Span', 'minv maxv')
-
-
-def mapdates(dates):
-    if hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
-        # numpy datetime objects
-        return dates.astype('datetime64[ns]')
-    else:
-        try:
-            # Finally try unix epoch seconds
-            return pd.to_datetime(dates, unit='s').values.astype('datetime64[ns]')
-        except Exception:
-            # strings work here but we don't advertise that
-            return np.array(dates, dtype='datetime64[ns]')
 
 
 @add_flag_metadata('aggregate_quality_flag', 'Aggregate Quality Flag')
@@ -152,13 +140,7 @@ def location_test(lon : Sequence[N],
     if range_max is not None and lon.size > 1:
         # Calculating the great_distance between each point
         # Flag suspect any distance over range_max
-        d = np.ma.zeros(lon.size, dtype=np.float64)
-        d[1:] = great_distance(
-            start_latitude=lat[:-1],
-            end_latitude=lat[1:],
-            start_longitude=lon[:-1],
-            end_longitude=lon[1:]
-        )['distance']
+        d = great_circle_distance(lat, lon)
         flag_arr[d > range_max] = QartodFlags.SUSPECT
 
     # Ignore warnings when comparing NaN values even though they are masked

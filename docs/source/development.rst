@@ -6,8 +6,8 @@ Environment setup
 
 Create a conda environment::
 
-    conda create -n ioosqc37 python=3.7
-    conda activate ioosqc37
+    conda create -n ioosqc38 python=3.8
+    conda activate ioosqc38
     conda install --file requirements.txt --file tests/requirements.txt
 
 Run tests::
