@@ -16,6 +16,33 @@ from ioos_qc.utils import mapdates
 L = logging.getLogger(__name__)  # noqa
 
 
+@add_flag_metadata('pressure_increasing_test_quality_flag', 'Pressure Increasing Test Quality Flag')
+def pressure_increasing_test(inp):
+    """
+    Returns an array of flag values where each input is flagged with SUSPECT if
+    it does not monotonically increase
+
+    Ref: ARGO QC Manual: 8. Pressure increasing test
+
+    Args:
+        inp: Pressure values as a numeric numpy array or a list of numbers.
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
+    delta = np.diff(inp)
+    flags = np.ones_like(inp, dtype='uint8') * QartodFlags.GOOD
+
+    # Correct for downcast vs upcast by flipping the sign if it's decreasing
+    sign = np.sign(np.mean(delta))
+    if sign < 0:
+        delta = sign * delta
+
+    flag_idx = np.where(delta <= 0)[0] + 1
+    flags[flag_idx] = QartodFlags.SUSPECT
+
+    return flags
+
+
 @add_flag_metadata('speed_test_quality_flag', 'Speed Test Quality Flag')
 def speed_test(lon: Sequence[N],
                lat: Sequence[N],
@@ -35,7 +62,7 @@ def speed_test(lon: Sequence[N],
     If this test fails, it typically means that either a position or time is bad data,
      or that a platform is mislabeled.
 
-    Ref: ARGO QC Manual 5. Impossible speed test
+    Ref: ARGO QC Manual: 5. Impossible speed test
 
     Args:
         lon: Longitudes as a numeric numpy array or a list of numbers.

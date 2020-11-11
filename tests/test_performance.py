@@ -88,6 +88,14 @@ class PerformanceTest(unittest.TestCase):
         })
         self.perf_test(qc)
 
+    def test_pressure_increasing_test(self):
+        qc = QcConfig({
+            'argo': {
+                'pressure_increasing_test': {}
+            }
+        })
+        self.perf_test(qc)
+
     def test_gross_range(self):
         qc = QcConfig({
             'qartod': {

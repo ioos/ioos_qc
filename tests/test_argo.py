@@ -7,14 +7,15 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from ioos_qc import argo
+from ioos_qc import argo, gliders
+from ioos_qc.config import QcConfig
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
 
 
-class MovingPlatformsSpeedTest(unittest.TestCase):
+class ArgoSpeedTest(unittest.TestCase):
 
     def setUp(self):
         self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
@@ -109,3 +110,49 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
             pytest.fail("should throw exception for mismatched arrays")
         except ValueError as expected:
             assert "shape" in str(expected)
+
+
+class ArgoPressureIncreasingTest(unittest.TestCase):
+
+    def test_pressure_downcast(self):
+        # Standard downcast
+        pressure = np.array([0.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0], dtype='float32')
+        flags = argo.pressure_increasing_test(pressure)
+        npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
+
+    def test_pressure_upcast(self):
+        # Standard upcast
+        pressure = np.array([0.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0], dtype='float32')
+        pressure = pressure[::-1]
+        flags = argo.pressure_increasing_test(pressure)
+        npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
+
+    def test_pressure_shallow(self):
+        # Shallow profiles should be flagged if it's stuck or decreasing
+        pressure = np.array([0.0, 2.0, 2.0, 1.99, 2.3, 2.4, 2.4, 2.5], dtype='float32')
+        flags = argo.pressure_increasing_test(pressure)
+        npt.assert_array_equal(flags, np.array([1, 1, 3, 3, 1, 1, 3, 1]))
+
+    def test_using_config(self):
+        config = {
+            'argo': {
+                'pressure_increasing_test': {}
+            }
+        }
+
+        qc = QcConfig(config)
+        r = qc.run(
+            inp=np.array([0.0, 2.0, 2.0, 1.99, 2.3, 2.4, 2.4, 2.5], dtype='float32')
+        )
+
+        expected = np.array([1, 1, 3, 3, 1, 1, 3, 1])
+        npt.assert_array_equal(
+            r['argo']['pressure_increasing_test'],
+            expected
+        )
+
+    def test_deprecated_method(self):
+        # Deprecated method should still work
+        pressure = np.array([0.0, 2.0, 3.0], dtype='float32')
+        flags = gliders.pressure_check(pressure)
+        npt.assert_array_equal(flags, np.array([1, 1, 1]))
