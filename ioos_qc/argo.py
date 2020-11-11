@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
-"""Checks for moving platforms, such as gliders, AUVs, floats, or animals."""
+"""Tests based on the ARGO QC manual."""
 import logging
 import warnings
 from numbers import Real as N

@@ -26,8 +26,8 @@ class PerformanceTest(unittest.TestCase):
 
     def perf_test(self, qc, method_name=None, run_fn=None):
         method_name = method_name
-        if method_name is None and 'moving_platforms' in qc.config:
-            method_name = list(qc.config['moving_platforms'])[0]
+        if method_name is None and 'argo' in qc.config:
+            method_name = list(qc.config['argo'])[0]
         if method_name is None:
             method_name = list(qc.config['qartod'])[0]
         if run_fn is None:
@@ -76,7 +76,7 @@ class PerformanceTest(unittest.TestCase):
 
     def test_speed_test(self):
         qc = QcConfig({
-            'moving_platforms': {
+            'argo': {
                 'speed_test': {
                     'tinp': self.times,
                     'lon': self.lon,

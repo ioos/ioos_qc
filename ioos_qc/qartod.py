@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+"""Tests based on the IOOS QARTOD manuals."""
 import logging
 import warnings
 from collections import namedtuple

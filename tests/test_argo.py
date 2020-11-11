@@ -7,7 +7,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from ioos_qc import moving_platforms
+from ioos_qc import argo
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
@@ -34,9 +34,9 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
         #                 0km    1.1km   1.1km   1.1km   1.1km    0km
 
         npt.assert_array_equal(
-            moving_platforms.speed_test(lon, lat, self.times,
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold),
+            argo.speed_test(lon, lat, self.times,
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold),
             np.array([2, 1, 1, 1, 1, 1])
         )
 
@@ -44,18 +44,18 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
         lat = np.array([41.01, 41.02, 41.06, 41.50, 41.05, 41.05])
         #                 0km    1.1km   4.4km    48km    50km    0km
         npt.assert_array_equal(
-            moving_platforms.speed_test(lon, lat, self.times,
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold),
+            argo.speed_test(lon, lat, self.times,
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold),
             np.array([2, 1, 3, 4, 4, 1])
         )
 
     def test_speed_test_edge_cases(self):
         # size 0 arr
         npt.assert_array_equal(
-            moving_platforms.speed_test([], [], [],
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold),
+            argo.speed_test([], [], [],
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold),
             np.array([])
         )
 
@@ -64,9 +64,9 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
         lon = np.array([-71.05])
         tinp = self.times[0:1]
         npt.assert_array_equal(
-            moving_platforms.speed_test(lon, lat, tinp,
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold),
+            argo.speed_test(lon, lat, tinp,
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold),
             np.array([2])
         )
 
@@ -75,9 +75,9 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
         lon = np.array([-71.05, -71.05])
         tinp = self.times[0:2]
         npt.assert_array_equal(
-            moving_platforms.speed_test(lon, lat, tinp,
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold),
+            argo.speed_test(lon, lat, tinp,
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold),
             np.array([2, 1])
         )
 
@@ -92,9 +92,9 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
         lat = np.array([41.01])
         lon = np.array([-71.05])
         try:
-            moving_platforms.speed_test(lon, lat, tinp,
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold)
+            argo.speed_test(lon, lat, tinp,
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold)
             pytest.fail("should throw exception for mismatched arrays")
         except ValueError as expected:
             assert "shape" in str(expected)
@@ -103,9 +103,9 @@ class MovingPlatformsSpeedTest(unittest.TestCase):
         lat = np.array([41.01])
         lon = np.array([-71.05, -71.05])
         try:
-            moving_platforms.speed_test(lon, lat, tinp,
-                                        suspect_threshold=self.suspect_threshold,
-                                        fail_threshold=self.fail_threshold)
+            argo.speed_test(lon, lat, tinp,
+                            suspect_threshold=self.suspect_threshold,
+                            fail_threshold=self.fail_threshold)
             pytest.fail("should throw exception for mismatched arrays")
         except ValueError as expected:
             assert "shape" in str(expected)
