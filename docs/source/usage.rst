@@ -6,6 +6,7 @@ There are three main ways to use the `ioos_qc` project.
 - Manual_
 - QcConfig_
 - NcQcConfig_
+- QcConfigCreator_
 
 
 Manual
@@ -340,3 +341,218 @@ object used to define and run the quality variables available in the file. This 
 
     assert results1 == results2
     assert qc1 == qc2
+
+
+QcConfigCreator
+---------------
+
+A `QcConfigCreator` instance generates a config for `QcConfig` informed by reference datasets,
+such as climatologies, defined via configuration.
+
+CreatorConfig
+~~~~~~~~~~~~~
+
+CreatorConfig performs checks on the configuration to ensure that all required fields
+and attributes are provided.
+
+For convenience, the `get_assets.py` script is provided to download
+and prepare climatology dataset from NARR and Ocean Atlas.
+
+
+.. code-block:: python
+    :linenos:
+    :caption: Specify datasets and variables to be used by QcConfigCreator
+
+    creator_config = {
+        "datasets": [
+            {
+                "name": "ocean_atlas",
+                "file_path": "assets/ocean_atlas.nc",
+                "variables": {
+                    "o2": "o_an",
+                    "salinity": "s_an",
+                    "temperature": "t_an"
+                },
+                "3d": "depth"
+            },
+            {
+                "name": "narr",
+                "file_path": "assets/narr.nc",
+                "variables": {
+                    "air": "air",
+                    "pres": "slp",
+                    "rhum": "rhum",
+                    "uwnd": "uwnd",
+                    "vwnd": "vwnd"
+                }
+            }
+        ]
+    }
+    cc = CreatorConfig(creator_config)
+
+    print(cc)
+    {
+        "narr": {
+            "file_path": "assets/narr.nc",
+            "variables": {
+                "air": "air",
+                "pres": "slp",
+                "rhum": "rhum",
+                "uwnd": "uwnd",
+                "vwnd": "vwnd"
+            }
+        },
+        "ocean_atlas": {
+            "3d": "depth",
+            "file_path": "assets/ocean_atlas.nc",
+            "variables": {
+                "o2": "o_an",
+                "salinity": "s_an",
+                "temperature": "t_an"
+            }
+        }
+    }
+
+
+QcConfigCreator
+~~~~~~~~~~~~~~~
+.. code-block:: python
+    :linenos:
+    :caption: Create QcConfigCreator using configuration just created
+
+    qccc = QcConfigCreator(cc)
+
+    print(qccc)
+    {
+        "narr": {
+            "file_path": "assets/narr.nc",
+            "variables": {
+                "air": "air",
+                "pres": "slp",
+                "rhum": "rhum",
+                "uwnd": "uwnd",
+                "vwnd": "vwnd"
+            }
+        },
+        "ocean_atlas": {
+            "3d": "depth",
+            "file_path": "assets/ocean_atlas.nc",
+            "variables": {
+                "o2": "o_an",
+                "salinity": "s_an",
+                "temperature": "t_an"
+            }
+        }
+    }
+
+
+QcVariableConfig
+~~~~~~~~~~~~~~~~
+
+An instance of *QcVariableConfig* specifies how quality control will be tested for a given variable.
+
+In this example, the variable *air*, or air temperature, will be quality controlled based on climatological
+data in the region defined by *bbox* (xmin, ymin, xmax, ymax), for a time range (between 2020-01-01 and 2020-01-08).
+The *tests* sections specifies that two tests will be performed: *spike_test* and *gross_range_test*. Each
+test section requires *suspect_min*, *suspect_max*, *fail_min*, and *fail_max* to be defined.
+
+The *{fail,suspect}_{min,max}* values will be evaluated as functions with values for *min*, *max*, *mean*, and
+*std* derived from the dataset for the bounds specified.  Note that each term, operator, and grouping symbol
+must be surrounded by whitespace.
+
+Test function allowed symbols:
+
+- Data derived descriptive statistics: min, max, mean, std
+- Operators: -, +, *, /
+- Grouping symbols: (, )
+
+Like CreatorConfig, QcVaribleConfig performs checks on the configuration to ensure that it adheres
+to the specified schema and includes all required fields and attributes.
+
+.. code-block:: python
+    :linenos:
+
+    qc_variable_config = {
+        "variable": "air",
+        "bbox": [-165, 70, 160, 80],
+        "start_time": "2020-01-01",
+        "end_time": "2020-01-08",
+        "tests": {
+            "spike_test": {
+                "suspect_min": "1",
+                "suspect_max": "( 1 + 2 )",
+                "fail_min": "3 * 2 - 6",
+                "fail_max": "3 * mean + std / ( max * min )"
+            },
+            "gross_range_test": {
+                "suspect_min": "min - std * 2",
+                "suspect_max": "max + std / 2",
+                "fail_min": "mean * std",
+                "fail_max": "mean / std"
+            }
+        }
+    }
+    vc = QcVariableConfig(qc_variable_config)
+    print(vc)
+    {
+        "bbox": [
+            -165,
+            70,
+            160,
+            80
+        ],
+        "end_time": "2020-01-08",
+        "start_time": "2020-01-01",
+        "tests": {
+            "gross_range_test": {
+                "fail_max": "mean / std",
+                "fail_min": "mean * std",
+                "suspect_max": "max + std / 2",
+                "suspect_min": "min - std * 2"
+            },
+            "spike_test": {
+                "fail_max": "3 * mean + std / ( max * min )",
+                "fail_min": "3 * 2 - 6",
+                "suspect_max": "( 1 + 2 )",
+                "suspect_min": "1"
+            }
+        }
+    }
+
+
+
+Create config for QcConfig
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, the `QcConfigCreator` instance (`qccc`) takes the `QcVariableConfig` instance (`vc`)
+and returns a config that can then be used with `QcConfig`.
+
+.. code-block:: python
+    :linenos:
+
+    config = qccc(vc)
+    print(json.dumps(config, indent=4, sort_keys=True))
+    {
+        "qartod": {
+            "gross_range_test": {
+                "fail_span": [
+                    -224.23900165924232,
+                    -2.673170364457356
+                ],
+                "suspect_span": [
+                    -54.89132748864793,
+                    7.09364403443822
+                ]
+            },
+            "spike_test": {
+                "fail_span": [
+                    0.0,
+                    -73.54932418742399
+                ],
+                "suspect_span": [
+                    1.0,
+                    3.0
+                ]
+            }
+        }
+    }

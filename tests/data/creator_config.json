@@ -1,0 +1,25 @@
+{
+    "datasets": [
+        {
+            "name": "ocean_atlas",
+            "file_path": "resources/ocean_atlas.nc",
+            "variables": {
+                "o2": "o_an",
+                "salinity": "s_an",
+                "temperature": "t_an"
+            },
+            "3d": "depth"
+        },
+        {
+            "name": "narr",
+            "file_path": "resources/narr.nc",
+            "variables": {
+                "air": "air",
+                "pres": "slp",
+                "rhum": "rhum",
+                "uwnd": "uwnd",
+                "vwnd": "vwnd"
+            }
+        }
+    ]
+}
