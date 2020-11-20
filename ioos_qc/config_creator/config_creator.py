@@ -141,7 +141,7 @@ class CreatorConfig(dict):
         JSON filepath (str or Path object)
     :param dict: JSON schema for CreatorConfig
     """
-    def __init__(self, path_or_dict, schema):
+    def __init__(self, path_or_dict, schema=QC_CONFIG_CREATOR_SCHEMA):
         if isinstance(path_or_dict, str) or isinstance(path_or_dict, Path):
             with open(path_or_dict) as f:
                 config = json.load(f)

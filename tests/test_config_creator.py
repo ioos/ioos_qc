@@ -10,9 +10,7 @@ import xarray as xr
 from ioos_qc.config_creator import (
     CreatorConfig,
     QcConfigCreator,
-    QcVariableConfig,
-    QC_CONFIG_CREATOR_SCHEMA,
-    VARIABLE_CONFIG_SCHEMA
+    QcVariableConfig
 )
 
 L = logging.getLogger('ioos_qc')
@@ -24,7 +22,7 @@ class TestCreatorConfig(unittest.TestCase):
 
     def test_creator_config(self):
         creator_config_file = Path('.').parent / 'tests/data/creator_config.json'
-        creator_config = CreatorConfig(creator_config_file, QC_CONFIG_CREATOR_SCHEMA)
+        creator_config = CreatorConfig(creator_config_file)
 
         self.assertTrue('ocean_atlas' in creator_config.keys())
         ocean_atlas = creator_config['ocean_atlas']
@@ -49,7 +47,7 @@ class TestQcVariableConfig(unittest.TestCase):
 
     def test_init(self):
         qc_variable_config_file = Path('.').parent / 'tests/data/qc_variable_config.json'
-        config = QcVariableConfig(qc_variable_config_file, VARIABLE_CONFIG_SCHEMA)
+        config = QcVariableConfig(qc_variable_config_file)
 
         self.assertEqual(config['variable'], 'air')
         self.assertEqual(config['bbox'], [-165, 70, 160, 80])
@@ -87,7 +85,7 @@ class TestQcVariableConfig(unittest.TestCase):
             }
         }
         with self.assertRaises(ValueError):
-            QcVariableConfig(input_config, VARIABLE_CONFIG_SCHEMA)
+            QcVariableConfig(input_config)
 
         input_config = {
             "variable": "air",
@@ -104,7 +102,7 @@ class TestQcVariableConfig(unittest.TestCase):
             }
         }
         with self.assertRaises(ValueError):
-            QcVariableConfig(input_config, VARIABLE_CONFIG_SCHEMA)
+            QcVariableConfig(input_config)
 
         input_config = {
             "variable": "air",
@@ -121,7 +119,7 @@ class TestQcVariableConfig(unittest.TestCase):
             }
         }
         with self.assertRaises(ValueError):
-            QcVariableConfig(input_config, VARIABLE_CONFIG_SCHEMA)
+            QcVariableConfig(input_config)
 
 
 def assets_exist():
@@ -137,11 +135,11 @@ class TestQartodConfigurator(unittest.TestCase):
 
     def setUp(self):
         creator_config_file = Path('.').parent / 'tests/data/creator_config.json'
-        self.creator_config = CreatorConfig(creator_config_file, QC_CONFIG_CREATOR_SCHEMA)
+        self.creator_config = CreatorConfig(creator_config_file)
         self.config_creator = QcConfigCreator(self.creator_config)
 
         qc_variable_config_file = Path('.').parent / 'tests/data/qc_variable_config.json'
-        self.variable_config = QcVariableConfig(qc_variable_config_file, VARIABLE_CONFIG_SCHEMA)
+        self.variable_config = QcVariableConfig(qc_variable_config_file)
 
     def test_file_load(self):
         config_creator = QcConfigCreator(self.creator_config)
@@ -266,7 +264,7 @@ class TestQartodConfigurator(unittest.TestCase):
                 }
             }
         }
-        variable_config = QcVariableConfig(input_config, VARIABLE_CONFIG_SCHEMA)
+        variable_config = QcVariableConfig(input_config)
         config = self.config_creator.create_config(variable_config)
         ref = {
             "qartod": {
@@ -299,7 +297,7 @@ class TestQartodConfigurator(unittest.TestCase):
                 }
             }
         }
-        variable_config = QcVariableConfig(input_config, VARIABLE_CONFIG_SCHEMA)
+        variable_config = QcVariableConfig(input_config)
         config = self.config_creator.create_config(variable_config)
         ref = {
             "qartod": {

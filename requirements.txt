@@ -6,6 +6,7 @@ numba
 numpy>=1.14
 pyproj
 ruamel.yaml
+scipy
 shapely
 simplejson
 xarray
