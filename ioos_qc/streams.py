@@ -60,6 +60,12 @@ class PandasStream:
         ]
         self.axis_columns = [ x for x in axis_columns if x in df ]
 
+    def time(self):
+        return self.df[self.time_column]
+
+    def data(self, name):
+        return self.df[name]
+
     def run(self, config : Config):
 
         # Magic for nested key generation
@@ -161,6 +167,12 @@ class NumpyStream:
         self.lon = lon
         self.geom = geom
 
+    def time(self):
+        return self.tinp
+
+    def data(self, name):
+        return self.inp
+
     def run(self, config: Config):
 
         # Magic for nested key generation
@@ -239,13 +251,33 @@ class NetcdfStream:
         self.lat_var = lat or 'lat'
         self.lon_var = lon or 'lon'
 
-    def run(self, config: Config):
+    def time(self):
+        do_close, ds = self._open()
+        tdata = ds.variables[self.time_var]
+        if do_close is True:
+            ds.close()
+        return tdata
+
+    def data(self, name):
+        do_close, ds = self._open()
+        vdata = ds.variables[name]
+        if do_close is True:
+            ds.close()
+        return vdata
+
+    def _open(self):
         if isinstance(self.path_or_ncd, str):
             do_close = True
             ds = xr.open_dataset(self.path_or_ncd, decode_cf=False)
         else:
             do_close = False
             ds = self.path_or_ncd
+
+        return do_close, ds
+
+    def run(self, config: Config):
+
+        do_close, ds = self._open()
 
         stream_ids = []
         for context in config.contexts:
@@ -288,12 +320,21 @@ class XarrayStream:
         self.lat_var = lat or 'lat'
         self.lon_var = lon or 'lon'
 
-    def run(self, config: Config):
+    def time(self):
+        do_close, ds = self._open()
+        tdata = ds[self.time_var].values
+        if do_close is True:
+            ds.close()
+        return tdata
 
-        # Magic for nested key generation
-        # https://stackoverflow.com/a/27809959
-        results = defaultdict(lambda: defaultdict(odict))
+    def data(self, name):
+        do_close, ds = self._open()
+        vdata = ds[name].values
+        if do_close is True:
+            ds.close()
+        return vdata
 
+    def _open(self):
         if isinstance(self.path_or_ncd, str):
             do_close = True
             ds = xr.open_dataset(
@@ -306,6 +347,16 @@ class XarrayStream:
         else:
             do_close = False
             ds = self.path_or_ncd
+
+        return do_close, ds
+
+    def run(self, config: Config):
+
+        # Magic for nested key generation
+        # https://stackoverflow.com/a/27809959
+        results = defaultdict(lambda: defaultdict(odict))
+
+        do_close, ds = self._open()
 
         for context in config.contexts:
 

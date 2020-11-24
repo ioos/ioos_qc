@@ -81,7 +81,6 @@ class PandasStreamTest(unittest.TestCase):
         )
 
 
-
 class NumpyStreamTestLightConfig(unittest.TestCase):
     def setUp(self):
 
