@@ -597,7 +597,7 @@ and returns a config that can then be used with `QcConfig`.
 .. code-block:: python
     :linenos:
 
-    config = qccc(vc)
+    config = qccc.create_config(vc)
     print(json.dumps(config, indent=4, sort_keys=True))
     {
         "qartod": {
