@@ -205,7 +205,9 @@ def gross_range_test(inp : Sequence[N],
         assert isfixedlength(suspect_span, 2)
         uspan = span(*sorted(suspect_span))
         if uspan.minv < sspan.minv or uspan.maxv > sspan.maxv:
-            raise ValueError('User span range may not exceed sensor span')
+            raise ValueError('Suspect {} must fall within the Fail {}'.format(
+                uspan, sspan
+            ))
         # Flag suspect outside of user span
         with np.errstate(invalid='ignore'):
             flag_arr[(inp < uspan.minv) | (inp > uspan.maxv)] = QartodFlags.SUSPECT
