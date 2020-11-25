@@ -111,10 +111,10 @@ class NetcdfStore:
                             v.setncattr('ioos_qc_region', json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True))
                             v.setncattr('ioos_qc_window', json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True))
 
-            # Update the source ancillary_variables
-            existing = getattr(source_var, 'ancillary_variables', '').split(' ')
-            existing += qcvar_names
-            source_var.ancillary_variables = ' '.join(list(set(existing))).strip()
+                # Update the source ancillary_variables
+                existing = getattr(source_var, 'ancillary_variables', '').split(' ')
+                existing += qcvar_names
+                source_var.ancillary_variables = ' '.join(list(set(existing))).strip()
 
             if len(config.contexts) > 1:
                 # We can't represent these at the variable level, so make one global config

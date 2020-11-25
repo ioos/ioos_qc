@@ -20,6 +20,8 @@ from collections import OrderedDict as odict
 
 from shapely.geometry import shape, GeometryCollection
 
+from ioos_qc.results import collect_results
+from ioos_qc.results import StreamConfigResult
 from ioos_qc.utils import load_config_as_dict, dict_depth
 
 L = logging.getLogger(__name__)  # noqa
@@ -235,9 +237,9 @@ class StreamConfig:
             A dictionary of results that has the same structure as the config object.
             The leaves (test parameters) are replaced by the results of each test.
         """
-        tests_run = []
         aggregates = []
-        results = defaultdict(odict)
+        results = []
+        # results = defaultdict(odict)
 
         for runfunc, kwargs in self.methods.items():
 
@@ -268,16 +270,30 @@ class StreamConfig:
                 if k in valid_keywords
             }
             try:
-                results[package][testname] = runfunc(**testkwargs)
+                results.append(
+                    StreamConfigResult(
+                        package=package,
+                        test=testname,
+                        function=runfunc,
+                        results=runfunc(**testkwargs)
+                    )
+                )
+                # results[package][testname] = runfunc(**testkwargs)
             except Exception as e:
                 L.error(f'Could not run "{package}.{testname}: {e}')
                 continue
 
-            tests_run.append((package, testname))
-
         # Now run the aggregates at the end when all other results are complete
         for aggpackage, aggtestname, aggfunc in aggregates:
-            results[aggpackage][aggtestname] = aggfunc(results, functions=tests_run)
+            results.append(
+                StreamConfigResult(
+                    package=aggpackage,
+                    test=aggtestname,
+                    function=aggfunc,
+                    results=aggfunc(results)
+                )
+            )
+            # results[aggpackage][aggtestname] = aggfunc(results, functions=tests_run)
 
         return results
 
@@ -306,7 +322,8 @@ class NcQcConfig(Config):
             DeprecationWarning
         )
         from ioos_qc.streams import XarrayStream
-        self.results = XarrayStream(path_or_ncd, **self.kwargs).run(self)
+        results = XarrayStream(path_or_ncd, **self.kwargs).run(self)
+        self.results = collect_results(results, how='dict')
         return self.results
 
     def save_to_netcdf(self, path_or_ncd, results):
@@ -325,3 +342,7 @@ class QcConfig(StreamConfig):
             DeprecationWarning
         )
         super().__init__(*args, **kwargs)
+
+    def run(self, *args, **kwargs):
+        results = super().run(*args, **kwargs)
+        return collect_results(results, how='dict')

@@ -7,10 +7,12 @@ from collections import OrderedDict as odict
 import numpy as np
 import pandas as pd
 import xarray as xr
+from xarray.core.indexing import remap_label_indexers
 
 from ioos_qc.config import Config
 from ioos_qc.utils import mapdates
 from ioos_qc.qartod import QartodFlags
+from ioos_qc.results import ContextResult
 
 L = logging.getLogger(__name__)  # noqa
 
@@ -24,6 +26,15 @@ class BaseStream:
         """
         df: the dataframe
         """
+        pass
+
+    def time(self):
+        """Return the time array from the source dataset. This is useful when plotting QC results."""
+        pass
+
+    def data(self, stream_id):
+        """Return the data array from the source dataset based on stream_id. This is useful when
+        plotting QC results."""
         pass
 
     def run(self, config : Config):
@@ -63,19 +74,10 @@ class PandasStream:
     def time(self):
         return self.df[self.time_column]
 
-    def data(self, name):
-        return self.df[name]
+    def data(self, stream_id):
+        return self.df[stream_id]
 
     def run(self, config : Config):
-
-        # Magic for nested key generation
-        # https://stackoverflow.com/a/27809959
-        results = defaultdict(lambda: defaultdict(odict))
-
-        # rdf = self.df.copy()
-
-        # Start with everything as UNKNOWN (2)
-        results_to_fill = pd.Series(QartodFlags.UNKNOWN, index=self.df.index, dtype='uint8')
 
         for context in config.contexts:
 
@@ -108,6 +110,11 @@ class PandasStream:
                     L.warning(f'Skipping window subset, {self.time_column} not in columns')
                     pass
 
+            # This is a boolean array of what was subset and tested based on the initial data feed
+            # Take the index of the subset and set those to true
+            subset_indexes = pd.Series(0, index=self.df.index, dtype='bool')
+            subset_indexes.iloc[subset.index] = True
+
             # The source is subset, now the resulting rows need to be tested
             # Put together the static inputs that were subset for this config
             subset_kwargs = {}
@@ -126,27 +133,24 @@ class PandasStream:
                     L.warning(f'{stream_id} not a column in the input dataframe, skipping')
                     continue
 
-                run_result = stream.run(
-                    inp=subset.loc[:, stream_id],
+                data_input = subset.loc[:, stream_id]
+
+                # This evaulates the generator test results
+                run_result = list(stream.run(
+                    inp=data_input,
                     **subset_kwargs
+                ))
+
+                yield ContextResult(
+                    results=run_result,
+                    stream_id=stream_id,
+                    subset_indexes=subset_indexes.values,
+                    data=data_input.values,
+                    tinp=subset_kwargs.get('tinp', pd.Series(dtype='datetime64[ns]')).values,
+                    zinp=subset_kwargs.get('zinp', pd.Series(dtype='float64')).values,
+                    lat=subset_kwargs.get('lat', pd.Series(dtype='float64')).values,
+                    lon=subset_kwargs.get('lon', pd.Series(dtype='float64')).values,
                 )
-
-                for testpackage, test in run_result.items():
-                    for testname, testresults in test.items():
-                        if testname not in results[stream_id][testpackage]:
-                            results[stream_id][testpackage][testname] = results_to_fill.copy()
-                        results[stream_id][testpackage][testname].loc[subset.index] = testresults
-
-                # This will add it back in as columns, reuse in the save method later on
-                # Add the results back into the dataframe
-                # for testpackage, test in run_result.items():
-                #     for testname, testresults in test.items():
-                #         test_column_name = f'{stream_id}.{testpackage}.{testname}'
-                #         if test_column_name not in rdf:
-                #             rdf.insert(len(rdf.columns), test_column_name, QartodFlags.UNKNOWN)
-                #         rdf.loc[subset.index, test_column_name] = testresults
-
-        return results
 
 
 class NumpyStream:
@@ -170,18 +174,16 @@ class NumpyStream:
     def time(self):
         return self.tinp
 
-    def data(self, name):
+    def data(self, stream_id):
         return self.inp
 
     def run(self, config: Config):
 
-        # Magic for nested key generation
-        # https://stackoverflow.com/a/27809959
-        results = defaultdict(lambda: defaultdict(odict))
-
         for context in config.contexts:
 
-            subset = np.full_like(self.tinp, 1, dtype=bool)
+            # This is a boolean array of what was subset and tested based on the initial data feed
+            # Take the index of the subset and set those to true
+            subset_indexes = np.full_like(self.tinp, 1, dtype=bool)
 
             if context.region:
                 # TODO: yeah this does nothing right now
@@ -194,18 +196,18 @@ class NumpyStream:
             if context.window.starting is not None or context.window.ending is not None:
                 if self.tinp is not None:
                     if context.window.starting:
-                        subset = (subset) & (self.tinp >= context.window.starting)
+                        subset_indexes = (subset_indexes) & (self.tinp >= context.window.starting)
                     if context.window.ending:
-                        subset = (subset) & (self.tinp < context.window.ending)
+                        subset_indexes = (subset_indexes) & (self.tinp < context.window.ending)
                 else:
                     L.warning('Skipping window subset, "time" array must be passed into "run"')
                     pass
 
             subset_kwargs = dict(
-                tinp=self.tinp[subset],
-                zinp=self.zinp[subset],
-                lon=self.lon[subset],
-                lat=self.lat[subset],
+                tinp=self.tinp[subset_indexes],
+                zinp=self.zinp[subset_indexes],
+                lon=self.lon[subset_indexes],
+                lat=self.lat[subset_indexes],
             )
 
             for stream_id, stream in context.streams.items():
@@ -223,22 +225,24 @@ class NumpyStream:
                     L.error(f"Input is not a dict or np.ndarray, skipping {stream_id}")
                     continue
 
-                # Start with everything as UNKNOWN (2)
-                result_to_fill = np.ma.empty(runinput.size, dtype='uint8')
-                result_to_fill.fill(QartodFlags.UNKNOWN)
+                data_input = runinput[subset_indexes]
 
-                run_result = stream.run(
-                    inp=runinput[subset],
+                # This evaulates the generator test results
+                run_result = list(stream.run(
+                    inp=data_input,
                     **subset_kwargs
+                ))
+
+                yield ContextResult(
+                    results=run_result,
+                    stream_id=stream_id,
+                    subset_indexes=subset_indexes,
+                    data=data_input,
+                    tinp=subset_kwargs.get('tinp', pd.Series(dtype='datetime64[ns]')).values,
+                    zinp=subset_kwargs.get('zinp', pd.Series(dtype='float64').values),
+                    lat=subset_kwargs.get('lat', pd.Series(dtype='float64').values),
+                    lon=subset_kwargs.get('lon', pd.Series(dtype='float64').values),
                 )
-
-                for testpackage, test in run_result.items():
-                    for testname, testresults in test.items():
-                        if testname not in results[stream_id][testpackage]:
-                            results[stream_id][testpackage][testname] = result_to_fill
-                        results[stream_id][testpackage][testname][subset] = testresults
-
-        return results
 
 
 class NetcdfStream:
@@ -258,9 +262,9 @@ class NetcdfStream:
             ds.close()
         return tdata
 
-    def data(self, name):
+    def data(self, stream_id):
         do_close, ds = self._open()
-        vdata = ds.variables[name]
+        vdata = ds.variables[stream_id]
         if do_close is True:
             ds.close()
         return vdata
@@ -327,9 +331,9 @@ class XarrayStream:
             ds.close()
         return tdata
 
-    def data(self, name):
+    def data(self, stream_id):
         do_close, ds = self._open()
-        vdata = ds[name].values
+        vdata = ds[stream_id].values
         if do_close is True:
             ds.close()
         return vdata
@@ -369,7 +373,11 @@ class XarrayStream:
 
                 # Because the variables could have different dimensions
                 # we calculate the coordiantes and subset for each
-                subset = {}
+                # This is xarray style subsetting, so will look something like:
+                # {
+                #     'time': slice(datetime.datetime(2020, 1, 1, 0, 0), datetime.datetime(2020, 4, 1, 0, 0), None)
+                # }
+                label_indexes = {}
                 subset_kwargs = {}
 
                 # Region subset
@@ -380,64 +388,85 @@ class XarrayStream:
                 # Time subset
                 if self.time_var in ds[stream_id].coords:
                     if context.window.starting and context.window.ending:
-                        subset[self.time_var] = slice(context.window.starting, context.window.ending)
+                        label_indexes[self.time_var] = slice(context.window.starting, context.window.ending)
 
-                # Start with everything as UNKNOWN (2)
-                result_to_fill = xr.full_like(ds[stream_id], QartodFlags.UNKNOWN, dtype='uint8')
-                subset_stream = ds[stream_id][subset]
+                subset_stream = ds[stream_id].sel(**label_indexes)
 
                 if self.time_var in subset_stream.coords:
                     # Already subset with the stream, best case. Good netCDF file.
                     subset_kwargs['tinp'] = subset_stream.coords[self.time_var].values
                 elif self.time_var in ds.variables and ds[self.time_var].dims == ds[stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
-                    subset_kwargs['tinp'] = ds[self.time_var][subset].values
+                    subset_kwargs['tinp'] = ds[self.time_var].sel(**label_indexes).values
                 elif self.time_var in ds.variables and ds[self.time_var].size == ds[stream_id].size:
                     # Not specifically connected, but hey, the user asked for it
-                    subset_kwargs['tinp'] = ds[self.time_var][subset].values
+                    subset_kwargs['tinp'] = ds[self.time_var].sel(**label_indexes).values
 
                 if self.z_var in subset_stream.coords:
                     # Already subset with the stream, best case. Good netCDF file.
                     subset_kwargs['zinp'] = subset_stream.coords[self.z_var].values
                 elif self.z_var in ds.variables and ds[self.z_var].dims == ds[stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
-                    subset_kwargs['zinp'] = ds[self.z_var][subset].values
+                    subset_kwargs['zinp'] = ds[self.z_var].sel(**label_indexes).values
                 elif self.z_var in ds.variables and ds[self.z_var].size == ds[stream_id].size:
                     # Not specifically connected, but hey, the user asked for it
-                    subset_kwargs['zinp'] = ds[self.z_var][subset].values
+                    subset_kwargs['zinp'] = ds[self.z_var].sel(**label_indexes).values
 
                 if self.lat_var in subset_stream.coords:
                     # Already subset with the stream, best case. Good netCDF file.
                     subset_kwargs['lat'] = subset_stream.coords[self.lat_var].values
                 elif self.lat_var in ds.variables and ds[self.lat_var].dims == ds[stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
-                    subset_kwargs['lat'] = ds[self.lat_var][subset].values
+                    subset_kwargs['lat'] = ds[self.lat_var].sel(**label_indexes).values
                 elif self.lat_var in ds.variables and ds[self.lat_var].size == ds[stream_id].size:
                     # Not specifically connected, but hey, the user asked for it
-                    subset_kwargs['lat'] = ds[self.lat_var][subset].values
+                    subset_kwargs['lat'] = ds[self.lat_var].sel(**label_indexes).values
 
                 if self.lon_var in subset_stream.coords:
                     # Already subset with the stream, best case. Good netCDF file.
                     subset_kwargs['lon'] = subset_stream.coords[self.lon_var].values
                 elif self.lon_var in ds.variables and ds[self.lon_var].dims == ds[stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
-                    subset_kwargs['lon'] = ds[self.lon_var][subset].values
+                    subset_kwargs['lon'] = ds[self.lon_var].sel(**label_indexes).values
                 elif self.lon_var in ds.variables and ds[self.lon_var].size == ds[stream_id].size:
                     # Not specifically connected, but hey, the user asked for it
-                    subset_kwargs['lon'] = ds[self.lon_var][subset].values
+                    subset_kwargs['lon'] = ds[self.lon_var].sel(**label_indexes).values
 
+                data_input = subset_stream.values
                 run_result = stream_config.run(
                     **subset_kwargs,
-                    **dict(inp=subset_stream.values)
+                    **dict(inp=data_input)
                 )
 
-                for testpackage, test in run_result.items():
-                    for testname, testresults in test.items():
-                        # Build up the results from every context using the subset
-                        # into the final return dict
-                        if testname not in results[stream_id][testpackage]:
-                            results[stream_id][testpackage][testname] = result_to_fill.copy()
-                        results[stream_id][testpackage][testname][subset] = testresults
+                # Here we turn the labeled xarray indexes into boolean index arrays that numpy
+                # can use to subset a basic array. This takes each labeled index, converts it to
+                # its integer index representation (label -> integers) and then matches the keys
+                # on each label with the dimension of the data variable. This result should be
+                # able to be used on the original data feed AS IS using a direct subset notation
+                # data[subset_indexes]. I'm pretty sure this works and if it doesn't blame my cat.
+                # We start by subsetting nothing
+                subset_indexes = np.full_like(ds[stream_id].values, 0, dtype=bool)
+                int_indexes, _ = remap_label_indexers(ds[stream_id], label_indexes)
+                # Initial slicer will select everything. This selects all values in a dimension
+                # if there are no labeled indexes for it.
+                slicers = [ slice(None) for x in range(ds[stream_id].ndim) ]
+                for index_key, index_value in int_indexes.items():
+                    if index_key in ds[stream_id].dims:
+                        slicers[ds[stream_id].dims.index(index_key)] = index_value
+                # We started with an empty subset_indexes, not set to True what we actually subset
+                # using the labeled dimensions.
+                subset_indexes[slicers] = True
+
+                yield ContextResult(
+                    results=run_result,
+                    stream_id=stream_id,
+                    subset_indexes=subset_indexes,
+                    data=data_input,
+                    tinp=subset_kwargs.get('tinp', pd.Series(dtype='datetime64[ns]').values),
+                    zinp=subset_kwargs.get('zinp', pd.Series(dtype='float64').values),
+                    lat=subset_kwargs.get('lat', pd.Series(dtype='float64').values),
+                    lon=subset_kwargs.get('lon', pd.Series(dtype='float64').values),
+                )
 
         if do_close is True:
             ds.close()

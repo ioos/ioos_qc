@@ -8,7 +8,14 @@ import pandas as pd
 import xarray as xr
 import numpy.testing as npt
 
-from ioos_qc.streams import NumpyStream, PandasStream, NetcdfStream, Config, XarrayStream
+from ioos_qc.streams import (
+    Config,
+    NetcdfStream,
+    NumpyStream,
+    PandasStream,
+    XarrayStream,
+)
+from ioos_qc.results import collect_results
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
@@ -46,6 +53,7 @@ class PandasStreamTest(unittest.TestCase):
     def test_run(self):
         ps = PandasStream(self.df)
         results = ps.run(self.config)
+        results = collect_results(results, how='dict')
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
@@ -107,6 +115,7 @@ class NumpyStreamTestLightConfig(unittest.TestCase):
 
         ns = NumpyStream(inp, self.tinp, self.zinp, self.lat, self.lon)
         results = ns.run(self.config)
+        results = collect_results(results, how='dict')
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
@@ -172,6 +181,7 @@ class NumpyStreamTest(unittest.TestCase):
 
         ns = NumpyStream(inp, self.tinp, self.zinp, self.lat, self.lon)
         results = ns.run(self.config)
+        results = collect_results(results, how='dict')
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
@@ -242,6 +252,7 @@ class NetcdfStreamTest(unittest.TestCase):
     def test_run(self):
         ns = NetcdfStream(self.ds)
         results = ns.run(self.config)
+        results = collect_results(results, how='dict')
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
@@ -303,7 +314,7 @@ class XarrayStreamTest(unittest.TestCase):
             'lon': -76.5,
             'variable1': np.arange(0, rows),
         }
-        df = pd.DataFrame(data_inputs)
+        df = pd.DataFrame(data_inputs).set_index('time')
         self.ds = xr.Dataset.from_dataframe(df)
 
     def tearDown(self):
@@ -312,6 +323,7 @@ class XarrayStreamTest(unittest.TestCase):
     def test_run(self):
         xs = XarrayStream(self.ds)
         results = xs.run(self.config)
+        results = collect_results(results, how='dict')
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
@@ -344,6 +356,107 @@ class XarrayStreamTest(unittest.TestCase):
         npt.assert_array_equal(
             results['variable1']['qartod']['gross_range_test'],
             results['variable1']['qartod']['aggregate']
+        )
+
+
+class XarrayStreamManyContextTest(unittest.TestCase):
+    def setUp(self):
+        config = """
+            contexts:
+                -   region: something
+                    window:
+                        starting: 2020-01-01T00:00:00Z
+                        ending: 2020-02-01T00:00:00Z
+                    streams:
+                        variable1:
+                            qartod:
+                                aggregate:
+                                gross_range_test:
+                                    suspect_span: [3, 4]
+                                    fail_span: [2, 5]
+                        variable2:
+                            qartod:
+                                aggregate:
+                                gross_range_test:
+                                    suspect_span: [23, 24]
+                                    fail_span: [22, 25]
+                -   region: something else
+                    window:
+                        starting: 2020-02-01T00:00:00Z
+                        ending: 2020-03-01T00:00:00Z
+                    streams:
+                        variable1:
+                            qartod:
+                                aggregate:
+                                gross_range_test:
+                                    suspect_span: [43, 44]
+                                    fail_span: [42, 45]
+                        variable2:
+                            qartod:
+                                aggregate:
+                                gross_range_test:
+                                    suspect_span: [23, 24]
+                                    fail_span: [22, 25]
+        """
+        self.config = Config(config)
+
+        rows = 50
+        self.vardata = np.arange(0, rows)
+        data_inputs = {
+            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
+            'z': 2.0,
+            'lat': 36.1,
+            'lon': -76.5,
+            'variable1': self.vardata,
+            'variable2': self.vardata,
+        }
+        df = pd.DataFrame(data_inputs).set_index('time')
+        self.ds = xr.Dataset.from_dataframe(df)
+
+    def tearDown(self):
+        self.ds.close()
+
+    def test_run_dict_results(self):
+        xs = XarrayStream(self.ds)
+        results = xs.run(self.config)
+        results = collect_results(results, how='dict')
+
+        # Variable 1
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][0:8],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+        )
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][8:40],
+            np.full((32,), 4)
+        )
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'][40:48],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+        )
+        # There is only one test, so assert the aggregate is the same as the single result
+        npt.assert_array_equal(
+            results['variable1']['qartod']['gross_range_test'],
+            results['variable1']['qartod']['aggregate']
+        )
+
+        # Variable 2
+        npt.assert_array_equal(
+            results['variable2']['qartod']['gross_range_test'][0:20],
+            np.full((20,), 4)
+        )
+        npt.assert_array_equal(
+            results['variable2']['qartod']['gross_range_test'][20:28],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+        )
+        npt.assert_array_equal(
+            results['variable2']['qartod']['gross_range_test'][28:50],
+            np.full((22,), 4)
+        )
+        # There is only one test, so assert the aggregate is the same as the single result
+        npt.assert_array_equal(
+            results['variable2']['qartod']['gross_range_test'],
+            results['variable2']['qartod']['aggregate']
         )
 
 
@@ -389,19 +502,21 @@ class PandasStreamManyContextTest(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
+        self.vardata = np.arange(0, rows)
         data_inputs = {
             'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
             'z': 2.0,
             'lat': 36.1,
             'lon': -76.5,
-            'variable1': np.arange(0, rows),
-            'variable2': np.arange(0, rows),
+            'variable1': self.vardata,
+            'variable2': self.vardata,
         }
         self.df = pd.DataFrame(data_inputs)
 
-    def test_run(self):
+    def test_run_dict_results(self):
         ps = PandasStream(self.df)
         results = ps.run(self.config)
+        results = collect_results(results, how='dict')
 
         # Variable 1
         npt.assert_array_equal(
@@ -439,4 +554,57 @@ class PandasStreamManyContextTest(unittest.TestCase):
         npt.assert_array_equal(
             results['variable2']['qartod']['gross_range_test'],
             results['variable2']['qartod']['aggregate']
+        )
+
+    def test_run_list_results(self):
+        ps = PandasStream(self.df)
+        results = ps.run(self.config)
+        results = collect_results(results, how='list')
+
+        var1_gr = next(res for res in results if res.stream_id == 'variable1' and res.test == 'gross_range_test')
+        var1_agg = next(res for res in results if res.stream_id == 'variable1' and res.test == 'aggregate')
+        var2_gr = next(res for res in results if res.stream_id == 'variable2' and res.test == 'gross_range_test')
+        var2_agg = next(res for res in results if res.stream_id == 'variable2' and res.test == 'aggregate')
+        # Variable 1
+        # Actual data returned in full
+        npt.assert_array_equal(
+            var1_gr.data,
+            self.vardata
+        )
+        # QC tests
+        npt.assert_array_equal(
+            var1_gr.data[0:8],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+        )
+        npt.assert_array_equal(
+            var1_gr.results[8:40],
+            np.full((32,), 4)
+        )
+        npt.assert_array_equal(
+            var1_gr.results[40:48],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+        )
+        # There is only one test, so assert the aggregate is the same as the single result
+        npt.assert_array_equal(
+            var1_gr.results,
+            var1_agg.results
+        )
+
+        # Variable 2
+        npt.assert_array_equal(
+            var2_gr.results[0:20],
+            np.full((20,), 4)
+        )
+        npt.assert_array_equal(
+            var2_gr.results[20:28],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+        )
+        npt.assert_array_equal(
+            var2_gr.results[28:50],
+            np.full((22,), 4)
+        )
+        # There is only one test, so assert the aggregate is the same as the single result
+        npt.assert_array_equal(
+            var2_gr.results,
+            var2_agg.results
         )

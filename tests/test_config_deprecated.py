@@ -18,6 +18,7 @@ from ioos_qc.utils import GeoNumpyDateEncoder
 from ioos_qc.config import QcConfig, NcQcConfig
 from ioos_qc.qartod import ClimatologyConfig
 
+
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
 L.handlers = [logging.StreamHandler()]
@@ -464,8 +465,8 @@ class TestRunNcConfig(unittest.TestCase):
         c.save_to_netcdf(self.fp, nc_results)
 
         with nc4.Dataset(self.fp, 'r') as ncd:
-            assert 'data1' in ncd.variables
-            assert 'data1_qartod_gross_range_test' in ncd.variables
+            assert 'data1' in list(ncd.variables.keys())
+            assert 'data1_qartod_gross_range_test' in list(ncd.variables.keys())
 
             qcv = ncd.variables['data1_qartod_gross_range_test']
             datav = ncd.variables['data1']

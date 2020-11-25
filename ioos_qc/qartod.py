@@ -41,19 +41,11 @@ span = namedtuple('Span', 'minv maxv')
 @add_flag_metadata(standard_name='aggregate_quality_flag',
                    long_name='Aggregate Quality Flag',
                    aggregate=True)
-def aggregate(results: dict, functions: List = None) -> np.ma.MaskedArray:
+def aggregate(results: List) -> np.ma.MaskedArray:
     """
     Runs qartod_compare against all other qartod tests in results.
     """
-    if functions is None:
-        all_tests = [results['qartod'][test_name] for test_name in list(results['qartod'])]
-    else:
-        all_tests = []
-        for m in functions:
-            package = m[0]
-            testname = m[1]
-            if package in results and testname in results[package]:
-                all_tests.append(results[package][testname])
+    all_tests = [ r.results for r in results ]
     return qartod_compare(all_tests)
 
 
