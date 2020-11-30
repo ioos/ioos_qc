@@ -6,8 +6,24 @@ ioos\_qc package
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   ioos_qc.config_creator
+
 Submodules
 ----------
+
+ioos\_qc.argo module
+--------------------
+
+.. automodule:: ioos_qc.argo
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 ioos\_qc.config module
 ----------------------
@@ -17,18 +33,34 @@ ioos\_qc.config module
    :undoc-members:
    :show-inheritance:
 
-ioos\_qc.argo module
+ioos\_qc.gliders module
 -----------------------
 
-.. automodule:: ioos_qc.argo
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. automodule:: ioos_qc.gliders
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ioos\_qc.plotting module
+------------------------
+
+.. automodule:: ioos_qc.plotting
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 ioos\_qc.qartod module
 ----------------------
 
 .. automodule:: ioos_qc.qartod
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+ioos\_qc.results module
+-----------------------
+
+.. automodule:: ioos_qc.results
    :members:
    :undoc-members:
    :show-inheritance:
@@ -56,4 +88,3 @@ ioos\_qc.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-

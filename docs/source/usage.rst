@@ -1,8 +1,12 @@
 Usage
 =====
 
-At its core, ``ioos_qc`` is a set of methods to run quality control checks on an input stream of data.
+At its core, ``ioos_qc`` is a collection of modules and methods to run various quality control checks on an input stream of data.
 
+The following implementations are available in ``ioos_qc``:
+ 
+* `IOOS QARTOD <https://ioos.noaa.gov/project/qartod/>`_ - `API </api/ioos_qc.html#module-ioos_qc.qartod>`_
+* ARGO - `API </api/ioos_qc.html#module-ioos_qc.argo>`_
 
 Basic usage
 -----------
@@ -40,6 +44,8 @@ However, in most projects, the hard part is not implementing the qc test methods
 * How to manage the inputs (data) going into the test, and the output (results) coming out?
 * How to share QC result with your users in a consistent way that follows community standards?
 * How to ensure that your test implementations perform well against large datasets?
+* How to generate baseline QC configurations for a dataset?
+* How to visualize and communicate QC results in a standard way?
 
 The ``ioos_qc`` project does not just implement QC algorithms -- it attempts to help you with these problems as well.
 
@@ -50,9 +56,10 @@ Concepts
 
 There are three main concepts in the ``ioos_qc`` project:
 
-- Configurations_: Quality control configuration
-- Streams_: Data source to run quality checks against
-- Stores_: Storage for the quality control results
+- Configurations_: Standardized quality control definitions
+- Streams_: Flexible data source classes to support running qualith checks against various data formats
+- Stores_: Flexible data storage classes to support storing quality results in various data formats
+- QcConfigCreator_: Classes to generate configuration objects based on external climatology datasets
 
 
 
@@ -62,7 +69,7 @@ Configurations
 Configuration objects represent a collection of quality control tests to run and the parameters for each one.There three main types of `Config` objects:
 
 - StreamConfig_: This configures QC tests for a single stream of data like a ``list``, ``tuple``, ``numpy.ndarray``, ``dask.array``, ``pandas.Series``, ``netCDF4.Variable``, or ``xarray.DataArray``. This can be used standalone, or as a building block for the following more complex configs.
-- ContextConfig_: This defines a collection of ``StreamConfig`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``window``'s) -- and/or spatial domains (``region``'s).
+- ContextConfig_: This defines a collection of ``StreamConfig`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``windows``) -- and/or spatial domains (``regions``).
 - Config_: A collection of ``ContextConfig`` objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.
 
 Each configuration type can be initialized with the following:
@@ -114,7 +121,7 @@ A `GeoJSON` representation of a geographical region. This is processed into a ``
 
 window
 ^^^^^^
-An object defining a time window using ``starting`` and ``ending``. Interally this is defined as
+An object defining a time window using ``starting`` and ``ending``. Internally this is defined as
 
 .. code-block:: python
 
@@ -204,7 +211,9 @@ Usage
 Streams
 -------
 
-Streams represent the data input types for running quality control tests. A user "runs" a stream of data through a collection of quality control tests defined by a Config_. A list of possible Streams can be found in the :ref:`Streams API<ioos\_qc.streams module>`.
+Streams represent the data input types for running quality control tests. A user "runs" a stream of data through a collection of quality control tests defined by a Config_. A list of possible Streams can be found in the `Streams API </api/ioos_qc.html#module-ioos_qc.streams>`_.
+All streams return a generator of QC results that contain contextual information that can be used to do what you want with the results. You can use these result objects directly or you can collect them into more familiar ``list`` or ``dict`` objects before usage. If you are
+working in a streaming environment you will want to use the yielded result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the Store classes provided by ``ioos_qc``.
 
 
 NumpyStream
@@ -408,8 +417,15 @@ XarrayStream
 Stores
 ------
 
-**TODO There is nothing here!!**
+Stores represent different data formats for storing quality control results. After obtaining QC results from a Stream they can be passed into any Store. A list of possible Stores can be found in the `Stores API </api/ioos_qc.html#module-ioos_qc.stores>`_.
 
+
+NetCDFStore
+~~~~~~~~~~~
+
+Store the QC results in a netCDF file, along with all CF compliant metadata information and serializing the configuation used in the tests into the netCDF file. This can support storing the results in an existing file alongside the data or using a separate file to store the results. You can also do something like store the aggregate results in an existing file and store the individual test results in an external file.
+
+TODO: More / examples
 
 QcConfigCreator
 ---------------
