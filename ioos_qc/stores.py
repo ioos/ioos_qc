@@ -1,16 +1,169 @@
 #!/usr/bin/env python
 # coding=utf-8
+import inspect
 import logging
 import simplejson as json
 from pathlib import Path
 from importlib import import_module
 
 import numpy as np
+import pandas as pd
 import netCDF4 as nc4
 
+from ioos_qc.config import Config
 from ioos_qc.utils import GeoNumpyDateEncoder, cf_safe_name
+from ioos_qc.results import collect_results
 
 L = logging.getLogger(__name__)  # noqa
+
+
+class BaseStore:
+
+    def save(self, *args, **kwargs):
+        """
+        Serialize results to a store. This could save file or publish messages.
+        """
+
+
+class PandasStore(BaseStore):
+    """Store results in a dataframe"""
+
+    def __init__(self, results, axes: dict = None):
+        self.results = list(results)
+        self.collected_results = collect_results(self.results, how='list')
+        self.axes = axes or {
+            't': 'time',
+            'z': 'z',
+            'y': 'lat',
+            'x': 'lon'
+        }
+
+    def save(self, write_data: bool = False, include: list = None, exclude: list = None) -> pd.DataFrame:
+
+        df = pd.DataFrame()
+
+        for cr in self.collected_results:
+
+            # Add time axis
+            if self.axes['t'] not in df and cr.tinp is not None:
+                L.info(f"Adding column {self.axes['t']} from stream {cr.stream_id}")
+                df[self.axes['t']] = cr.tinp
+
+            # Add z axis
+            if self.axes['z'] not in df and cr.zinp is not None:
+                L.info(f"Adding columm {self.axes['z']} from stream {cr.stream_id}")
+                df[self.axes['z']] = cr.zinp
+
+            # Add x axis
+            if self.axes['x'] not in df and cr.lon is not None:
+                L.info(f"Adding columm {self.axes['x']} from stream {cr.stream_id}")
+                df[self.axes['x']] = cr.lon
+
+            # Add x axis
+            if self.axes['y'] not in df and cr.lat is not None:
+                L.info(f"Adding columm {self.axes['y']} from stream {cr.stream_id}")
+                df[self.axes['y']] = cr.lat
+
+            # Inclusion list, skip everything not defined
+            if include is not None and (cr.function not in include and cr.stream_id not in include):
+                continue
+
+            # Exclusion list, skip everything defined
+            if exclude is not None and (cr.function in exclude or cr.stream_id in exclude):
+                continue
+
+            # Add data column
+            if write_data and cr.stream_id not in df:
+                df[cr.stream_id] = cr.data
+
+            # Add QC results column
+            column_name = cf_safe_name(f'{cr.stream_id}.{cr.package}.{cr.test}')
+            if column_name not in df:
+                df[column_name] = cr.results
+            else:
+                L.warning(f"Found duplicate QC results column: {column_name}, skipping.")
+
+        return df
+
+
+class CFNetCDFStore(BaseStore):
+
+    def __init__(self, results, axes=None, **kwargs):
+        self.results = list(results)
+        self.collected_results = collect_results(self.results, how='list')
+        self.axes = axes or {
+            't': 'time',
+            'z': 'z',
+            'y': 'lat',
+            'x': 'lon'
+        }
+
+    def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: dict = {}, write_data: bool = False, include: list = None, exclude: list = None):
+        ps = PandasStore(self.results, self.axes)
+        df = ps.save(write_data=write_data, include=include, exclude=exclude)
+        df['station'] = 0
+
+        # Write a new file
+        attrs = {}
+        for cr in self.collected_results:
+
+            column_name = cf_safe_name(f'{cr.stream_id}.{cr.package}.{cr.test}')
+
+            # Set the ancillary variables
+            if cr.stream_id not in attrs:
+                attrs[cr.stream_id] = {
+                    'ancillary_variables': column_name
+                }
+            else:
+                # Update the source ancillary_variables
+                existing = getattr(attrs[cr.stream_id], 'ancillary_variables', '').split(' ')
+                existing += [column_name]
+                attrs[cr.stream_id] = ' '.join(list(set(existing))).strip()
+
+            # determine standard name and long name. These should be defined on each test function
+            # https://github.com/cf-convention/cf-conventions/issues/216
+            standard_name = getattr(cr.function, 'standard_name', 'quality_flag')
+            long_name = getattr(cr.function, 'long_name', 'Quality Flag')
+
+            # Get flags from module attribute called FLAGS
+            flags = getattr(inspect.getmodule(cr.function), 'FLAGS')
+            varflagnames = [ d for d in flags.__dict__ if not d.startswith('__') ]
+            varflagvalues = [ getattr(flags, d) for d in varflagnames ]
+
+            # Set QC variable attributes
+            if column_name not in attrs:
+                attrs[column_name] = {
+                    'standard_name': standard_name,
+                    'long_name': long_name,
+                    'flag_values': np.byte(varflagvalues),
+                    'flag_meanings': ' '.join(varflagnames),
+                    'valid_min': np.byte(min(varflagvalues)),
+                    'valid_max': np.byte(max(varflagvalues)),
+                    'ioos_qc_module': cr.package,
+                    'ioos_qc_test': cr.test,
+                    'ioos_qc_target': cr.stream_id,
+                }
+                # If there is only one context we can write variable specific configs
+                if len(config.contexts) == 1:
+                    varconfig = config.contexts[0].streams[cr.stream_id].config[cr.package][cr.test]
+                    varconfig = json.dumps(varconfig, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                    attrs[column_name]['ioos_qc_config'] = varconfig
+                    attrs[column_name]['ioos_qc_region'] = json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                    attrs[column_name]['ioos_qc_window'] = json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+
+        if len(config.contexts) > 1:
+            # We can't represent these at the variable level, so make one global config
+            attrs['ioos_qc_config'] = json.dumps(config.config, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+
+        dsg_kwargs = {
+            **dsg_kwargs,
+            **{
+                'attributes': attrs
+            }
+        }
+
+        ncd = dsg.from_dataframe(df, path_or_ncd, axes=self.axes, **dsg_kwargs)
+        return ncd
 
 
 class NetcdfStore:
