@@ -455,7 +455,13 @@ class XarrayStream:
                         slicers[ds[stream_id].dims.index(index_key)] = index_value
                 # We started with an empty subset_indexes, not set to True what we actually subset
                 # using the labeled dimensions.
-                subset_indexes[slicers] = True
+
+                # Casting to a tuple to handle a numpy deprecation:
+                # FutureWarning: Using a non-tuple sequence for multidimensional indexing is
+                # deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will
+                # be interpreted as an array index, `arr[np.array(seq)]`, which will result either
+                # in an error or a different result.
+                subset_indexes[tuple(slicers)] = True
 
                 yield ContextResult(
                     results=run_result,
