@@ -101,7 +101,6 @@ class CFNetCDFStore(BaseStore):
     def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: dict = {}, write_data: bool = False, include: list = None, exclude: list = None):
         ps = PandasStore(self.results, self.axes)
         df = ps.save(write_data=write_data, include=include, exclude=exclude)
-        df['station'] = 0
 
         # Write a new file
         attrs = {}
@@ -164,6 +163,11 @@ class CFNetCDFStore(BaseStore):
             }
         }
 
+        # pocean requires these default columns, which should be removed as a requirement
+        # in pocean.
+        df['station'] = 0
+        df['trajectory'] = 0
+        df['profile'] = 0
         ncd = dsg.from_dataframe(df, path_or_ncd, axes=self.axes, **dsg_kwargs)
         return ncd
 
