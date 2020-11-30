@@ -18,9 +18,11 @@ requirements:
     - python
     - geojson
     - netCDF4
+    - numba
     - numpy >=1.14
     - pygc
     - ruamel.yaml
+    - shapely
     - simplejson
     - xarray
 

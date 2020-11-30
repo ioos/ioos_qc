@@ -8,7 +8,7 @@ from ioos_qc.config import QcConfig
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
-L.addHandler(logging.StreamHandler())
+L.handlers = [logging.StreamHandler()]
 
 
 class PerformanceTest(unittest.TestCase):
