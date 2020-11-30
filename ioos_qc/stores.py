@@ -148,8 +148,10 @@ class CFNetCDFStore(BaseStore):
                     varconfig = config.contexts[0].streams[cr.stream_id].config[cr.package][cr.test]
                     varconfig = json.dumps(varconfig, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
                     attrs[column_name]['ioos_qc_config'] = varconfig
-                    attrs[column_name]['ioos_qc_region'] = json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
-                    attrs[column_name]['ioos_qc_window'] = json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                    if config.contexts[0].region:
+                        attrs[column_name]['ioos_qc_region'] = json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                    if config.contexts[0].window.starting or config.contexts[0].window.ending:
+                        attrs[column_name]['ioos_qc_window'] = json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
 
         if len(config.contexts) > 1:
             # We can't represent these at the variable level, so make one global config
