@@ -1,35 +1,36 @@
 #!/usr/bin/env python
 # coding=utf-8
+from typing import NamedTuple, List
 from dataclasses import dataclass
-from collections import OrderedDict as odict
-from collections import namedtuple, defaultdict
+from collections import OrderedDict as odict, defaultdict
 
 import numpy as np
 import pandas as pd
 from ioos_qc.qartod import QartodFlags
 
 
-StreamConfigResult = namedtuple(
-    'StreamConfigResult', [
-        'package',
-        'test',
-        'function',
-        'results'
-    ]
-)
+class StreamConfigResult(NamedTuple):
+    package: str
+    test: str
+    function: callable
+    results: np.ndarray
 
-ContextResult = namedtuple(
-    'ContextResult', [
-        'stream_id',
-        'results',
-        'subset_indexes',
-        'data',
-        'tinp',
-        'zinp',
-        'lat',
-        'lon'
-    ]
-)
+    def __repr__(self):
+        return f'<CollectedResult package={self.package} test={self.test}>'
+
+
+class ContextResult(NamedTuple):
+    stream_id: str
+    results: List[StreamConfigResult]
+    subset_indexes: np.ndarray
+    data: np.ndarray = None
+    tinp: np.ndarray = None
+    zinp: np.ndarray = None
+    lat: np.ndarray = None
+    lon: np.ndarray = None
+
+    def __repr__(self):
+        return f'<ContextResult stream_id={self.stream_id}>'
 
 
 @dataclass
@@ -44,6 +45,9 @@ class CollectedResult:
     zinp: np.ndarray = None
     lat: np.ndarray = None
     lon: np.ndarray = None
+
+    def __repr__(self):
+        return f'<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>'
 
     def function_name(self) -> str:
         return self.function.__name__
