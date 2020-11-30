@@ -109,11 +109,18 @@ def collect_results_list(results):
 
             collected[cr.hash_key].results[r.subset_indexes] = tr.results
 
-        collected[cr.hash_key].data[r.subset_indexes] = r.data
-        collected[cr.hash_key].tinp[r.subset_indexes] = r.tinp
-        collected[cr.hash_key].zinp[r.subset_indexes] = r.zinp
-        collected[cr.hash_key].lat[r.subset_indexes] = r.lat
-        collected[cr.hash_key].lon[r.subset_indexes] = r.lon
+        if r.subset_indexes.all():
+            collected[cr.hash_key].data = r.data
+            collected[cr.hash_key].tinp = r.tinp
+            collected[cr.hash_key].zinp = r.zinp
+            collected[cr.hash_key].lat = r.lat
+            collected[cr.hash_key].lon = r.lon
+        else:
+            collected[cr.hash_key].data[r.subset_indexes] = r.data
+            collected[cr.hash_key].tinp[r.subset_indexes] = r.tinp
+            collected[cr.hash_key].zinp[r.subset_indexes] = r.zinp
+            collected[cr.hash_key].lat[r.subset_indexes] = r.lat
+            collected[cr.hash_key].lon[r.subset_indexes] = r.lon
 
     return list(collected.values())
 
