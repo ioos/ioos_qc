@@ -4,7 +4,7 @@ Usage
 At its core, ``ioos_qc`` is a collection of modules and methods to run various quality control checks on an input stream of data.
 
 The following implementations are available in ``ioos_qc``:
- 
+
 * `IOOS QARTOD <https://ioos.noaa.gov/project/qartod/>`_ - `API </api/ioos_qc.html#module-ioos_qc.qartod>`_
 * ARGO - `API </api/ioos_qc.html#module-ioos_qc.argo>`_
 
@@ -212,8 +212,97 @@ Streams
 -------
 
 Streams represent the data input types for running quality control tests. A user "runs" a stream of data through a collection of quality control tests defined by a Config_. A list of possible Streams can be found in the `Streams API </api/ioos_qc.html#module-ioos_qc.streams>`_.
-All streams return a generator of QC results that contain contextual information that can be used to do what you want with the results. You can use these result objects directly or you can collect them into more familiar ``list`` or ``dict`` objects before usage. If you are
-working in a streaming environment you will want to use the yielded result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the Store classes provided by ``ioos_qc``.
+All streams return a generator of QC results that contain contextual information that can be useful when using the results. You can iterate over the results generator directly or you can collect them into more familiar ``list`` or ``dict`` objects before usage. If you are
+working in a streaming environment you will want to use generator result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the Store classes provided by ``ioos_qc``.
+
+
+Results
+~~~~~~~
+
+Each yielded result is either a `StreamConfigResult </api/ioos_qc.html#ioos_qc.results.StreamConfigResult>`_ or a `ContextResult </api/ioos_qc.html#ioos_qc.results.ContextResult>`_, depending on what type of Config_ object was used. Collected results are only ever of one type, a `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_, and only one ``CollectedResult`` will be returned after collecting results for unique combination of ``stream_id`` and defined module/test. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique stream_id and module/test combination.
+
+For example: If you had a Config_ object that contained (3) different ContextConfig_ objects (each defining a time window and test inputs) for a single variable/``stream_id``, running that ``Config`` through any ``Stream`` implementation would yield (3) different ``ContextResult`` objects. You could use them yourself to construct whatever results you wanted to manually, or you could collect those results back into a single ``CollectedResult`` object to only have to deal with one result.
+
+Historically, test results were returned in a ``dict`` structure. While this is still supported it should be considered deprecated. You should be using the individually yielded result objects or a list of `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_ objects in any applications (including Stores_ implementations) going forward.
+
+.. code-block:: python
+    :linenos:
+    :caption: Different way to use Stream results
+
+    import numpy as np
+    import pandas as pd
+    from ioos_qc.config import Config
+    from ioos_qc.streams import PandasStream
+    from ioos_qc.results import collect_results
+
+    config = """
+        contexts:
+            -   window:
+                    starting: 2020-01-01T00:00:00Z
+                    ending: 2020-02-01T00:00:00Z
+                streams:
+                    variable1:
+                        qartod:
+                            aggregate:
+                            gross_range_test:
+                                suspect_span: [3, 4]
+                                fail_span: [2, 5]
+                    variable2:
+                        qartod:
+                            aggregate:
+                            gross_range_test:
+                                suspect_span: [23, 24]
+                                fail_span: [22, 25]
+            -   window:
+                    starting: 2020-02-01T00:00:00Z
+                    ending: 2020-03-01T00:00:00Z
+                streams:
+                    variable1:
+                        qartod:
+                            aggregate:
+                            gross_range_test:
+                                suspect_span: [43, 44]
+                                fail_span: [42, 45]
+                    variable2:
+                        qartod:
+                            aggregate:
+                            gross_range_test:
+                                suspect_span: [23, 24]
+                                fail_span: [22, 25]
+    """
+    c = Config(config)
+
+    rows = 50
+    data_inputs = {
+        'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
+        'z': 2.0,
+        'lat': 36.1,
+        'lon': -76.5,
+        'variable1': np.arange(0, rows),
+        'variable2': np.arange(0, rows),
+    }
+    df = pd.DataFrame(data_inputs)
+
+    # Setup the stream
+    ps = PandasStream(df)
+
+    # Pass the run method the config to use
+    results = ps.run(c)
+
+    # results is a generator of ContextResult objects
+    print(results)
+    # <generator object PandasStream.run at ...>
+
+    # list_collected is a list of CollectedResult objects
+    # for each stream_id and module/test combination
+    list_collected = collect_results(results, how='list')
+    print(list_collected)
+    # [
+    #   CollectedResult(stream_id='variable1', package='qartod', test='gross_range_test', ...),
+    #   CollectedResult(stream_id='variable1', package='qartod', test='aggregate', ...),
+    #   CollectedResult(stream_id='variable2', package='qartod', test='gross_range_test', ...),
+    #   CollectedResult(stream_id='variable2', package='qartod', test='aggregate', ...),
+    # ]
 
 
 NumpyStream
@@ -370,6 +459,7 @@ A subset of the NumpyStream, the NetcdfStream simply extracts numpy arrays from 
     # Pass the run method the config to use
     results = ns.run(c)
 
+
 XarrayStream
 ~~~~~~~~~~~~
 
@@ -417,15 +507,20 @@ XarrayStream
 Stores
 ------
 
-Stores represent different data formats for storing quality control results. After obtaining QC results from a Stream they can be passed into any Store. A list of possible Stores can be found in the `Stores API </api/ioos_qc.html#module-ioos_qc.stores>`_.
+Stores represent different data formats for storing quality control Results_ from Streams_. The results from any ``Stream`` should be able to be passed into any ``Store`` implementation defined in the `Stores API </api/ioos_qc.html#module-ioos_qc.stores>`_.
 
 
-NetCDFStore
+PandasStore
 ~~~~~~~~~~~
 
-Store the QC results in a netCDF file, along with all CF compliant metadata information and serializing the configuation used in the tests into the netCDF file. This can support storing the results in an existing file alongside the data or using a separate file to store the results. You can also do something like store the aggregate results in an existing file and store the individual test results in an external file.
+Collects all results and stores them as columns in a DataFrame.
 
-TODO: More / examples
+
+CFNetCDFStore
+~~~~~~~~~~~~~
+
+Store the QC results in a CF compliant DSG type netCDF file, along with all metadata information and serializing the configuation used in the tests into the netCDF file. This currently only supports creating a new file with all results and does not support appending to existing files or results, although that is expected to be implemented at some pooint. You can also choose to store a subset of results in a file to support storing the aggregate results in one file and the individual test results in another file.
+
 
 QcConfigCreator
 ---------------
