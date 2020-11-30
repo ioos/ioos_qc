@@ -65,11 +65,11 @@ class PandasStore(BaseStore):
                 df[self.axes['y']] = cr.lat
 
             # Inclusion list, skip everything not defined
-            if include is not None and (cr.function not in include and cr.stream_id not in include):
+            if include is not None and (cr.function not in include and cr.stream_id not in include and cr.test not in include):
                 continue
 
             # Exclusion list, skip everything defined
-            if exclude is not None and (cr.function in exclude or cr.stream_id in exclude):
+            if exclude is not None and (cr.function in exclude or cr.stream_id in exclude or cr.test in cr.test in include):
                 continue
 
             # Add data column
