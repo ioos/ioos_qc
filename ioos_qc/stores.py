@@ -45,22 +45,22 @@ class PandasStore(BaseStore):
         for cr in self.collected_results:
 
             # Add time axis
-            if self.axes['t'] not in df and cr.tinp is not None:
+            if self.axes['t'] not in df and cr.tinp is not None and cr.tinp.size != 0:
                 L.info(f"Adding column {self.axes['t']} from stream {cr.stream_id}")
                 df[self.axes['t']] = cr.tinp
 
             # Add z axis
-            if self.axes['z'] not in df and cr.zinp is not None:
+            if self.axes['z'] not in df and cr.zinp is not None and cr.zinp.size != 0:
                 L.info(f"Adding columm {self.axes['z']} from stream {cr.stream_id}")
                 df[self.axes['z']] = cr.zinp
 
             # Add x axis
-            if self.axes['x'] not in df and cr.lon is not None:
+            if self.axes['x'] not in df and cr.lon is not None and cr.lon.size != 0:
                 L.info(f"Adding columm {self.axes['x']} from stream {cr.stream_id}")
                 df[self.axes['x']] = cr.lon
 
             # Add x axis
-            if self.axes['y'] not in df and cr.lat is not None:
+            if self.axes['y'] not in df and cr.lat is not None and cr.lat.size != 0:
                 L.info(f"Adding columm {self.axes['y']} from stream {cr.stream_id}")
                 df[self.axes['y']] = cr.lat
 
