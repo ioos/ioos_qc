@@ -144,6 +144,9 @@ def collect_results_dict(results):
             collected[r.package][r.test] = r.results
             continue
 
+        flag_arr = np.ma.empty_like(r.subset_indexes, dtype='uint8')
+        flag_arr.fill(QartodFlags.UNKNOWN)
+
         # iterate over the StreamConfigResults
         for tr in r.results:
             testpackage = tr.package
@@ -151,11 +154,7 @@ def collect_results_dict(results):
             testresults = tr.results
 
             if testname not in collected[r.stream_id][testpackage]:
-                collected[r.stream_id][testpackage][testname] = pd.Series(
-                    QartodFlags.UNKNOWN,
-                    index=r.subset_indexes,
-                    dtype='uint8'
-                )
-            collected[r.stream_id][testpackage][testname].loc[r.subset_indexes] = testresults
+                collected[r.stream_id][testpackage][testname] = np.copy(flag_arr)
+            collected[r.stream_id][testpackage][testname][r.subset_indexes] = testresults
 
     return collected
