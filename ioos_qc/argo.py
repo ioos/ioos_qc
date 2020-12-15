@@ -16,7 +16,8 @@ from ioos_qc.utils import mapdates
 L = logging.getLogger(__name__)  # noqa
 
 
-@add_flag_metadata('pressure_increasing_test_quality_flag', 'Pressure Increasing Test Quality Flag')
+@add_flag_metadata(stanard_name='pressure_increasing_test_quality_flag',
+                   long_name='Pressure Increasing Test Quality Flag')
 def pressure_increasing_test(inp):
     """
     Returns an array of flag values where each input is flagged with SUSPECT if
@@ -43,7 +44,8 @@ def pressure_increasing_test(inp):
     return flags
 
 
-@add_flag_metadata('speed_test_quality_flag', 'Speed Test Quality Flag')
+@add_flag_metadata(standard_name='speed_test_quality_flag',
+                   long_name='Speed Test Quality Flag')
 def speed_test(lon: Sequence[N],
                lat: Sequence[N],
                tinp: Sequence[N],
@@ -58,7 +60,7 @@ def speed_test(lon: Sequence[N],
       * checking if distance/time_diff exceeds the given threshold(s)
 
     Missing and masked data is flagged as UNKNOWN.
-    
+
     If this test fails, it typically means that either a position or time is bad data,
      or that a platform is mislabeled.
 

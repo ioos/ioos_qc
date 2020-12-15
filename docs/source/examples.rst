@@ -11,3 +11,5 @@ You can download the source for these notebooks `here <https://github.com/ioos/i
 * :doc:`Run QARTOD on a netCDF file, and store the results </examples/Qartod_netCDF_example>`
 
 * :doc:`Run Attenuated Signal test on Salinity data to detect biofouling in an instrument </examples/QartodTestExample_SalinityAttenuation>`
+
+* **TODO: Add links to new notebooks under usage/**

@@ -3,19 +3,21 @@
 """Tests based on the IOOS QARTOD manuals."""
 import logging
 import warnings
-from collections import namedtuple
+from typing import Dict, List, Tuple, Union, Sequence
 from numbers import Real as N
-from typing import Sequence, Tuple, Union, Dict
+from collections import namedtuple
 
 import numpy as np
 import pandas as pd
 
-
 from ioos_qc.utils import (
     isnan,
     isfixedlength,
-    add_flag_metadata, great_circle_distance, mapdates
+    add_flag_metadata,
+    great_circle_distance,
+    mapdates
 )
+
 
 L = logging.getLogger(__name__)  # noqa
 
@@ -36,14 +38,15 @@ NOTEVAL_VALUE = QartodFlags.UNKNOWN
 span = namedtuple('Span', 'minv maxv')
 
 
-@add_flag_metadata('aggregate_quality_flag', 'Aggregate Quality Flag')
-def aggregate(results: dict) -> np.ma.MaskedArray:
+@add_flag_metadata(standard_name='aggregate_quality_flag',
+                   long_name='Aggregate Quality Flag',
+                   aggregate=True)
+def aggregate(results: List) -> np.ma.MaskedArray:
     """
     Runs qartod_compare against all other qartod tests in results.
     """
-    all_tests = [results['qartod'][test_name] for test_name in list(results['qartod'])]
-    results['qartod']['aggregate'] = qartod_compare(all_tests)
-    return results
+    all_tests = [ r.results for r in results ]
+    return qartod_compare(all_tests)
 
 
 def qartod_compare(vectors : Sequence[Sequence[N]]
@@ -77,10 +80,11 @@ def qartod_compare(vectors : Sequence[Sequence[N]]
         for v in vectors:
             idx = np.where(v == p)[0]
             result[idx] = p
-    return result
+    return result.astype('uint8')
 
 
-@add_flag_metadata('location_test_quality_flag', 'Location Test Quality Flag')
+@add_flag_metadata(standard_name='location_test_quality_flag',
+                   long_name='Location Test Quality Flag')
 def location_test(lon : Sequence[N],
                   lat : Sequence[N],
                   bbox : Tuple[N, N, N, N] = (-180, -90, 180, 90),
@@ -152,7 +156,8 @@ def location_test(lon : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-@add_flag_metadata('gross_range_test_quality_flag', 'Gross Range Test Quality Flag')
+@add_flag_metadata(standard_name='gross_range_test_quality_flag',
+                   long_name='Gross Range Test Quality Flag')
 def gross_range_test(inp : Sequence[N],
                      fail_span : Tuple[N, N],
                      suspect_span : Tuple[N, N] = None
@@ -192,7 +197,9 @@ def gross_range_test(inp : Sequence[N],
         assert isfixedlength(suspect_span, 2)
         uspan = span(*sorted(suspect_span))
         if uspan.minv < sspan.minv or uspan.maxv > sspan.maxv:
-            raise ValueError('User span range may not exceed sensor span')
+            raise ValueError('Suspect {} must fall within the Fail {}'.format(
+                uspan, sspan
+            ))
         # Flag suspect outside of user span
         with np.errstate(invalid='ignore'):
             flag_arr[(inp < uspan.minv) | (inp > uspan.maxv)] = QartodFlags.SUSPECT
@@ -319,7 +326,7 @@ class ClimatologyConfig(object):
 
     def check(self, tinp, inp, zinp):
 
-        # Start with everything as UNKNOWN (1)
+        # Start with everything as UNKNOWN (2)
         flag_arr = np.ma.empty(inp.size, dtype='uint8')
         flag_arr.fill(QartodFlags.UNKNOWN)
 
@@ -391,7 +398,8 @@ class ClimatologyConfig(object):
         return c
 
 
-@add_flag_metadata('climatology_test_quality_flag', 'Climatology Test Quality Flag')
+@add_flag_metadata(standard_name='climatology_test_quality_flag',
+                   long_name='Climatology Test Quality Flag')
 def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
                      inp : Sequence[N],
                      tinp : Sequence[N],
@@ -439,7 +447,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     return flag_arr.reshape(original_shape)
 
 
-@add_flag_metadata('spike_test_quality_flag', 'Spike Test Quality Flag')
+@add_flag_metadata(standard_name='spike_test_quality_flag',
+                   long_name='Spike Test Quality Flag')
 def spike_test(inp : Sequence[N],
                suspect_threshold: N,
                fail_threshold: N
@@ -500,7 +509,8 @@ def spike_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-@add_flag_metadata('rate_of_change_test_quality_flag', 'Rate of Change Test Quality Flag')
+@add_flag_metadata(standard_name='rate_of_change_test_quality_flag',
+                   long_name='Rate of Change Test Quality Flag')
 def rate_of_change_test(inp : Sequence[N],
                         tinp : Sequence[N],
                         threshold : float
@@ -550,7 +560,8 @@ def rate_of_change_test(inp : Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-@add_flag_metadata('flat_line_test_quality_flag', 'Flat Line Test Quality Flag')
+@add_flag_metadata(standard_name='flat_line_test_quality_flag',
+                   long_name='Flat Line Test Quality Flag')
 def flat_line_test(inp: Sequence[N],
                    tinp: Sequence[N],
                    suspect_threshold: int,
@@ -639,7 +650,8 @@ def flat_line_test(inp: Sequence[N],
     return flag_arr.reshape(original_shape)
 
 
-@add_flag_metadata('attenuated_signal_test_quality_flag', 'Attenuated Signal Test Quality Flag')
+@add_flag_metadata(standard_name='attenuated_signal_test_quality_flag',
+                   long_name='Attenuated Signal Test Quality Flag')
 def attenuated_signal_test(inp : Sequence[N],
                            tinp : Sequence[N],
                            suspect_threshold: N,

@@ -12,7 +12,6 @@ observing systems.
 
 `Code <https://github.com/ioos/ioos_qc>`_  |  `Issues <https://github.com/ioos/ioos_qc/issues>`_  |  `Documentation </>`_ | :doc:`Examples </examples>`
 
-
 .. toctree::
    :maxdepth: 3
 
@@ -41,3 +40,9 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+Acknowledgments
+===============
+
+Elements of the development was support by `NOAA's Pacific Marine Environmental Laboratory <https://pmel.noaa.gov/>`_, and the NOAA Information Technology Incubator.

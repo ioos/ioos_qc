@@ -1,0 +1,20 @@
+{
+    "variable": "air",
+    "bbox": [-165, 70, 160, 80],
+    "start_time": "2020-01-01",
+    "end_time": "2020-01-08",
+    "tests": {
+        "spike_test": {
+            "suspect_min": "3",
+            "suspect_max": "( 1 + 2 )",
+            "fail_min": "3 * 2 - 6",
+            "fail_max": "3 * mean + std / ( max * min )"
+        },
+        "gross_range_test": {
+            "suspect_min": "min - std * 2",
+            "suspect_max": "max + std / 2",
+            "fail_min": "mean * std",
+            "fail_max": "mean / std"
+        }
+    }
+}
