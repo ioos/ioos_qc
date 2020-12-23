@@ -45,22 +45,22 @@ class PandasStore(BaseStore):
         for cr in self.collected_results:
 
             # Add time axis
-            if self.axes['t'] not in df and cr.tinp is not None:
+            if self.axes['t'] not in df and cr.tinp is not None and cr.tinp.size != 0:
                 L.info(f"Adding column {self.axes['t']} from stream {cr.stream_id}")
                 df[self.axes['t']] = cr.tinp
 
             # Add z axis
-            if self.axes['z'] not in df and cr.zinp is not None:
+            if self.axes['z'] not in df and cr.zinp is not None and cr.zinp.size != 0:
                 L.info(f"Adding columm {self.axes['z']} from stream {cr.stream_id}")
                 df[self.axes['z']] = cr.zinp
 
             # Add x axis
-            if self.axes['x'] not in df and cr.lon is not None:
+            if self.axes['x'] not in df and cr.lon is not None and cr.lon.size != 0:
                 L.info(f"Adding columm {self.axes['x']} from stream {cr.stream_id}")
                 df[self.axes['x']] = cr.lon
 
             # Add x axis
-            if self.axes['y'] not in df and cr.lat is not None:
+            if self.axes['y'] not in df and cr.lat is not None and cr.lat.size != 0:
                 L.info(f"Adding columm {self.axes['y']} from stream {cr.stream_id}")
                 df[self.axes['y']] = cr.lat
 
@@ -101,7 +101,6 @@ class CFNetCDFStore(BaseStore):
     def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: dict = {}, write_data: bool = False, include: list = None, exclude: list = None):
         ps = PandasStore(self.results, self.axes)
         df = ps.save(write_data=write_data, include=include, exclude=exclude)
-        df['station'] = 0
 
         # Write a new file
         attrs = {}
@@ -148,8 +147,10 @@ class CFNetCDFStore(BaseStore):
                     varconfig = config.contexts[0].streams[cr.stream_id].config[cr.package][cr.test]
                     varconfig = json.dumps(varconfig, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
                     attrs[column_name]['ioos_qc_config'] = varconfig
-                    attrs[column_name]['ioos_qc_region'] = json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
-                    attrs[column_name]['ioos_qc_window'] = json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                    if config.contexts[0].region:
+                        attrs[column_name]['ioos_qc_region'] = json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                    if config.contexts[0].window.starting or config.contexts[0].window.ending:
+                        attrs[column_name]['ioos_qc_window'] = json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
 
         if len(config.contexts) > 1:
             # We can't represent these at the variable level, so make one global config
@@ -162,6 +163,11 @@ class CFNetCDFStore(BaseStore):
             }
         }
 
+        # pocean requires these default columns, which should be removed as a requirement
+        # in pocean.
+        df['station'] = 0
+        df['trajectory'] = 0
+        df['profile'] = 0
         ncd = dsg.from_dataframe(df, path_or_ncd, axes=self.axes, **dsg_kwargs)
         return ncd
 
