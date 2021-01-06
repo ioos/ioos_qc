@@ -798,15 +798,15 @@ def density_inversion_test(inp: Sequence[N],
         with np.errstate(invalid='ignore'):
             is_suspect = delta < suspect_threshold
             if any(is_suspect):
-                flag_arr[:-1][is_suspect] = QartodFlags.SUSPECT  # Previous value
-                flag_arr[1:][is_suspect] = QartodFlags.SUSPECT  # Reversed value
+                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # Previous value
+                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # Reversed value
 
     if fail_threshold is not None:
         with np.errstate(invalid='ignore'):
             is_fail = delta < fail_threshold
             if any(is_fail):
-                flag_arr[:-1][is_fail] = QartodFlags.SUSPECT  # Previous value
-                flag_arr[1:][is_fail] = QartodFlags.SUSPECT  # Reversed Value
+                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # Previous value
+                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # Reversed Value
 
     # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING
