@@ -808,6 +808,8 @@ def density_inversion_test(inp: Sequence[N],
                 flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # Previous value
                 flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # Reversed Value
 
-    # If the value is masked set the flag to MISSING
-    flag_arr[inp.mask] = QartodFlags.MISSING
+    # If the value or depth is masked set the flag to MISSING for this record and the following one.
+    is_missing = inp.mask | zinp.mask
+    flag_arr[is_missing] = QartodFlags.MISSING
+    flag_arr[1:][is_missing[:-1]] = QartodFlags.MISSING
     return flag_arr
