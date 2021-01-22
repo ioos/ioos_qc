@@ -6,9 +6,13 @@ from bokeh.layouts import gridplot
 
 from ioos_qc.config import Config
 from ioos_qc.streams import XarrayStream
+from ioos_qc.stores import CFNetCDFStore
 from ioos_qc.results import collect_results
 from ioos_qc.config_creator import CreatorConfig, QcConfigCreator, QcVariableConfig
 from ioos_qc.plotting import bokeh_plot_collected_result
+
+from pocean.dsg import IncompleteMultidimensionalTrajectory
+
 
 L = logging.getLogger(__name__)
 
@@ -17,10 +21,10 @@ def test_erddap_testing():
     erddap_server = 'https://ferret.pmel.noaa.gov/pmel/erddap'
     dataset_id = 'sd1035_2019'
     dataset_id = 'sd1041_2019'
-    dataset_id = 'sd1055'
+    #dataset_id = 'sd1055'
     # dataset_id = 'saildrone_arctic_data'
     # dataset_id = 'fisheries_2020_all'
-    # dataset_id = 'sd1069'
+    dataset_id = 'sd1069'
 
     from erddapy import ERDDAP
     e = ERDDAP(
@@ -187,37 +191,49 @@ def test_erddap_testing():
     c = Config(final_config)
     xs = XarrayStream(ds, time='time', lat='latitude', lon='longitude')
     qc_results = xs.run(c)
-    all_results = collect_results(qc_results, how='list')
-
-    # spike tests dont work with nan values so it causes issue
-    # with the shared time coordinate variable. Some variables
-    # only output every 5 readings
-    # https://ferret.pmel.noaa.gov/pmel/erddap/tabledap/sd1069.htmlTable?UWND_MEAN%2CVWND_MEAN%2CTEMP_AIR_MEAN%2Clatitude%2Clongitude%2Ctime&time%3E=2020-10-24&time%3C=2020-10-26T18%3A59%3A00Z
-    new_ds = ds.isel(dict(obs=slice(None, None, 5)))
-    new_xs = XarrayStream(new_ds, time='time', lat='latitude', lon='longitude')
-    new_qc_results = new_xs.run(c)
-    every_five_results = collect_results(new_qc_results, how='list')
 
     # Plotting code
-    plots = []
+    # all_results = collect_results(qc_results, how='list')
+    # # spike tests dont work with nan values so it causes issue
+    # # with the shared time coordinate variable. Some variables
+    # # only output every 5 readings
+    # # https://ferret.pmel.noaa.gov/pmel/erddap/tabledap/sd1069.htmlTable?UWND_MEAN%2CVWND_MEAN%2CTEMP_AIR_MEAN%2Clatitude%2Clongitude%2Ctime&time%3E=2020-10-24&time%3C=2020-10-26T18%3A59%3A00Z
+    # new_ds = ds.isel(dict(obs=slice(None, None, 5)))
+    # new_xs = XarrayStream(new_ds, time='time', lat='latitude', lon='longitude')
+    # new_qc_results = new_xs.run(c)
+    # every_five_results = collect_results(new_qc_results, how='list')
 
-    for i, lr in enumerate(all_results):
-        if lr.data.any() and lr.results.any():
-            if not np.isnan(lr.data[1:101:5]).all():
-                print(f"plotting all for {lr.stream_id}")
-                plot = bokeh_plot_collected_result(lr)
-            else:
-                print(f"plotting every 5 for {lr.stream_id}")
-                plot = bokeh_plot_collected_result(every_five_results[i])
-            plots.append(plot)
+    # plots = []
+    # for i, lr in enumerate(all_results):
+    #     if lr.data.any() and lr.results.any():
+    #         if not np.isnan(lr.data[1:101:5]).all():
+    #             print(f"plotting all for {lr.stream_id}")
+    #             plot = bokeh_plot_collected_result(lr)
+    #         else:
+    #             print(f"plotting every 5 for {lr.stream_id}")
+    #             plot = bokeh_plot_collected_result(every_five_results[i])
+    #         plots.append(plot)
 
-    kwargs = {
-        'merge_tools': True,
-        'toolbar_location': 'above',
-        'sizing_mode': 'scale_width',
-        'plot_width': 600,
-        'plot_height': 280,
-        'ncols': 2
-    }
-    gp = gridplot(plots, **kwargs)
+    # kwargs = {
+    #     'merge_tools': True,
+    #     'toolbar_location': 'above',
+    #     'sizing_mode': 'scale_width',
+    #     'plot_width': 600,
+    #     'plot_height': 280,
+    #     'ncols': 2
+    # }
+    # gp = gridplot(plots, **kwargs)
     # plotting.show(gp)
+
+    # Save a netCDF file
+    ncd = CFNetCDFStore(qc_results)
+    ncd.save(
+        'results.nc',
+        IncompleteMultidimensionalTrajectory,
+        c,
+        dsg_kwargs=dict(
+            reduce_dims=True,
+            unlimited=False,
+            unique_dims=True
+        )
+    )
