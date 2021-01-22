@@ -1467,7 +1467,7 @@ class QartodDensityInversionTest(unittest.TestCase):
         density = [1025, 1025, 1025, 1026, 1026]
         result = [1, 9, 9, 1, 1]
         # Should give a warning that some depth values are invalid
-        with self.assertWarns(RuntimeWarning):
+        with self.assertWarns(Warning):
             self._run_density_inversion_tests(density, depth, result)
 
     def test_density_inversion_input(self):
