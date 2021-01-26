@@ -115,8 +115,8 @@ def location_test(lon : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        lat = np.ma.masked_invalid(np.array(lat).astype(np.floating))
-        lon = np.ma.masked_invalid(np.array(lon).astype(np.floating))
+        lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
+        lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
 
     if lon.shape != lat.shape:
         raise ValueError(
@@ -182,7 +182,7 @@ def gross_range_test(inp : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -430,8 +430,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
-        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -474,7 +474,7 @@ def spike_test(inp : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -536,7 +536,7 @@ def rate_of_change_test(inp : Sequence[N],
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -594,7 +594,7 @@ def flat_line_test(inp: Sequence[N],
     # input as numpy arr
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -711,7 +711,7 @@ def attenuated_signal_test(inp : Sequence[N],
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -774,8 +774,8 @@ def density_inversion_test(inp: Sequence[N],
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
-        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
 
     # Make sure both inputs are the same size.
     if inp.shape != zinp.shape:
