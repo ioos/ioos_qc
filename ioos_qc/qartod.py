@@ -115,8 +115,8 @@ def location_test(lon : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        lat = np.ma.masked_invalid(np.array(lat).astype(np.floating))
-        lon = np.ma.masked_invalid(np.array(lon).astype(np.floating))
+        lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
+        lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
 
     if lon.shape != lat.shape:
         raise ValueError(
@@ -182,7 +182,7 @@ def gross_range_test(inp : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -430,8 +430,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
-        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -474,7 +474,7 @@ def spike_test(inp : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -536,7 +536,7 @@ def rate_of_change_test(inp : Sequence[N],
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -594,7 +594,7 @@ def flat_line_test(inp: Sequence[N],
     # input as numpy arr
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -711,7 +711,7 @@ def attenuated_signal_test(inp : Sequence[N],
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -742,3 +742,74 @@ def attenuated_signal_test(inp : Sequence[N],
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(standard_name='density_inversion_test_flag',
+                   long_name='Density Inversion Test Flag')
+def density_inversion_test(inp: Sequence[N],
+                           zinp: Sequence[N],
+                           suspect_threshold: float = None,
+                           fail_threshold: float = None
+                           ) -> np.ma.core.MaskedArray:
+    """
+    With few exceptions, potential water density will increase with increasing pressure. When
+    vertical profile data is obtained, this test is used to flag as failed T, C, and SP observations, which
+    yield densities that do not sufficiently increase with pressure. A small operator-selected density
+    threshold (DT) allows for micro-turbulent exceptions. This test can be run on downcasts, upcasts,
+    or down/up cast results produced in real time.
+
+    Both Temperature and Salinity should be flagged based on the result of this test.
+
+    Ref: Manual for Real-Time Quality Control of in-situ Temperature and Salinity Data, Version 2.0, January 2016
+
+    Args:
+        inp: Potential density values as a numeric numpy array or a list of numbers.
+        zinp: Corresponding depth/pressure values for each density.
+        suspect_threshold: A float value representing a maximum potential density(or sigma0)
+            variation to be tolerated, downward density variation exceeding this will be flagged as SUSPECT.
+        fail_threshold:  A float value representing a maximum potential density(or sigma0)
+            variation to be tolerated, downward density variation exceeding this will be flagged as FAIL.
+    Returns:
+        A masked array of flag values equal in size to that of the input.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
+
+    # Make sure both inputs are the same size.
+    if inp.shape != zinp.shape:
+        raise ValueError(f'Density ({inp.shape}) and depth ({zinp.shape}) must be the same shape')
+
+    # Start with everything as passing
+    flag_arr = QartodFlags.GOOD * np.ma.ones(inp.size, dtype='uint8')
+
+    # If no data or just one record, return respectively an empty mask array or UNKNOWN
+    if inp.size == 0:
+        return np.ma.masked_array([])
+    if inp.size < 2:
+        flag_arr[0] = QartodFlags.UNKNOWN
+        return flag_arr
+
+    # Compute the vertical density variability along zinp and flip delta according to zinp variation direction
+    delta = np.sign(np.diff(zinp))*np.diff(inp)
+
+    if suspect_threshold is not None:
+        with np.errstate(invalid='ignore'):
+            is_suspect = delta < suspect_threshold
+            if any(is_suspect):
+                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # Previous value
+                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # Reversed value
+
+    if fail_threshold is not None:
+        with np.errstate(invalid='ignore'):
+            is_fail = delta < fail_threshold
+            if any(is_fail):
+                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # Previous value
+                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # Reversed Value
+
+    # If the value or depth is masked set the flag to MISSING for this record and the following one.
+    is_missing = inp.mask | zinp.mask
+    flag_arr[is_missing] = QartodFlags.MISSING
+    flag_arr[1:][is_missing[:-1]] = QartodFlags.MISSING
+    return flag_arr

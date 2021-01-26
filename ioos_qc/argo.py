@@ -84,8 +84,8 @@ def speed_test(lon: Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        lat = np.ma.masked_invalid(np.array(lat).astype(np.floating))
-        lon = np.ma.masked_invalid(np.array(lon).astype(np.floating))
+        lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
+        lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
         tinp = mapdates(tinp)
 
     if lon.shape != lat.shape or lon.shape != tinp.shape:
