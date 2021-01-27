@@ -106,6 +106,11 @@ def location_test(lon: Sequence[N],
         lat: Latitudes as a numeric numpy array or a list of numbers.
         bbox: A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
         range_max: Maximum allowed range expressed in geodesic curve distance (meters).
+        target_lat: Target Latitude as numeric numpy array or a list of numbers,
+            it can either same size as lat/lon or a unique values
+        target_lon: Target Longitude as numeric numpy array or a list of numbers,
+            it can either same size as lat/lon or a unique values
+        target_range: Maximum allowed range in  geodesic curve distance (meters) away from target position.
 
     Returns:
         A masked array of flag values equal in size to that of the input.
