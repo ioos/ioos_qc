@@ -125,15 +125,15 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = np.asarray([80,   -78, -71, -79, 500], dtype=np.floating)
-        lat = np.asarray([None,  50,  59,  10, -60], dtype=np.floating)
+        lon = np.asarray([80,   -78, -71, -79, 500], dtype=np.float64)
+        lat = np.asarray([None,  50,  59,  10, -60], dtype=np.float64)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
         )
 
-        lon = dask_arr(np.asarray([80,   -78, -71, -79, 500], dtype=np.floating))
-        lat = dask_arr(np.asarray([None,  50,  59,  10, -60], dtype=np.floating))
+        lon = dask_arr(np.asarray([80,   -78, -71, -79, 500], dtype=np.float64))
+        lat = dask_arr(np.asarray([None,  50,  59,  10, -60], dtype=np.float64))
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
             np.ma.array([4, 1, 1, 4, 4])
@@ -182,9 +182,9 @@ class QartodGrossRangeTest(unittest.TestCase):
             inputs = [
                 vals,
                 np.array(vals, dtype=np.integer),
-                np.array(vals, dtype=np.floating),
+                np.array(vals, dtype=np.float64),
                 dask_arr(np.array(vals, dtype=np.integer)),
-                dask_arr(np.array(vals, dtype=np.floating))
+                dask_arr(np.array(vals, dtype=np.float64))
             ]
 
         for i in inputs:
@@ -246,8 +246,8 @@ class QartodGrossRangeTest(unittest.TestCase):
             warnings.simplefilter("ignore")
             inputs = [
                 vals,
-                np.array(vals, dtype=np.floating),
-                dask_arr(np.array(vals, dtype=np.floating))
+                np.array(vals, dtype=np.float64),
+                dask_arr(np.array(vals, dtype=np.float64))
             ]
 
         for i in inputs:
@@ -306,8 +306,8 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
+            np.asarray(values, dtype=np.float64),
+            dask_arr(np.asarray(values, dtype=np.float64))
         ]
 
         for i in inputs:
@@ -460,8 +460,8 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
+            np.asarray(values, dtype=np.float64),
+            dask_arr(np.asarray(values, dtype=np.float64))
         ]
 
         for i in inputs:
@@ -669,13 +669,13 @@ class QartodClimatologyDepthTest(unittest.TestCase):
             vspan=(70, 80),
             zspan=(10, 100)
         )
-       
+
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
+            np.asarray(values, dtype=np.float64),
+            dask_arr(np.asarray(values, dtype=np.float64))
         ]
 
         for i in inputs:
@@ -748,13 +748,13 @@ class QartodClimatologyTest(unittest.TestCase):
             vspan=(70, 80),
             zspan=(10, 100)
         )
-       
+
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
-            np.asarray(values, dtype=np.floating),
-            dask_arr(np.asarray(values, dtype=np.floating))
+            np.asarray(values, dtype=np.float64),
+            dask_arr(np.asarray(values, dtype=np.float64))
         ]
 
         for i in inputs:
@@ -880,8 +880,8 @@ class QartodSpikeTest(unittest.TestCase):
 
         inputs = [
             arr,
-            np.asarray(arr, dtype=np.floating),
-            dask_arr(np.asarray(arr, dtype=np.floating))
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -905,8 +905,8 @@ class QartodSpikeTest(unittest.TestCase):
 
         inputs = [
             arr,
-            np.asarray(arr, dtype=np.floating),
-            dask_arr(np.asarray(arr, dtype=np.floating))
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -947,8 +947,8 @@ class QartodSpikeTest(unittest.TestCase):
 
         inputs = [
             arr,
-            np.asarray(arr, dtype=np.floating),
-            dask_arr(np.asarray(arr, dtype=np.floating))
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -975,8 +975,8 @@ class QartodSpikeTest(unittest.TestCase):
 
         inputs = [
             arr,
-            np.asarray(arr, dtype=np.floating),
-            dask_arr(np.asarray(arr, dtype=np.floating))
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64))
         ]
         for i in inputs:
             npt.assert_array_equal(
@@ -1003,8 +1003,8 @@ class QartodRateOfChangeTest(unittest.TestCase):
         expected = [1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 1]
         inputs = [
             arr,
-            np.asarray(arr, dtype=np.floating),
-            dask_arr(np.asarray(arr, dtype=np.floating))
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64))
         ]
         for i in inputs:
             result = qartod.rate_of_change_test(
@@ -1062,8 +1062,8 @@ class QartodFlatLineTest(unittest.TestCase):
         expected = [1, 1, 1, 1, 3, 3, 4, 4, 1, 1, 1, 1, 1, 3]
         inputs = [
             arr,
-            np.asarray(arr, dtype=np.floating),
-            dask_arr(np.asarray(arr, dtype=np.floating))
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64))
         ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -1135,8 +1135,8 @@ class QartodFlatLineTest(unittest.TestCase):
             warnings.simplefilter("ignore")
             inputs = [
                 arr,
-                np.asarray(arr, dtype=np.floating),
-                dask_arr(np.asarray(arr, dtype=np.floating))
+                np.asarray(arr, dtype=np.float64),
+                dask_arr(np.asarray(arr, dtype=np.float64))
             ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -1191,8 +1191,8 @@ class QartodFlatLineTest(unittest.TestCase):
             warnings.simplefilter("ignore")
             inputs = [
                 arr,
-                np.asarray(arr, dtype=np.floating),
-                dask_arr(np.asarray(arr, dtype=np.floating))
+                np.asarray(arr, dtype=np.float64),
+                dask_arr(np.asarray(arr, dtype=np.float64))
             ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -1404,6 +1404,94 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                        expected=expected,
                        test_period=time_window,
                        min_obs=min_obs)
+
+
+class QartodDensityInversionTest(unittest.TestCase):
+
+    def _run_density_inversion_tests(self, density, depth, result,
+                             suspect_threshold=-0.01,
+                             fail_threshold=-.03):
+        # Try every possible input format combinations
+        dens_inputs = [
+            density,
+            np.asarray(density, dtype=np.float64),
+            dask_arr(np.asarray(density, dtype=np.float64))]
+
+        depth_inputs = [
+            depth,
+            np.asarray(depth, dtype=np.float64),
+            dask_arr(np.asarray(depth, dtype=np.float64))]
+
+        for rho in dens_inputs:
+            for z in depth_inputs:
+                npt.assert_array_equal(qartod.density_inversion_test(inp=rho, zinp=z,
+                                                                     suspect_threshold=suspect_threshold,
+                                                                     fail_threshold=fail_threshold),
+                                       result)
+
+    def test_density_inversion_downcast_flags(self):
+        depth = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        density = [1024, 1024, 1023.98, 1024, 1025, 1026, 1025.9, 1026, 1026, None, 1026, 1027]
+        result = [1, 3, 3, 1, 1, 4, 4, 1, 1, 9, 9, 1]
+        self._run_density_inversion_tests(density, depth, result)
+
+    def test_density_inversion_upcast_flags(self):
+        depth = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        density = [1026, None, 1026, 1026, 1025.9, 1026, 1025, 1024, 1023.98, 1024, 1024]
+        result = [1, 9, 9, 1, 4, 4, 1, 1, 3, 3, 1]
+        self._run_density_inversion_tests(density, depth, result)
+
+    def test_density_inversion_down_up_cast_flags(self):
+        depth = [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+        density = [1024, 1024, 1023.98, 1024, 1025, 1026, 1025.9, 1026, 1026,
+                   1026, 1026, 1025.9, 1026, 1025, 1024, 1023.98, 1024, 1024]
+        result = [1, 3, 3, 1, 1, 4, 4, 1, 1, 1, 1, 4, 4, 1, 1, 3, 3, 1]
+        self._run_density_inversion_tests(density, depth, result)
+
+    def test_density_inversion_stable_depth_flags(self):
+        depth = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        density = [1026, None, 1026, 1026, 1025.9, 1026, 1025, 1024, 1023.98, 1024, 1024]
+        result = [1, 9, 9, 1, 1, 1, 1, 1, 1, 1, 1]
+        self._run_density_inversion_tests(density, depth, result)
+
+    def test_density_inversion_one_record_input(self):
+        # One Value test
+        depth = [1]
+        density = [1026]
+        result = [2]
+        self._run_density_inversion_tests(density, depth, result)
+
+    def test_density_inversion_bad_depth_value(self):
+        # Missing depth value
+        depth = [1, None, 3, 4, 5]
+        density = [1025, 1025, 1025, 1026, 1026]
+        result = [1, 9, 9, 1, 1]
+        self._run_density_inversion_tests(density, depth, result)
+
+    def test_density_inversion_input(self):
+        density = [1024, 1024, 1025]
+        depth = [1, 2, 3]
+
+        # Wrong type suspect_threshold
+        with self.assertRaises(TypeError):
+            qartod.density_inversion_test(inp=density, zinp=depth, suspect_threshold='bad')
+
+        # Wrong type fail_threshold
+        with self.assertRaises(TypeError):
+            qartod.density_inversion_test(inp=density, zinp=depth, fail_threshold='bad')
+
+        # Wrong type for both fail_threshold and suspect_threshold
+        with self.assertRaises(TypeError):
+            qartod.density_inversion_test(inp=density, zinp=depth,
+                                          suspect_threshold='bad', fail_threshold='bad')
+
+        # Wrong type density
+        with self.assertRaises(ValueError):
+            qartod.density_inversion_test(inp='density', zinp=depth, suspect_threshold=-0.3)
+
+        # Wrong type depth
+        with self.assertRaises(ValueError):
+            qartod.density_inversion_test(inp=density, zinp='depth', suspect_threshold=-0.3)
 
 
 class QartodUtilsTests(unittest.TestCase):

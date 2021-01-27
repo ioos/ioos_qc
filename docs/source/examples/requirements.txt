@@ -1,5 +1,7 @@
 bokeh
+erddapy
 jupyter
 matplotlib>=3
 numpy
 pandas
+pocean-core

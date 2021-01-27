@@ -118,8 +118,8 @@ def location_test(lon: Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        lat = np.ma.masked_invalid(np.array(lat).astype(np.floating))
-        lon = np.ma.masked_invalid(np.array(lon).astype(np.floating))
+        lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
+        lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
 
     if lon.shape != lat.shape:
         raise ValueError(
@@ -196,7 +196,7 @@ def gross_range_test(inp : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -444,8 +444,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
-        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -488,7 +488,7 @@ def spike_test(inp : Sequence[N],
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -550,7 +550,7 @@ def rate_of_change_test(inp : Sequence[N],
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -608,7 +608,7 @@ def flat_line_test(inp: Sequence[N],
     # input as numpy arr
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -725,7 +725,7 @@ def attenuated_signal_test(inp : Sequence[N],
     tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
 
     # Save original shape
     original_shape = inp.shape
@@ -788,8 +788,8 @@ def density_inversion_test(inp: Sequence[N],
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
-        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.floating))
+        inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
 
     # Make sure both inputs are the same size.
     if inp.shape != zinp.shape:
@@ -812,16 +812,18 @@ def density_inversion_test(inp: Sequence[N],
         with np.errstate(invalid='ignore'):
             is_suspect = delta < suspect_threshold
             if any(is_suspect):
-                flag_arr[:-1][is_suspect] = QartodFlags.SUSPECT  # Previous value
-                flag_arr[1:][is_suspect] = QartodFlags.SUSPECT  # Reversed value
+                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # Previous value
+                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # Reversed value
 
     if fail_threshold is not None:
         with np.errstate(invalid='ignore'):
             is_fail = delta < fail_threshold
             if any(is_fail):
-                flag_arr[:-1][is_fail] = QartodFlags.SUSPECT  # Previous value
-                flag_arr[1:][is_fail] = QartodFlags.SUSPECT  # Reversed Value
+                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # Previous value
+                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # Reversed Value
 
-    # If the value is masked set the flag to MISSING
-    flag_arr[inp.mask] = QartodFlags.MISSING
+    # If the value or depth is masked set the flag to MISSING for this record and the following one.
+    is_missing = inp.mask | zinp.mask
+    flag_arr[is_missing] = QartodFlags.MISSING
+    flag_arr[1:][is_missing[:-1]] = QartodFlags.MISSING
     return flag_arr
