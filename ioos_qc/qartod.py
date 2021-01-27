@@ -89,8 +89,8 @@ def location_test(lon: Sequence[N],
                   lat: Sequence[N],
                   bbox: Tuple[N, N, N, N] = (-180, -90, 180, 90),
                   range_max: N = None,
-                  target_lat: N = None,
-                  target_lon: N = None,
+                  target_lat: [N] = None,
+                  target_lon: [N] = None,
                   target_range: N = None
                   ) -> np.ma.core.MaskedArray:
     """Checks that a location is within reasonable bounds.
@@ -154,11 +154,13 @@ def location_test(lon: Sequence[N],
     if target_lat is not None and target_lon is not None and \
             target_range is not None:
         if len(target_lon) == 1 and len(target_lat) == 1:
-            # If one target lat/lon and range is given get the distance
-            #  from the target
+            # If only one value is given assume to be constant for all positions
             d_from_target = distance_from_target(lat, lon,
                                                  target_lat * np.ones(lat.size), target_lon * np.ones(lat.size))
+        elif target_lon.shape == lon.shape and target_lat == lon.shape:
+            d_from_target = distance_from_target(lat, lon, target_lat, target_lon)
 
+        # Flag as suspect distances greater than target_range
         flag_arr[d_from_target > target_range] = QartodFlags.SUSPECT
 
         # Ignore warnings when comparing NaN values even though they are masked
