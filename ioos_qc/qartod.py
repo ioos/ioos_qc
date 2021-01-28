@@ -168,6 +168,9 @@ def location_test(lon: Sequence[N],
         # Flag as suspect distances greater than target_range
         flag_arr[d_from_target > target_range] = QartodFlags.SUSPECT
 
+        # Flag as missing target_location distance
+        flag_arr[(target_lat.mask | target_lon.mask)] = QartodFlags.MISSING
+
         # Ignore warnings when comparing NaN values even though they are masked
     # https://github.com/numpy/numpy/blob/master/doc/release/1.8.0-notes.rst#runtime-warnings-when-comparing-nan-numbers
     with np.errstate(invalid='ignore'):
