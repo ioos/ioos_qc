@@ -158,12 +158,12 @@ def location_test(lon: Sequence[N],
     # Distance From Target Test
     if target_lat is not None and target_lon is not None and \
             target_range is not None:
-        if len(target_lon) == 1 and len(target_lat) == 1:
-            # If only one value is given assume to be constant for all positions
-            d_from_target = distance_from_target(lat, lon,
-                                                 target_lat * np.ones(lat.size), target_lon * np.ones(lat.size))
-        elif target_lon.shape == lon.shape and target_lat == lon.shape:
-            d_from_target = distance_from_target(lat, lon, target_lat, target_lon)
+        # If only one value is given assume to be constant for all positions
+        if target_lon.size == 1 and target_lat.size == 1:
+            (target_lon, target_lat) = (target_lon * np.ones(lat.size), target_lat * np.ones(lat.size))
+
+        # Compute the range from the target location
+        d_from_target = distance_from_target(lat, lon, target_lat, target_lon)
 
         # Flag as suspect distances greater than target_range
         flag_arr[d_from_target > target_range] = QartodFlags.SUSPECT
