@@ -138,6 +138,29 @@ def location_test(lon: Sequence[N],
     lon = lon.flatten()
     lat = lat.flatten()
 
+    # Handle target inputs
+    if target_lon is not None or target_lat is not None or target_range is not None:
+        if target_lon is not None and target_lat is not None and target_range is not None:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                target_lat = np.ma.masked_invalid(np.array(target_lat).astype(np.float64))
+                target_lon = np.ma.masked_invalid(np.array(target_lon).astype(np.float64))
+        elif target_lon is not None and target_lat is not None and target_range is None:
+            raise ValueError('Missing target_range input if target_lat and target_lon are provided')
+        else:
+            raise ValueError('Missing some target inputs')
+
+        if target_lon.shape != target_lat.shape:
+            raise ValueError(
+                'Target_lon ({0.shape}) and target_lat ({1.shape}) are different shapes'.format(
+                    target_lon, target_lat
+                )
+            )
+
+        # Flatten target_lon and target_lat
+        target_lon = target_lon.flatten()
+        target_lat = target_lat.flatten()
+
     # Start with everything as passing (1)
     flag_arr = np.ma.ones(lon.size, dtype='uint8')
 
