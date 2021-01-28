@@ -139,12 +139,17 @@ def location_test(lon: Sequence[N],
     lat = lat.flatten()
 
     # Handle target inputs
+    # If any target inputs are provided
     if target_lon is not None or target_lat is not None or target_range is not None:
+        # All target inputs should be there
         if target_lon is not None and target_lat is not None and target_range is not None:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 target_lat = np.ma.masked_invalid(np.array(target_lat).astype(np.float64))
                 target_lon = np.ma.masked_invalid(np.array(target_lon).astype(np.float64))
+            if type(target_range) not in [int, float]:
+                raise ValueError('Bad target_range input. target_range should either float or int.')
+
         elif target_lon is not None and target_lat is not None and target_range is None:
             raise ValueError('Missing target_range input if target_lat and target_lon are provided')
         else:
