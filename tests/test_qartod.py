@@ -155,6 +155,62 @@ class QartodLocationTest(unittest.TestCase):
             np.ma.array([1, 1, 3])
         )
 
+    def test_location_single_target_threshold(self):
+        lon = np.array([-71.05, -71.06, -80.0])
+        lat = np.array([41.0, 41.02, 45.05])
+
+        npt.assert_array_equal(
+            qartod.location_test(lon, lat, target_range=3000.0, target_lon=-71.06, target_lat=41),
+            np.ma.array([1, 1, 3])
+        )
+
+    def test_location_multiple_target_threshold(self):
+        lon = np.array([-71.05, -71.06, -80.0])
+        lat = np.array([41.0, 41.02, 45.05])
+        target_lon = np.array([-71.05, -75.06, -80.0])
+        target_lat = np.array([41.0, 41.02, 45.05])
+
+        npt.assert_array_equal(
+            qartod.location_test(lon, lat, target_range=3000.0, target_lon=target_lon, target_lat=target_lat),
+            np.ma.array([1, 3, 1])
+        )
+
+    def test_location_multiple_target_missing_target(self):
+            lon = np.array([-71.05, -71.06, -80.0, -80.0])
+            lat = np.array([41.0, 41.02, 45.05, 45.05])
+            target_lon = np.array([-71.05, None, -80.0, None])
+            target_lat = np.array([41.0, 41.02, None, None])
+
+            npt.assert_array_equal(
+                qartod.location_test(lon, lat, target_range=3000.0, target_lon=target_lon, target_lat=target_lat),
+                np.ma.array([1, 9, 9, 9])
+            )
+
+    def test_location_target_missing_threshold(self):
+        lon = np.array([-71.05, -71.06, -80.0])
+        lat = np.array([41.0, 41.02, 45.05])
+        target_lon = np.array([-71.05, -75.06, -80.0])
+        target_lat = np.array([41.0, 41.02, 45.05])
+
+        with self.assertRaises(ValueError):
+            qartod.location_test(lon, lat, target_range=None, target_lon=target_lon, target_lat=target_lat)
+        with self.assertRaises(ValueError):
+            qartod.location_test(lon, lat, target_range=None, target_lon=target_lon[0], target_lat=target_lat[0])
+
+    def test_location_target_missing_threshold(self):
+        lon = np.array([-71.05, -71.06, -80.0])
+        lat = np.array([41.0, 41.02, 45.05])
+        target_lon = np.array([-71.05, -75.06, -80.0])
+        target_lat = np.array([41.0, 41.02, 45.05])
+
+        with self.assertRaises(ValueError):
+            qartod.location_test(lon, lat, target_range=3000, target_lat=target_lat)
+        with self.assertRaises(ValueError):
+            qartod.location_test(lon, lat, target_range=None, target_lon=target_lon)
+        with self.assertRaises(ValueError):
+            qartod.location_test(lon, lat, target_range=3000, target_lat=45)
+        with self.assertRaises(ValueError):
+            qartod.location_test(lon, lat, target_range=3000, target_lon=45)
 
 class QartodGrossRangeTest(unittest.TestCase):
 

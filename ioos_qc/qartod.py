@@ -189,7 +189,8 @@ def location_test(lon: Sequence[N],
         d_from_target = distance_from_target(lat, lon, target_lat, target_lon)
 
         # Flag as suspect distances greater than target_range
-        flag_arr[d_from_target > target_range] = QartodFlags.SUSPECT
+        with np.errstate(invalid='ignore'):
+            flag_arr[d_from_target > target_range] = QartodFlags.SUSPECT
 
         # Flag as missing target_location distance
         flag_arr[(target_lat.mask | target_lon.mask)] = QartodFlags.MISSING
