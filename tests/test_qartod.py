@@ -1016,7 +1016,7 @@ class QartodSpikeTest(unittest.TestCase):
                 inp=inp,
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
-                method='diff'
+                method='differential'
             ),
             diff_method_expected
         )
