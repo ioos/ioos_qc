@@ -42,9 +42,9 @@ class PandasStreamTest(unittest.TestCase):
         rows = 50
         data_inputs = {
             'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': 2.0,
-            'lat': 36.1,
-            'lon': -76.5,
+            'z': np.array(2.0),
+            'lat': np.array(36.1),
+            'lon': np.array(-76.5),
             'variable1': np.arange(0, rows),
         }
         self.df = pd.DataFrame(data_inputs)
@@ -220,9 +220,9 @@ class NetcdfStreamTest(unittest.TestCase):
         rows = 50
         data_inputs = {
             'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': 2.0,
-            'lat': 36.1,
-            'lon': -76.5,
+            'z': np.array(2.0),
+            'lat': np.array(36.1),
+            'lon': np.array(-76.5),
             'variable1': np.arange(0, rows),
         }
         df = pd.DataFrame(data_inputs)
@@ -285,9 +285,9 @@ class XarrayStreamTest(unittest.TestCase):
         rows = 50
         data_inputs = {
             'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': 2.0,
-            'lat': 36.1,
-            'lon': -76.5,
+            'z': np.array(2.0),
+            'lat': np.array(36.1),
+            'lon': np.array(-76.5),
             'variable1': np.arange(0, rows),
         }
         df = pd.DataFrame(data_inputs).set_index('time')
@@ -371,9 +371,9 @@ class XarrayStreamManyContextTest(unittest.TestCase):
         self.vardata = np.arange(0, rows)
         data_inputs = {
             'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': 2.0,
-            'lat': 36.1,
-            'lon': -76.5,
+            'z': np.array(2.0),
+            'lat': np.array(36.1),
+            'lon': np.array(-76.5),
             'variable1': self.vardata,
             'variable2': self.vardata,
         }
@@ -458,9 +458,9 @@ class PandasStreamManyContextTest(unittest.TestCase):
         self.vardata = np.arange(0, rows)
         data_inputs = {
             'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': 2.0,
-            'lat': 36.1,
-            'lon': -76.5,
+            'z': np.array(2.0),
+            'lat': np.array(36.1),
+            'lon': np.array(-76.5),
             'variable1': self.vardata,
             'variable2': self.vardata,
         }
