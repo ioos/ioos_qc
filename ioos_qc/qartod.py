@@ -449,10 +449,10 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
 
 @add_flag_metadata(standard_name='spike_test_quality_flag',
                    long_name='Spike Test Quality Flag')
-def spike_test(inp : Sequence[N],
-               suspect_threshold: N,
-               fail_threshold: N,
-               method='average'
+def spike_test(inp: Sequence[N],
+               suspect_threshold: float = None,
+               fail_threshold: float = None,
+               method: str = 'average'
                ) -> np.ma.core.MaskedArray:
     """Check for spikes by checking neighboring data against thresholds
 
@@ -468,7 +468,7 @@ def spike_test(inp : Sequence[N],
         inp: Input data as a numeric numpy array or a list of numbers.
         suspect_threshold: The SUSPECT threshold value, in observations units.
         fail_threshold: The SUSPECT threshold value, in observations units.
-        method [default:'average','diff']: optional input to assign the method used to detect spikes.
+        method: ['average'(default),'differential'] optional input to assign the method used to detect spikes.
             "average": Determine if there is a spike at data point n-1 by subtracting
                 the midpoint of n and n-2 and taking the absolute value of this
                 quantity, and checking if it exceeds a low or high threshold.
