@@ -489,7 +489,7 @@ def spike_test(inp: Sequence[N],
     inp = inp.flatten()
 
     # Apply different method
-    if method is 'average':
+    if method == 'average':
         # Calculate the average of n-2 and n
         ref = np.zeros(inp.size, dtype=np.float64)
         ref[1:-1] = (inp[0:-2] + inp[2:]) / 2
@@ -497,7 +497,7 @@ def spike_test(inp: Sequence[N],
 
         # Calculate the (n-1 - ref) difference
         diff = np.abs(inp - ref)
-    elif method is 'differential':
+    elif method == 'differential':
         ref = np.ma.diff(inp)
 
         # Find the minimum variation prior and after the n value
@@ -508,7 +508,8 @@ def spike_test(inp: Sequence[N],
         with np.errstate(invalid='ignore'):
             diff[1:-1][ref[:-1]*ref[1:] >= 0] = 0
     else:
-        raise ValueError('"'+str(method)+'" method is unknown, "average" or "differential" methods are available')
+        raise ValueError('Unknown method: "{0}", only "average" and "differential" methods are available'\
+                         .format(method))
 
     # Start with everything as passing (1)
     flag_arr = np.ma.ones(inp.size, dtype='uint8')
