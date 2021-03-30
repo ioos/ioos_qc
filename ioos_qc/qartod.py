@@ -450,8 +450,8 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
 @add_flag_metadata(standard_name='spike_test_quality_flag',
                    long_name='Spike Test Quality Flag')
 def spike_test(inp: Sequence[N],
-               suspect_threshold: float = None,
-               fail_threshold: float = None,
+               suspect_threshold: N = None,
+               fail_threshold: N = None,
                method: str = 'average'
                ) -> np.ma.core.MaskedArray:
     """Check for spikes by checking neighboring data against thresholds
@@ -515,12 +515,14 @@ def spike_test(inp: Sequence[N],
     flag_arr = np.ma.ones(inp.size, dtype='uint8')
 
     # If n-1 - ref is greater than the low threshold, SUSPECT test
-    with np.errstate(invalid='ignore'):
-        flag_arr[diff > suspect_threshold] = QartodFlags.SUSPECT
+    if suspect_threshold:
+        with np.errstate(invalid='ignore'):
+            flag_arr[diff > suspect_threshold] = QartodFlags.SUSPECT
 
     # If n-1 - ref is greater than the high threshold, FAIL test
-    with np.errstate(invalid='ignore'):
-        flag_arr[diff > fail_threshold] = QartodFlags.FAIL
+    if fail_threshold:
+        with np.errstate(invalid='ignore'):
+            flag_arr[diff > fail_threshold] = QartodFlags.FAIL
 
     # test is undefined for first and last values
     flag_arr[0] = QartodFlags.UNKNOWN
