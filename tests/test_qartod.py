@@ -1052,6 +1052,28 @@ class QartodSpikeTest(unittest.TestCase):
                 method=123
             )
 
+
+    def test_spike_test_inputs(self):
+        inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
+        expected_suspect_only = [2, 3, 1, 1, 3, 3, 1, 3, 1, 1, 3, 1, 3, 3, 3, 9, 9, 2]
+        expected_fail_only = [2, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 4, 4, 4, 9, 9, 2]
+        suspect_threshold = .5
+        fail_threshold = 1
+
+        npt.assert_array_equal(
+            qartod.spike_test(
+                inp=inp,
+                suspect_threshold=suspect_threshold,
+            ),
+            expected_suspect_only)
+        npt.assert_array_equal(
+            qartod.spike_test(
+                inp=inp,
+                fail_threshold=fail_threshold,
+            ),
+            expected_fail_only)
+
+
 class QartodRateOfChangeTest(unittest.TestCase):
 
     def setUp(self):
