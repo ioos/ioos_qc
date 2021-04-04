@@ -175,54 +175,38 @@ class TestQartodConfigurator(unittest.TestCase):
             var_in_file, _ = self.config_creator._var2var_in_file(var)
             self.assertTrue(var_in_file in ds)
 
-    def test_time_slice(self):
-        var = 'air'
-        start_time = datetime.datetime(2020, 1, 29)
-        end_time = datetime.datetime(2020, 2, 3)
-
-        time_slice = self.config_creator._get_time_range(var, (start_time, end_time))
-
-        self.assertEqual(time_slice, slice('1996-1-29', '1996-2-3'))
-
     def test_narr_subset(self):
         var = 'air'
         start_time = datetime.datetime(2020, 1, 29)
         end_time = datetime.datetime(2020, 2, 3)
+        time_slice = slice(start_time, end_time)
         bbox = [
             -165,
             70,
             -160,
             80
         ]
-        time_slice = self.config_creator._get_time_range(var, (start_time, end_time))
         subset = self.config_creator._get_subset(var, bbox, time_slice)
 
-        self.assertIsInstance(subset, xr.DataArray)
-        self.assertEqual(subset.name, 'air')
-        self.assertTrue(np.nanmin(subset['lon']) >= bbox[0])
-        self.assertTrue(np.nanmin(subset['lat']) >= bbox[1])
-        self.assertTrue(np.nanmax(subset['lon']) <= bbox[2])
-        self.assertTrue(np.nanmax(subset['lat']) <= bbox[3])
+        self.assertIsInstance(subset, np.ndarray)
+        self.assertEqual(subset.shape, (5, 15))
+        self.assertTrue(np.isclose(np.sum(subset), -2128.5109301700854))
 
     def test_ocean_atlas_subset(self):
         var = 'salinity'
         start_time = datetime.datetime(2021, 9, 29)
         end_time = datetime.datetime(2021, 10, 3)
+        time_slice = slice(start_time, end_time)
         bbox = [
             -165,
             70,
             -160,
             80
         ]
-        time_slice = self.config_creator._get_time_range(var, (start_time, end_time))
         subset = self.config_creator._get_subset(var, bbox, time_slice)
 
-        self.assertIsInstance(subset, xr.DataArray)
-        self.assertEqual(subset.name, 's_an')
-        self.assertTrue(np.nanmin(subset['lon']) >= bbox[0])
-        self.assertTrue(np.nanmin(subset['lat']) >= bbox[1])
-        self.assertTrue(np.nanmax(subset['lon']) <= bbox[2])
-        self.assertTrue(np.nanmax(subset['lat']) <= bbox[3])
+        self.assertIsInstance(subset, np.ndarray)
+        self.assertTrue(np.equal(np.sum(subset), 5408.317574769495))
 
     def test_get_stats_config(self):
         var = 'air'
@@ -241,10 +225,10 @@ class TestQartodConfigurator(unittest.TestCase):
             'end_time': end_time
         }
         stats = self.config_creator._get_stats(config)
-        self.assertTrue(np.isclose(stats['min'], -30.684714963359216))
-        self.assertTrue(np.isclose(stats['max'], -25.362876707507716))
-        self.assertTrue(np.isclose(stats['mean'], -28.609117501781835))
-        self.assertTrue(np.isclose(stats['std'], 1.8615416921588284))
+        self.assertTrue(np.isclose(stats['min'], -30.7973671854256))
+        self.assertTrue(np.isclose(stats['max'], -25.590733697168506))
+        self.assertTrue(np.isclose(stats['mean'], -28.69111076703269))
+        self.assertTrue(np.isclose(stats['std'], 1.8436437522010403))
 
     def test_data(self):
         # use middle of bounding box and nearest neighbor as backup
@@ -269,8 +253,8 @@ class TestQartodConfigurator(unittest.TestCase):
         ref = {
             "qartod": {
                 "gross_range_test": {
-                    "suspect_span": [-34.407798347676874, -24.4321058614283],
-                    "fail_span": [-53.25706500543771, -15.36850752378469]
+                    "suspect_span": [-34.48465468982768, -24.668911821067987],
+                    "fail_span": [-52.896187109347814, -15.562177200871758]
                 }
             }
         }
@@ -302,8 +286,8 @@ class TestQartodConfigurator(unittest.TestCase):
         ref = {
             "qartod": {
                 "gross_range_test": {
-                    "suspect_span": [33.53635369231399, 34.21967512648008],
-                    "fail_span": [33.546374029945866, 34.64936816449745]
+                    "suspect_span": [33.537352094227394, 34.24161351252425],
+                    "fail_span": [33.54010588496753, 34.67029739382751]
                 }
             }
         }
