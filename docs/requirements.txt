@@ -1,5 +1,5 @@
 doctr
+ipykernel
+nbsphinx
 sphinx
 sphinx-autodoc-typehints
-nbsphinx
-ipykernel
