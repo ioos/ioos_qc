@@ -227,7 +227,7 @@ class NumpyStream:
                 # If the input was passed in the config.
                 # This is here for backwards compatibility and doesn't support
                 # being a different size than what the subset/context size is.
-                # Pass in values in teh config should be deprecated in the future!
+                # Pass in values in the config should be deprecated in the future!
                 if self.inp is None and 'inp' in call.kwargs:
                     self.inp = np.array(call.kwargs['inp'])
                     subset_indexes = np.full_like(self.inp, 1, dtype=bool)
