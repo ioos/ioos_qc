@@ -25,4 +25,4 @@ repos:
               .*\.yaml
           )$
       args:
-        - --ignore-words-list=pres,ba
+        - --ignore-words-list=pres,ba,ot
