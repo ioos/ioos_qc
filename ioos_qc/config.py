@@ -368,7 +368,7 @@ class ContextConfig:
         config (odict): dict representation of the parsed ContextConfig source
         region (GeometryCollection): A `shapely` object representing the valid geographic region
         window (namedtuple): A TimeWindow object representing the valid time period
-        streams (odict): dict represenatation of the parsed StreamConfig objects
+        streams (odict): dict representation of the parsed StreamConfig objects
     """
 
     def __init__(self, source: ConfigTypes):
@@ -404,10 +404,24 @@ class ContextConfig:
         else:
             self.window = tw()
 
-        self.context = Context(
-            window=self.window,
-            region=self.region,
-            attrs=self.attrs
+        # Stream Configs
+        # This parses through available checks and selects the actual test functions
+        # to run, but doesn't actually run anything. It just sets up the object to be
+        # run later by iterating over the configs.
+        self.streams = odict()
+        if self.config['streams']:
+            self.streams = odict({
+                stream_id: StreamConfig(cfg) for stream_id, cfg in self.config['streams'].items()
+            })
+
+    def __str__(self):
+        sc = list(self.streams.keys())
+        return (
+            f"<ContextConfig "
+            f"streams={','.join(sc)} "
+            f"region={self.region is not None} "
+            f"window={self.window.starting is not None or self.window.ending is not None}"
+            ">"
         )
 
         # Extract each Call from the nested JSON

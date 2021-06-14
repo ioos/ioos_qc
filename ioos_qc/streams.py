@@ -141,7 +141,7 @@ class PandasStream:
                 data_input = subset.loc[:, call.stream_id]
 
                 # This evaluates the generator test results
-                run_result = list(call.run(
+                run_result = list(stream.run(
                     inp=data_input,
                     **subset_kwargs
                 ))
@@ -252,7 +252,7 @@ class NumpyStream:
                 data_input = runinput[subset_indexes].reshape(original_shape)
 
                 # This evaluates the generator test results
-                run_result = list(call.run(
+                run_result = list(stream.run(
                     inp=data_input,
                     **subset_kwargs
                 ))
