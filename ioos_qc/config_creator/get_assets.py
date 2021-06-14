@@ -215,14 +215,14 @@ def narr_enhance(output_dir):
 
 
 def get_narr(output_dir):
-    logger.info(f'downloading NARR')
+    logger.info('downloading NARR')
     narr_download(output_dir)
     narr_merge_variables(output_dir)
     narr_enhance(output_dir)
 
 
 def remove_tmp_files(dirs_to_delete):
-    logger.info(f'removing tmp files')
+    logger.info('removing tmp files')
     for dir in dirs_to_delete:
         logger.info(f'removing {dir}')
         shutil.rmtree(str(dir))

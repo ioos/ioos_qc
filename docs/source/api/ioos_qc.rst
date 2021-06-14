@@ -25,6 +25,14 @@ ioos\_qc.argo module
    :undoc-members:
    :show-inheritance:
 
+ioos\_qc.axds module
+--------------------
+
+.. automodule:: ioos_qc.axds
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ioos\_qc.config module
 ----------------------
 
@@ -88,4 +96,3 @@ ioos\_qc.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-

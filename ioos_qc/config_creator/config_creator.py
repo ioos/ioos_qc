@@ -1,11 +1,15 @@
+import calendar
 import datetime
 import json
 import logging
+from copy import copy
 from pathlib import Path
 
-from jsonschema import validate
 import numpy as np
+import pandas as pd
 import xarray as xr
+from jsonschema import validate
+from scipy.interpolate import CubicSpline
 
 from ioos_qc.config_creator import fx_parser
 
@@ -205,6 +209,8 @@ class QcVariableConfig(dict):
             config = path_or_dict
         else:
             raise ValueError('Input is not valid file path or dict')
+
+        L.debug(f"Validating schema...")
         validate(instance=config, schema=schema)
 
         # validate test specifications only contain allowed stats and operators
@@ -264,6 +270,7 @@ class QcConfigCreator:
             qc_config (dict): Config for ioos_qc
         """
         stats = self._get_stats(variable_config)
+        L.debug("Creating config...")
         test_configs = {
             name: self._create_test_section(name, variable_config, stats) for name in variable_config['tests'].keys()
         }
@@ -276,6 +283,7 @@ class QcConfigCreator:
 
     def _load_datasets(self):
         """Load datasets"""
+        L.debug(f"Loading {len(self.config)} datasets...")
         return {name: xr.load_dataset(self.config[name]['file_path']) for name in self.config.keys()}
 
     def _determine_dataset_years(self):
@@ -362,10 +370,7 @@ class QcConfigCreator:
         """Return dict of stats (min, max, mean, std) for given config"""
         start_time = datetime.datetime.strptime(variable_config['start_time'], '%Y-%m-%d')
         end_time = datetime.datetime.strptime(variable_config['end_time'], '%Y-%m-%d')
-        time_range = self._get_time_range(
-            variable_config['variable'],
-            (start_time, end_time)
-        )
+        time_range = slice(start_time, end_time)
         subset = self._get_subset(
             variable_config['variable'],
             variable_config['bbox'],
@@ -379,23 +384,9 @@ class QcConfigCreator:
             'std': np.nanstd(subset)
         }
 
-    def _get_time_range(self, var, time_range):
-        """Return time slice to query data from input time_range.
-
-        Notes:
-        - The source datasets have different times because they are from different climatologies.
-        - This method extracts the dates, but corrects the year for the appropriate dataset.
-        """
-        _, name = self._var2var_in_file(var)
-        year = self.dataset_years[name]
-        start_time = f"{year}-{time_range[0].month}-{time_range[0].day}"
-        end_time = f"{year}-{time_range[1].month}-{time_range[1].day}"
-
-        return slice(start_time, end_time)
-
     def _get_subset(self, var, bbox, time_slice, depth=0, pad_delta=0.5):
         """Get subset of data"""
-        ds_name, ds = self.var2dataset(var)
+        _, ds = self.var2dataset(var)
 
         lat_mask = np.logical_and(
             ds['lat'] >= bbox[1],
@@ -408,9 +399,18 @@ class QcConfigCreator:
 
         # if there is no data in the subset, increase bounding box in an iterative fashion
         # - both are interpolated to daily values
+        L.debug(f"Subsetting {var} by depth={depth} and {bbox}...")
         subset = self.__get_daily_interp_subset(var, time_slice, depth, lat_mask, lon_mask)
+
+        padded = 0
         while np.nansum(subset) == 0:
+            old_bbox = copy(bbox)
             bbox = self.__apply_bbox_pad(bbox, pad_delta)
+
+            if old_bbox == bbox:
+                L.warning(f"No data found for {var} at depth={depth}")
+                break
+
             lat_mask = np.logical_and(
                 ds['lat'] >= bbox[1],
                 ds['lat'] <= bbox[3]
@@ -420,12 +420,17 @@ class QcConfigCreator:
                 ds['lon'] <= bbox[2]
             )
 
+            padded += 1
             subset = self.__get_daily_interp_subset(var, time_slice, depth, lat_mask, lon_mask)
 
-        L.info(f'used bounding box: {bbox}')
+        L.info(f'Used bounding box: {bbox}')
         return subset
 
     def __apply_bbox_pad(self, bbox, pad):
+        # Prevent infinite attempts of expanding bounding box for valid data
+        if bbox == ['-180', '-90', '180', '90']:
+            raise RuntimeError(f'No valid data found in maximum bounding box {bbox}')
+
         def apply_pad(val, lat_or_lon, min_or_max):
             if lat_or_lon == 'lat':
                 if min_or_max == 'min':
@@ -448,6 +453,8 @@ class QcConfigCreator:
         new_bbox.append(apply_pad(bbox[2], 'lon', 'max'))
         new_bbox.append(apply_pad(bbox[3], 'lat', 'max'))
 
+        L.debug(f'Expanded bounding box to {bbox}')
+
         return new_bbox
 
     def __get_daily_interp_subset(self, var, time_slice, depth, lat_mask, lon_mask):
@@ -455,9 +462,62 @@ class QcConfigCreator:
         var_in_file, _ = self._var2var_in_file(var)
 
         if '3d' in self.config[ds_name]:
-            return ds[var_in_file][:, depth, lat_mask, lon_mask].resample(time='1D').interpolate().sel(time=time_slice)
+            var = ds[var_in_file][:, depth, lat_mask, lon_mask]
+        else:  # 2d
+            var = ds[var_in_file][:, lat_mask, lon_mask]
+
+        # try cubic interpolation to daily values
+        try:
+            return self.__daily_cubic_interp(var, time_slice)
+        except ValueError:  # Raises exception is subset in bbox is all NaNs
+            return 0
+
+    def __daily_cubic_interp(self, var, time_slice):
+        """Given DataArray and time_slice, interpolate to daily values and return NumPy array.
+
+        Notes:
+        - Uses day of year for interpolation
+        - Adds data for day 1 and 366 to ensure periodicity if required to ensure periodicity
+        """
+        if (time_slice.stop - time_slice.start).days > 365:
+            raise NotImplementedError('Maximum of 365 days available for config_creator')
+
+        x = var.time.dt.dayofyear
+        y = var.data
+        if 1 not in x and 366 not in x:
+            x = np.hstack([1, x, 366])
+            # add new average value at beginning and end to ensure periodicity
+            end_value = (y[0:1, :, :] + y[-1:, :, :])/2
+            y = np.concatenate([end_value, y, end_value])
+        elif 1 not in x:
+            x = np.hstack([1, x])
+            # add new beginning value that is equal to end value to ensure periodicity
+            y = np.concatenate([y[-1:, :, :], y])
+        else:  # 366 must not be in x, but 1 is
+            x = np.hstack([x, 366])
+            # add new end value that is equal to beginning value to ensure periodicity
+            y = np.concatenate([y, y[0:1, :, :]])
+
+        # Create interpolator
+        # Need to handle NaNs in data before applying interpolator
+        # - mask out NaNs
+        # - reshape masked y to (ntimes, ...) where ntimes is y.shape[0]
+        # - assume that NaNs are same shape through time (i.e. will not work with wetting-drying)
+        y_no_nans = y[~np.isnan(y)].reshape(y.shape[0], -1)
+        spline = CubicSpline(x, y_no_nans, bc_type='periodic')
+
+        # Get days of year for independent variable
+        # - special handling for when time-slice crosses new year
+        doy_start = pd.Timestamp(time_slice.start).dayofyear
+        doy_end = pd.Timestamp(time_slice.stop).dayofyear
+        if doy_start > doy_end:  # days cross new year
+            days = list(range(doy_start, 367)) + list(range(1, doy_end))
+            if not calendar.isleap(time_slice.start.year):
+                days.remove(366)
         else:
-            return ds[var_in_file][:, lat_mask, lon_mask].resample(time='1D').interpolate().sel(time=time_slice)
+            days = list(range(doy_start, doy_end))
+
+        return spline(days)
 
     def __str__(self):
         return json.dumps(self.config, indent=4, sort_keys=True)

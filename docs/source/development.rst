@@ -19,8 +19,8 @@ Docs
 
 Build docs::
 
-    conda create -y -n ioosqc37_docs python=3.7
-    conda activate ioosqc37_docs
+    conda create -y -n ioosqc38_docs python=3.8
+    conda activate ioosqc38_docs
     conda install -y --file requirements.txt \
         --file tests/requirements.txt \
         --file docs/requirements.txt \
@@ -34,7 +34,7 @@ Then open a browser to ``build/html/index.html``.
 
 Run Jupyter server and edit notebook examples::
 
-    conda activate ioosqc37_docs
+    conda activate ioosqc38_docs
     cd docs/source/examples
     jupyter notebook
 
