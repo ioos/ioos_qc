@@ -7,6 +7,7 @@ The following implementations are available in ``ioos_qc``:
 
 * `IOOS QARTOD <https://ioos.noaa.gov/project/qartod/>`_ - `API </api/ioos_qc.html#module-ioos_qc.qartod>`_
 * ARGO - `API </api/ioos_qc.html#module-ioos_qc.argo>`_
+* AXDS - `API </api/ioos_qc.html#module-ioos_qc.axds>`_ - A collection of checks used by `Axiom Data Science <https://axiomdatascience.com>`_
 
 Basic usage
 -----------
@@ -59,22 +60,22 @@ There are three main concepts in the ``ioos_qc`` project:
 - Configurations_: Standardized quality control definitions
 - Streams_: Flexible data source classes to support running qualith checks against various data formats
 - Stores_: Flexible data storage classes to support storing quality results in various data formats
-- QcConfigCreator_: Classes to generate configuration objects based on external climatology datasets
+- ConfigGeneration_: Classes to generate configuration objects based on external climatology datasets
 
 
 
 Configurations
 --------------
 
-Configuration objects represent a collection of quality control tests to run and the parameters for each one.There three main types of `Config` objects:
+Configuration objects represent a collection of quality control tests to run and the parameters for each one. There are three main types of `Config` objects:
 
 - StreamConfig_: This configures QC tests for a single stream of data like a ``list``, ``tuple``, ``numpy.ndarray``, ``dask.array``, ``pandas.Series``, ``netCDF4.Variable``, or ``xarray.DataArray``. This can be used standalone, or as a building block for the following more complex configs.
 - ContextConfig_: This defines a collection of ``StreamConfig`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``windows``) -- and/or spatial domains (``regions``).
 - Config_: A collection of ``ContextConfig`` objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.
 
-Each configuration type can be initialized with the following:
+Each configuration type can be initialized through Python objects or from files and can be represented in the following ways:
 
-- python ``dict`` or ``OrderedDict``
+- python - ``dict`` or ``OrderedDict``
 - JSON/YAML filepath (``str`` or ``Path`` object), ``str``, or ``StringIO``
 
 In addition, the ``ContextConfig`` and ``Config`` objects can be initialized with:
@@ -101,7 +102,6 @@ Usage
 
     config = {
         'qartod': {
-            'aggregate': {},
             'gross_range_test': {
                 'suspect_span': [1, 11],
                 'fail_span': [0, 12],
@@ -213,17 +213,28 @@ Streams
 
 Streams represent the data input types for running quality control tests. A user "runs" a stream of data through a collection of quality control tests defined by a Config_. A list of possible Streams can be found in the `Streams API </api/ioos_qc.html#module-ioos_qc.streams>`_.
 All streams return a generator of QC results that contain contextual information that can be useful when using the results. You can iterate over the results generator directly or you can collect them into more familiar ``list`` or ``dict`` objects before usage. If you are
-working in a streaming environment you will want to use generator result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the Store classes provided by ``ioos_qc``.
+working in a streaming environment you will want to use generator result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the Stores_ provided by ``ioos_qc``.
 
+``ioos_qc`` comes with some built-in Streams_:
+
+* NumpyStream_ - Run QC checks against an numpy array
+* PandasStream_ - Run QC checks against a DataFrame
+* XarrayStream_ - Run QC checks staing an xarray Dataset
+* NetcdfStream_ - Run QC checks against a netCDF file (deprecated - use ``XarrayStream``)
 
 Results
 ~~~~~~~
 
-Each yielded result is either a `StreamConfigResult </api/ioos_qc.html#ioos_qc.results.StreamConfigResult>`_ or a `ContextResult </api/ioos_qc.html#ioos_qc.results.ContextResult>`_, depending on what type of Config_ object was used. Collected results are only ever of one type, a `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_, and only one ``CollectedResult`` will be returned after collecting results for unique combination of ``stream_id`` and defined module/test. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique stream_id and module/test combination.
+Each yielded result will be a `StreamConfigResult </api/ioos_qc.html#ioos_qc.results.StreamConfigResult>`_ or a `ContextResult </api/ioos_qc.html#ioos_qc.results.ContextResult>`_, depending on which type of Config_ object was used. Collected results are only ever of one type, a `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
 
-For example: If you had a Config_ object that contained (3) different ContextConfig_ objects (each defining a time window and test inputs) for a single variable/``stream_id``, running that ``Config`` through any ``Stream`` implementation would yield (3) different ``ContextResult`` objects. You could use them yourself to construct whatever results you wanted to manually, or you could collect those results back into a single ``CollectedResult`` object to only have to deal with one result.
+.. note::
 
-Historically, test results were returned in a ``dict`` structure. While this is still supported it should be considered deprecated. You should be using the individually yielded result objects or a list of `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_ objects in any applications (including Stores_ implementations) going forward.
+    For example: If you had a Config_ object that contained (3) different ContextConfig_ objects (each defining a time window and test inputs) for a single variable/``stream_id``, running that ``Config`` through any ``Stream`` implementation would yield (3) different ``ContextResult`` objects. You could use them yourself to construct whatever results you wanted to manually, or you could collect those results back into a single ``CollectedResult`` object to only have to deal with one result.
+
+.. warning::
+
+    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_ objects should be used in any applications, including any implementation of Stores_, going forward.
+
 
 .. code-block:: python
     :linenos:
@@ -412,6 +423,49 @@ A PandasStream pulls all required information to run the qc tests from a single 
     # Pass the run method the config to use
     results = ps.run(c)
 
+XarrayStream
+~~~~~~~~~~~~
+
+.. code-block:: python
+    :linenos:
+    :caption: An example of a XarrayStream
+
+    import numpy as np
+    import xarray as xr
+    import pandas as pd
+    from ioos_qc.config import Config
+    from ioos_qc.streams import XarrayStream
+
+    config = """
+        window:
+            starting: 2020-01-01T00:00:00Z
+            ending: 2020-04-01T00:00:00Z
+        streams:
+            variable1:
+                qartod:
+                    aggregate:
+                    gross_range_test:
+                        suspect_span: [20, 30]
+                        fail_span: [10, 40]
+    """
+    c = Config(config)
+
+    rows = 50
+    data_inputs = {
+        'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
+        'z': 2.0,
+        'lat': 36.1,
+        'lon': -76.5,
+        'variable1': np.arange(0, rows),
+    }
+    df = pd.DataFrame(data_inputs)
+    ds = xr.Dataset.from_dataframe(df)
+
+    # Setup the stream
+    xs = XarrayStream(ds)
+    # xs = XarrayStream(ds, time='time', z='z', lat='lat', lon='lon')
+    # Pass the run method the config to use
+    results = xs.run(c)
 
 NetcdfStream
 ~~~~~~~~~~~~
@@ -460,54 +514,15 @@ A subset of the NumpyStream, the NetcdfStream simply extracts numpy arrays from 
     results = ns.run(c)
 
 
-XarrayStream
-~~~~~~~~~~~~
-
-.. code-block:: python
-    :linenos:
-    :caption: An example of a XarrayStream
-
-    import numpy as np
-    import xarray as xr
-    import pandas as pd
-    from ioos_qc.config import Config
-    from ioos_qc.streams import XarrayStream
-
-    config = """
-        window:
-            starting: 2020-01-01T00:00:00Z
-            ending: 2020-04-01T00:00:00Z
-        streams:
-            variable1:
-                qartod:
-                    aggregate:
-                    gross_range_test:
-                        suspect_span: [20, 30]
-                        fail_span: [10, 40]
-    """
-    c = Config(config)
-
-    rows = 50
-    data_inputs = {
-        'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-        'z': 2.0,
-        'lat': 36.1,
-        'lon': -76.5,
-        'variable1': np.arange(0, rows),
-    }
-    df = pd.DataFrame(data_inputs)
-    ds = xr.Dataset.from_dataframe(df)
-
-    # Setup the stream
-    xs = XarrayStream(ds)
-    # xs = XarrayStream(ds, time='time', z='z', lat='lat', lon='lon')
-    # Pass the run method the config to use
-    results = xs.run(c)
-
 Stores
 ------
 
 Stores represent different data formats for storing quality control Results_ from Streams_. The results from any ``Stream`` should be able to be passed into any ``Store`` implementation defined in the `Stores API </api/ioos_qc.html#module-ioos_qc.stores>`_.
+
+``ioos_qc`` comes with some built-in Stores_:
+
+* PandasStore_ - Store QC results in a DataFrame.
+* CFNetCDFStore_ - Store QC results in a CF DSG file supported by `pocean-core <https://github.com/pyoceans/pocean-core>`_.
 
 
 PandasStore
@@ -515,27 +530,85 @@ PandasStore
 
 Collects all results and stores them as columns in a DataFrame.
 
+.. code-block:: python
+    :linenos:
+    :caption: A typical PandasStore workflow
+
+    import pandas as pd
+    from ioos_qc.streams import PandasStream
+    from ioos_qc.stores import PandasStore
+
+    # Setup the stream
+    stream = PandasStream(df)
+
+    # Run the tests by passing in a Config object
+    results = stream.run(config)
+
+    # Store the results in another DataFrame
+    store = PandasStore(
+        results,
+        axes={
+            't': 'time',
+            'z': 'z',
+            'y': 'lat',
+            'x': 'lon'
+        }
+    )
+
+    # Compute any aggregations
+    store.compute_aggregate(name='rollup_qc')  # Appends to the results internally
+
+    # Write only the test results to the store
+    results_store = store.save(write_data=False, write_axes=False)
+
+    # Append columns from qc results back into the data
+    results_store = pd.concat([df, results_store], axis=1)
+
 
 CFNetCDFStore
 ~~~~~~~~~~~~~
 
-Store the QC results in a CF compliant DSG type netCDF file, along with all metadata information and serializing the configuation used in the tests into the netCDF file. This currently only supports creating a new file with all results and does not support appending to existing files or results, although that is expected to be implemented at some pooint. You can also choose to store a subset of results in a file to support storing the aggregate results in one file and the individual test results in another file.
+Store the QC results in a CF compliant DSG type netCDF file, along with all metadata information and serializing the configuration used in the tests into the netCDF file. This currently only supports creating a new file with all results and does not support appending to existing files or results, although that is expected to be implemented at some point. You can also choose to store a subset of results in a file to support storing the aggregate results in one file and the individual test results in another file.
 
+.. code-block:: python
+    :linenos:
+    :caption: A typical CFNetCDFStore workflow
 
-QcConfigCreator
----------------
+    import pandas as pd
+    from ioos_qc.streams import PandasStream
+    from ioos_qc.stores import CFNetCDFStore
+    from pocean.dsg import IncompleteMultidimensionalTrajectory
 
-A `QcConfigCreator` instance generates a config for `QcConfig` informed by reference datasets,
-such as climatologies, defined via configuration.
+    # Setup the stream
+    stream = PandasStream(df)
+
+    # Run the tests by passing in a Config object
+    results = stream.run(config)
+
+    # Save a netCDF file
+    ncd = CFNetCDFStore(results)
+    ncd.save(
+        'results.nc',
+        IncompleteMultidimensionalTrajectory,
+        config,
+        dsg_kwargs=dict(
+            reduce_dims=True,
+            unlimited=False,
+            unique_dims=True
+        )
+    )
+
+ConfigGeneration
+----------------
+
+A `QcConfigCreator` instance generates a config for `QcConfig` informed by reference datasets, such as climatologies, defined via configuration.
 
 CreatorConfig
 ~~~~~~~~~~~~~
 
-CreatorConfig performs checks on the configuration to ensure that all required fields
-and attributes are provided.
+CreatorConfig performs checks on the configuration to ensure that all required fields and attributes are provided.
 
-For convenience, the `get_assets.py` script is provided to download
-and prepare climatology dataset from NARR and Ocean Atlas.
+For convenience, the `get_assets.py` script is provided to download and prepare climatology dataset from NARR and Ocean Atlas.
 
 
 .. code-block:: python
@@ -595,6 +668,7 @@ and prepare climatology dataset from NARR and Ocean Atlas.
 
 QcConfigCreator
 ~~~~~~~~~~~~~~~
+
 .. code-block:: python
     :linenos:
     :caption: Create QcConfigCreator using configuration just created
@@ -630,14 +704,9 @@ QcVariableConfig
 
 An instance of *QcVariableConfig* specifies how quality control will be tested for a given variable.
 
-In this example, the variable *air*, or air temperature, will be quality controlled based on climatological
-data in the region defined by *bbox* (xmin, ymin, xmax, ymax), for a time range (between 2020-01-01 and 2020-01-08).
-The *tests* sections specifies that two tests will be performed: *spike_test* and *gross_range_test*. Each
-test section requires *suspect_min*, *suspect_max*, *fail_min*, and *fail_max* to be defined.
+In this example, the variable *air*, or air temperature, will be quality controlled based on  climatological data in the region defined by *bbox* (xmin, ymin, xmax, ymax), for a time range (between 2020-01-01 and 2020-01-08). The *tests* sections specifies that two tests will be performed: *spike_test* and *gross_range_test*. Each test section requires *suspect_min*, *suspect_max*, *fail_min*, and *fail_max* to be defined.
 
-The *{fail,suspect}_{min,max}* values will be evaluated as functions with values for *min*, *max*, *mean*, and
-*std* derived from the dataset for the bounds specified.  Note that each term, operator, and grouping symbol
-must be surrounded by whitespace.
+The *{fail,suspect}_{min,max}* values will be evaluated as functions with values for *min*, *max*, *mean*, and *std* derived from the dataset for the bounds specified.  Note that each term, operator, and grouping symbol must be surrounded by whitespace.
 
 Test function allowed symbols:
 
@@ -645,8 +714,7 @@ Test function allowed symbols:
 - Operators: -, +, *, /
 - Grouping symbols: (, )
 
-Like CreatorConfig, QcVaribleConfig performs checks on the configuration to ensure that it adheres
-to the specified schema and includes all required fields and attributes.
+Like CreatorConfig, QcVaribleConfig performs checks on the configuration to ensure that it adheres to the specified schema and includes all required fields and attributes.
 
 .. code-block:: python
     :linenos:
@@ -702,8 +770,7 @@ to the specified schema and includes all required fields and attributes.
 Create config for QcConfig
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, the `QcConfigCreator` instance (`qccc`) takes the `QcVariableConfig` instance (`vc`)
-and returns a config that can then be used with `QcConfig`.
+Finally, the `QcConfigCreator` instance (`qccc`) takes the `QcVariableConfig` instance (`vc`) and returns a config that can then be used with `QcConfig`.
 
 .. code-block:: python
     :linenos:
