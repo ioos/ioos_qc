@@ -177,7 +177,7 @@ def narr_enhance(output_dir):
     outfile = output_dir.parent / 'narr.nc'
     outtmp = output_dir.parent / 'narr_tmp.nc'
 
-    # remove unecessary vars
+    # remove unnecessary vars
     nco = Nco()
     options = [
         '-O',
