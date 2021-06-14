@@ -1,6 +1,25 @@
 IOOS QC Releases and Migration Guide
 ====================================
 
+2.0.0 (June 2021)
+###################
+
+As of this release, backwards compatibility with ``1.0.0`` has been broken for the ``QcConfig`` and ``NcQcConfig`` (they no longer exist). Look at the documentation for the new ``Config`` objects. The basic test interface and functionality did not change with this release and if you were not using any of the internal complex objects you should be safe to upgrade. Of course please test your own implementations first.
+
+Special thanks to @jessicaaustin, @JessyBarette, @yosoyjay, and @eldobbins for reviewing code, improving documentation, and submitting issues and pull requests.
+
+Changes from **1.0.0**:
+
+* Core
+    * `Added <https://github.com/ioos/ioos_qc/pull/39>`_ the concepts of ``Config``, ``Streams``, and ``Stores``, see usage documentation for details.
+    * `Added <https://github.com/ioos/ioos_qc/pull/39/commits/be7d1daf02791fc7a9443b80ac9f4a91f0578e63>`_ ability to generate Config objects based on climatologies
+* Tests
+    * Added a `Density Inversion <https://github.com/ioos/ioos_qc/pull/42>`_ test
+    * Attenuated signal test `was reworked <https://github.com/ioos/ioos_qc/pull/32>`_
+    * `Bug fix <https://github.com/ioos/ioos_qc/pull/34>`_ in spike test
+    * Added the ``argo`` module including speed and pressure tests
+    * Improved documentation and notebook examples
+
 1.0.0 (March 2020)
 ###################
 
