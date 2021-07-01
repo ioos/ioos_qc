@@ -11,7 +11,6 @@ from xarray.core.indexing import remap_label_indexers
 
 from ioos_qc.config import Config
 from ioos_qc.utils import mapdates
-from ioos_qc.qartod import QartodFlags
 from ioos_qc.results import ContextResult
 
 L = logging.getLogger(__name__)  # noqa

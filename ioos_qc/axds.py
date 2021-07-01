@@ -2,31 +2,24 @@
 # coding=utf-8
 """Tests based on the IOOS QARTOD manuals."""
 import logging
-import warnings
-from typing import Dict, List, Tuple, Union, Sequence
-from numbers import Real as N
+from typing import Tuple, Sequence
 from collections import namedtuple
 
 import numpy as np
-import pandas as pd
 
 from ioos_qc.utils import (
     isnan,
-    isfixedlength,
     add_flag_metadata,
-    great_circle_distance,
     mapdates
 )
 from ioos_qc.qartod import QartodFlags
 
 L = logging.getLogger(__name__)  # noqa
 
-
 FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
 span = namedtuple('Span', 'minv maxv')
-
 
 
 @add_flag_metadata(standard_name='gross_range_test_quality_flag',
@@ -94,7 +87,7 @@ def valid_range_test(inp : Sequence[any],
                     "Could not determine the type of input, try using the dtype parameter")
     else:
         inp = np.ma.masked_invalid(np.array(inp, dtype=dtype))
-        valid_span =  np.ma.masked_invalid(np.array(valid_span, dtype=dtype))
+        valid_span = np.ma.masked_invalid(np.array(valid_span, dtype=dtype))
 
     inp = inp.flatten()
 

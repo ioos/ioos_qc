@@ -8,7 +8,6 @@ from functools import partial
 from shapely.geometry import Point, GeometryCollection
 
 import ioos_qc
-from ioos_qc import qartod
 from ioos_qc.config import Config, Context, Call, tw
 
 L = logging.getLogger('ioos_qc')

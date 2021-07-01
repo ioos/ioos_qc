@@ -11,7 +11,6 @@ from datetime import date, datetime
 from collections import OrderedDict as odict
 from collections.abc import Mapping
 
-import pandas as pd
 import numpy as np
 import pandas as pd
 import xarray as xr
