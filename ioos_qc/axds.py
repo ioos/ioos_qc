@@ -45,7 +45,7 @@ def valid_range_test(inp : Sequence[any],
     Given a 2-tuple of minimum/maximum values, flag data outside of the given
     range as FAIL data. Missing and masked data is flagged as UNKNOWN. The first span value is
     treated as inclusive and the second span valid is treated as exclusive. To change this
-    behavior you can use the paramters `start_inclusive` and `end_inclusive`.
+    behavior you can use the parameters `start_inclusive` and `end_inclusive`.
 
     Args:
         inp (Sequence[any]): Data as a sequence of objects compatible with the fail_span objects

@@ -368,7 +368,7 @@ class ContextConfig:
         config (odict): dict representation of the parsed ContextConfig source
         region (GeometryCollection): A `shapely` object representing the valid geographic region
         window (namedtuple): A TimeWindow object representing the valid time period
-        streams (odict): dict represenatation of the parsed StreamConfig objects
+        streams (odict): dict representation of the parsed StreamConfig objects
     """
 
     def __init__(self, source: ConfigTypes):
