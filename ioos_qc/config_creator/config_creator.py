@@ -210,7 +210,7 @@ class QcVariableConfig(dict):
         else:
             raise ValueError('Input is not valid file path or dict')
 
-        L.debug(f"Validating schema...")
+        L.debug("Validating schema...")
         validate(instance=config, schema=schema)
 
         # validate test specifications only contain allowed stats and operators
@@ -487,7 +487,7 @@ class QcConfigCreator:
         if 1 not in x and 366 not in x:
             x = np.hstack([1, x, 366])
             # add new average value at beginning and end to ensure periodicity
-            end_value = (y[0:1, :, :] + y[-1:, :, :])/2
+            end_value = (y[0:1, :, :] + y[-1:, :, :]) / 2
             y = np.concatenate([end_value, y, end_value])
         elif 1 not in x:
             x = np.hstack([1, x])

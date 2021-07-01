@@ -311,7 +311,8 @@ class Config:
             for c in self._calls:
                 if (c.stream_id == stream_id and
                     c.method == method.__module__ and
-                    c.method == method.__name__):
+                    c.method == method.__name__
+                   ):
                     return c
         return False
 

@@ -817,21 +817,21 @@ def density_inversion_test(inp: Sequence[N],
         return flag_arr
 
     # Compute the vertical density variability along zinp and flip delta according to zinp variation direction
-    delta = np.sign(np.diff(zinp))*np.diff(inp)
+    delta = np.sign(np.diff(zinp)) * np.diff(inp)
 
     if suspect_threshold is not None:
         with np.errstate(invalid='ignore'):
             is_suspect = delta < suspect_threshold
             if any(is_suspect):
-                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # Previous value
-                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # Reversed value
+                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712- Previous value
+                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712- Reversed value
 
     if fail_threshold is not None:
         with np.errstate(invalid='ignore'):
             is_fail = delta < fail_threshold
             if any(is_fail):
-                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # Previous value
-                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # Reversed Value
+                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # noqa:E712- Previous value
+                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # noqa:E712- Reversed Value
 
     # If the value or depth is masked set the flag to MISSING for this record and the following one.
     is_missing = inp.mask | zinp.mask

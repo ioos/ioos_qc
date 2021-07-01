@@ -12,7 +12,7 @@ import ioos_qc
 from ioos_qc import axds
 from ioos_qc.streams import NumpyStream
 from ioos_qc.results import collect_results
-from ioos_qc.config import Config, Context, Call, tw
+from ioos_qc.config import Config, Context, Call
 
 L = logging.getLogger('ioos_qc')
 L.setLevel(logging.INFO)
@@ -127,7 +127,7 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
         )
 
         times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
-                           step=np.timedelta64(1, 'h'), dtype=np.datetime64)
+                          step=np.timedelta64(1, 'h'), dtype=np.datetime64)
         times[0:2] = np.datetime64("NaT")
 
         npt.assert_array_equal(

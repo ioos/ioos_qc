@@ -10,12 +10,10 @@ from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
-import netCDF4 as nc4
 import numpy.testing as npt
 from ruamel.yaml import YAML
 
-from ioos_qc.utils import GeoNumpyDateEncoder
-from ioos_qc.config import QcConfig, NcQcConfig
+from ioos_qc.config import QcConfig
 from ioos_qc.qartod import ClimatologyConfig
 
 
