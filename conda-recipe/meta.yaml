@@ -1,6 +1,6 @@
 package:
   name: ioos_qc
-  version: "2.0.0"
+  version: "2.0.0-rc1"
 
 source:
   path: ../
