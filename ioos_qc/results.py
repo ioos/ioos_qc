@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from collections import OrderedDict as odict, defaultdict
 
 import numpy as np
-import pandas as pd
 from ioos_qc.qartod import QartodFlags
 
 L = logging.getLogger(__name__)  # noqa

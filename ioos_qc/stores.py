@@ -55,7 +55,6 @@ class PandasStore(BaseStore):
     def stream_ids(self) -> List[str]:
         return self._stream_ids
 
-
     def compute_aggregate(self, name='rollup'):
         """ Internally compute the total aggregate and add it to the results
         """

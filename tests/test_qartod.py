@@ -1409,8 +1409,8 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
 class QartodDensityInversionTest(unittest.TestCase):
 
     def _run_density_inversion_tests(self, density, depth, result,
-                             suspect_threshold=-0.01,
-                             fail_threshold=-.03):
+                                     suspect_threshold=-0.01,
+                                     fail_threshold=-.03):
         # Try every possible input format combinations
         dens_inputs = [
             density,
