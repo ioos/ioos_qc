@@ -1,13 +1,10 @@
 
 name: Publish to PyPI
 
-# on:
-#   release:
-#     types:
-#       - published
-
 on:
-  pull_request:
+  release:
+    types:
+      - published
 
 jobs:
   packages:
@@ -43,8 +40,8 @@ jobs:
         python -m twine check *
       shell: bash
 
-    # - name: Publish a Python distribution to PyPI
-    #   uses: pypa/gh-action-pypi-publish@master
-    #   with:
-    #     user: __token__
-    #     password: ${{ secrets.PYPI_PASSWORD }}
+    - name: Publish a Python distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_PASSWORD }}
