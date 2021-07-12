@@ -988,7 +988,6 @@ class QartodSpikeTest(unittest.TestCase):
                 expected
             )
 
-
     def test_spike_methods(self):
         """
         Test the different input methods and review the different flags expected.
@@ -1031,7 +1030,6 @@ class QartodSpikeTest(unittest.TestCase):
             average_method_expected
         )
 
-
     def test_spike_test_bad_method(self):
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
         suspect_threshold = .5
@@ -1051,7 +1049,6 @@ class QartodSpikeTest(unittest.TestCase):
                 fail_threshold=fail_threshold,
                 method=123
             )
-
 
     def test_spike_test_inputs(self):
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]

@@ -508,8 +508,10 @@ def spike_test(inp: Sequence[N],
         with np.errstate(invalid='ignore'):
             diff[1:-1][ref[:-1]*ref[1:] >= 0] = 0
     else:
-        raise ValueError('Unknown method: "{0}", only "average" and "differential" methods are available'\
-                         .format(method))
+        raise ValueError(
+            'Unknown method: "{0}", only "average" and "differential" methods are available'
+            .format(method)
+        )
 
     # Start with everything as passing (1)
     flag_arr = np.ma.ones(inp.size, dtype='uint8')
