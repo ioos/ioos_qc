@@ -9,7 +9,7 @@ from importlib import import_module
 
 import numpy as np
 import pandas as pd
-import netCDF4 as nc4
+import h5netcdf.legacyapi as nc4
 
 from ioos_qc.config import Config
 from ioos_qc.qartod import aggregate
