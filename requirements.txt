@@ -2,7 +2,7 @@ geographiclib
 geojson
 geopandas
 jsonschema
-netCDF4
+h5netcdf
 numba
 numpy>=1.14
 ruamel.yaml

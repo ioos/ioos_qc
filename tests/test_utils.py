@@ -8,7 +8,7 @@ import simplejson as json
 
 import numpy as np
 import xarray as xr
-import netCDF4 as nc4
+import h5netcdf.legacyapi as nc4
 
 from ioos_qc import utils
 
