@@ -41,7 +41,7 @@ jobs:
         set -e
         micromamba activate TEST
         pushd docs
-        micromamba install --file requirements.txt
+        micromamba install --file requirements.txt --channel conda-forge
         make clean html linkcheck
         popd
 
