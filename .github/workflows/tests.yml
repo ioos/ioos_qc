@@ -36,7 +36,7 @@ jobs:
       shell: bash -l {0}
       run: |
         micromamba activate TEST
-        micromamba uninstall numba
+        micromamba remove numba
 
     - name: Debug conda
       shell: bash -l {0}
