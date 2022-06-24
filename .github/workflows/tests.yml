@@ -1,0 +1,52 @@
+name: Default-Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  run:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: [ubuntu-latest]
+        numba: [true, false]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Micromamba
+      uses: mamba-org/provision-with-micromamba@main
+      with:
+        environment-file: false
+
+    - name: Python ${{ matrix.python-version }}
+      shell: bash -l {0}
+      run: |
+        micromamba create --name TEST python=${{ matrix.python-version }} --file requirements.txt --file tests/requirements.txt --channel conda-forge
+        micromamba activate TEST
+        pip install -e . --no-deps --force-reinstall
+
+    - name: numba
+      # numba is listed in requirements.txt so we need to remove it below.
+      if: ${{ ! matrix.numba }}
+      shell: bash -l {0}
+      run: |
+        micromamba activate TEST
+        micromamba remove numba
+
+    - name: Debug conda
+      shell: bash -l {0}
+      run: |
+        micromamba activate TEST
+        micromamba info --all
+        micromamba list
+
+    - name: Tests
+      shell: bash -l {0}
+      run: |
+        micromamba activate TEST
+        python -m  pytest --disable-warnings
