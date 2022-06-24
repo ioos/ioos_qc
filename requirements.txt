@@ -1,8 +1,8 @@
 geographiclib
 geojson
 geopandas
-jsonschema
 h5netcdf
+jsonschema
 numba
 numpy>=1.14
 ruamel.yaml
