@@ -5,7 +5,7 @@ import logging
 import simplejson as json
 from typing import Any, Union
 from numbers import Real
-from pyproj import Geod
+from geographiclib.geodesic import Geodesic
 from pathlib import Path
 from datetime import date, datetime
 from collections import OrderedDict as odict
@@ -262,6 +262,7 @@ class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
 
 def great_circle_distance(lat_arr, lon_arr):
     dist = np.ma.zeros(lon_arr.size, dtype=np.float64)
-    g = Geod(ellps='WGS84')
-    _, _, dist[1:] = g.inv(lon_arr[:-1], lat_arr[:-1], lon_arr[1:], lat_arr[1:])
+    positions = list(zip(lat_arr, lon_arr))
+    positions_pairs = list(zip(positions[:-1], positions[1:]))
+    dist[1:] = [Geodesic.WGS84.Inverse(*pair[0], *pair[1])["s12"] for pair in positions_pairs]
     return dist
