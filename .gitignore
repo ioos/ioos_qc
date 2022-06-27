@@ -19,3 +19,4 @@ __pycache__
 .vscode
 build/
 docs/source/_build
+ioos_qc/_version.py
