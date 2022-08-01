@@ -9,4 +9,4 @@ ruamel.yaml
 scipy
 shapely
 simplejson
-xarray>=2022.6.0
+xarray
