@@ -261,8 +261,9 @@ class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
 
 
 def great_circle_distance(lat_arr, lon_arr):
+    def gc(y1, x1, y2, x2):
+        return Geodesic.WGS84.Inverse(y1, x1, y2, x2)["s12"]
     dist = np.ma.zeros(lon_arr.size, dtype=np.float64)
-    positions = list(zip(lat_arr, lon_arr))
-    positions_pairs = list(zip(positions[:-1], positions[1:]))
-    dist[1:] = [Geodesic.WGS84.Inverse(*pair[0], *pair[1])["s12"] for pair in positions_pairs]
+    dv = np.vectorize(gc)
+    dist[1:] = dv(lat_arr[:-1], lon_arr[:-1], lat_arr[1:], lon_arr[1:])
     return dist
