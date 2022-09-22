@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 import os
+import time
 import unittest
 import tempfile
 import simplejson as json
@@ -66,3 +67,23 @@ class TestReadXarrayConfig(unittest.TestCase):
             c = utils.load_config_as_dict(ds)
             assert 'data1' in c
             assert c['data1']['qartod']['gross_range_test'] == self.config
+
+
+class TestGreatCircle(unittest.TestCase):
+
+    def setUp(self):
+        """
+        Test 1 million great circle calculations
+        """
+        points = 10000
+        self.lon = np.linspace(-179, 179, points)
+        self.lat = np.linspace(-89, 89, points)
+
+    def test_great_circle(self):
+        s = time.perf_counter()
+        dist = utils.great_circle_distance(self.lat, self.lon)
+        e = time.perf_counter()
+        print(f"Great Circle: {e - s:0.4f} seconds")
+        close = np.isclose(dist[1:-1], dist[2:], atol=1)
+        assert close.all()
+
