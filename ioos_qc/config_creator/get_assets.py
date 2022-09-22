@@ -5,7 +5,8 @@ import shutil
 from pathlib import Path
 from urllib import request
 
-import netCDF4 as nc
+import h5netcdf.legacyapi as nc
+
 import xarray as xr
 from nco import Nco
 
