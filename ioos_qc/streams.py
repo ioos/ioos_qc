@@ -7,7 +7,10 @@ from collections import OrderedDict as odict
 import numpy as np
 import pandas as pd
 import xarray as xr
-from xarray.core.indexing import remap_label_indexers
+try:
+    from xarray.core.indexing import remap_label_indexers as map_index_queries
+except ImportError:
+    from xarray.core.indexing import map_index_queries
 
 from ioos_qc.config import Config
 from ioos_qc.utils import mapdates
@@ -469,7 +472,13 @@ class XarrayStream:
                 # data[subset_indexes]. I'm pretty sure this works and if it doesn't blame my cat.
                 # We start by subsetting nothing
                 subset_indexes = np.full_like(ds[call.stream_id].values, 0, dtype=bool)
-                int_indexes, _ = remap_label_indexers(ds[call.stream_id], label_indexes)
+                int_indexes = map_index_queries(ds[call.stream_id], label_indexes)
+                # This if-else clause is required only to support Python <3.8.
+                # we can remove it when ioos_qc drops support for Python <=3.7.
+                if isinstance(int_indexes, tuple):
+                    int_indexes = int_indexes[0]
+                else:
+                    int_indexes = int_indexes.dim_indexers
                 # Initial slicer will select everything. This selects all values in a dimension
                 # if there are no labeled indexes for it.
                 slicers = [ slice(None) for x in range(ds[call.stream_id].ndim) ]
