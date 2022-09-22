@@ -86,4 +86,3 @@ class TestGreatCircle(unittest.TestCase):
         print(f"Great Circle: {e - s:0.4f} seconds")
         close = np.isclose(dist[1:-1], dist[2:], atol=1)
         assert close.all()
-
