@@ -267,3 +267,10 @@ def great_circle_distance(lat_arr, lon_arr):
     dv = np.vectorize(gc)
     dist[1:] = dv(lat_arr[:-1], lon_arr[:-1], lat_arr[1:], lon_arr[1:])
     return dist
+
+
+def distance_from_target(lat, lon, target_lat, target_lon):
+    g = Geod(ellps='WGS84')
+    _, _, dist_to_target = g.inv(lon, lat, target_lon, target_lat)
+    dist_to_target = np.ma.masked_invalid(dist_to_target.astype(np.float64))
+    return dist_to_target
