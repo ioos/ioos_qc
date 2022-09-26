@@ -44,9 +44,4 @@ This way, ``nbsphinx`` will build the notebook output during the build stage.
 Releasing
 ---------
 
-1. Update the version numbers in the repo
-  * Look at a previous commit, e.g., `bump to 1.0.0 <https://github.com/ioos/ioos_qc/commit/e54b5e7659e632da1bbc00b7a91056f71e22512e>`_, to make sure you get all the right places.
-1. Tag `master` with the version number
-  * You can use the Github UI at https://github.com/ioos/ioos_qc/releases to do this easily
-1. Update the conda-forge feedstock
-  * Fork https://github.com/conda-forge/ioos_qc-feedstock and follow the instructions
+1. Tag `main` with the version number. That's it.

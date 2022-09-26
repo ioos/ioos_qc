@@ -6,7 +6,7 @@ IOOS QC
    :target: https://anaconda.org/conda-forge/ioos_qc
    :alt: conda_forge_package
 
-.. image:: https://travis-ci.org/ioos/ioos_qc.svg?branch=master
+.. image:: https://travis-ci.org/ioos/ioos_qc.svg?branch=main
    :target: https://travis-ci.org/ioos/ioos_qc
    :alt: build_status
 

@@ -1,7 +1,7 @@
 IOOS QC: QARTOD and other Quality Control tests implemented in Python
 =====================================================================
 
-.. image:: https://travis-ci.org/ioos/ioos_qc.svg?branch=master
+.. image:: https://travis-ci.org/ioos/ioos_qc.svg?branch=main
    :target: https://travis-ci.org/ioos/ioos_qc
    :alt: build_status
 
