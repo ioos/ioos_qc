@@ -6,8 +6,8 @@ At its core, ``ioos_qc`` is a collection of modules and methods to run various q
 The following implementations are available in ``ioos_qc``:
 
 * `IOOS QARTOD <https://ioos.noaa.gov/project/qartod/>`_ - `API </api/ioos_qc.html#module-ioos_qc.qartod>`_
-* ARGO - `API </api/ioos_qc.html#module-ioos_qc.argo>`_
-* AXDS - `API </api/ioos_qc.html#module-ioos_qc.axds>`_ - A collection of checks used by `Axiom Data Science <https://axiomdatascience.com>`_
+* `ARGO - API </api/ioos_qc.html#module-ioos_qc.argo>`_
+* `AXDS - API </api/ioos_qc.html#module-ioos_qc.axds>`_ - A collection of checks used by `Axiom Data Science <https://axiomdatascience.com>`_
 
 Basic usage
 -----------
@@ -233,7 +233,7 @@ Each yielded result will be a `StreamConfigResult </api/ioos_qc.html#ioos_qc.res
 
 .. warning::
 
-    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_ objects should be used in any applications, including any implementation of Stores_, going forward.
+    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of `CollectedResult objects <api/ioos_qc.html#ioos_qc.results.CollectedResult>`_ should be used in any applications, including any implementation of Stores_, going forward.
 
 
 .. code-block:: python
@@ -711,7 +711,7 @@ The *{fail,suspect}_{min,max}* values will be evaluated as functions with values
 Test function allowed symbols:
 
 - Data derived descriptive statistics: min, max, mean, std
-- Operators: -, +, *, /
+- Operators: \-, \+, \*, \/
 - Grouping symbols: (, )
 
 Like CreatorConfig, QcVaribleConfig performs checks on the configuration to ensure that it adheres to the specified schema and includes all required fields and attributes.
