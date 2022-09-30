@@ -1,3 +1,4 @@
+bokeh
 geographiclib
 geojson
 h5netcdf
