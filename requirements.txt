@@ -1,6 +1,5 @@
 geographiclib
 geojson
-geopandas
 h5netcdf
 jsonschema
 numba
