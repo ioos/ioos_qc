@@ -5,7 +5,10 @@ import os
 import logging
 import tempfile
 import unittest
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 from copy import deepcopy
 from pathlib import Path
 
