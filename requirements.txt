@@ -4,7 +4,7 @@ geopandas
 h5netcdf
 jsonschema
 numba
-numpy>=1.14
+numpy>=1.14,<=1.22.4
 ruamel.yaml
 scipy
 shapely
