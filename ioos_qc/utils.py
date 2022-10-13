@@ -2,7 +2,7 @@
 # coding=utf-8
 import io
 import logging
-import simplejson as json
+import json
 from typing import Any, Union
 from numbers import Real
 from geographiclib.geodesic import Geodesic

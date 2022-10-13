@@ -4,7 +4,7 @@ import os
 import time
 import unittest
 import tempfile
-import simplejson as json
+import json
 
 import numpy as np
 import xarray as xr

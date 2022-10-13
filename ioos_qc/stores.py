@@ -3,7 +3,7 @@
 import inspect
 import logging
 from typing import List
-import simplejson as json
+import json
 from pathlib import Path
 from importlib import import_module
 
