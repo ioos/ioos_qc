@@ -82,7 +82,8 @@ author = 'IOOS'
 # The version info for the project yo're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-#
+
+import ioos_qc  # noqa
 # The short X.Y version.
 version = ioos_qc.__version__
 # The full version, including alpha/beta/rc tags.
