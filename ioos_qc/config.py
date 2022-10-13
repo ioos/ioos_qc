@@ -347,20 +347,22 @@ class ContextConfig:
     Defines a set of quality checks to run against multiple input streams.
     This can include a region and a time window to subset any DataStreams by before running checks.
 
-    region: None
-    window:
-        starting: 2020-01-01T00:00:00Z
-        ending: 2020-04-01T00:00:00Z
-    streams:
-        variable1:    # stream_id
-            qartod:   # StreamConfig
-                location_test:
-                    bbox: [-80, 40, -70, 60]
-        variable2:    # stream_id
-            qartod:   # StreamConfig
-                gross_range_test:
-                    suspect_span: [1, 11]
-                    fail_span: [0, 12]
+    ..  code-block:: yaml
+
+        region: None
+        window:
+            starting: 2020-01-01T00:00:00Z
+            ending: 2020-04-01T00:00:00Z
+        streams:
+            variable1:    # stream_id
+                qartod:   # StreamConfig
+                    location_test:
+                        bbox: [-80, 40, -70, 60]
+            variable2:    # stream_id
+                qartod:   # StreamConfig
+                    gross_range_test:
+                        suspect_span: [1, 11]
+                        fail_span: [0, 12]
 
     Helper methods exist to run this check against a different inputs:
         * pandas.DataFrame, dask.DataFrame, netCDF4.Dataset, xarray.Dataset, ERDDAP URL
