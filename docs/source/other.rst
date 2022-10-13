@@ -11,8 +11,7 @@ Here is a collection of other QARTOD implementations or contacts for reference.
 Python
 
 - `Ocean Observatories Initiative (OOI) Quality Control Algorithm <https://github.com/ooici/ion-functions/tree/master/ion_functions/qc>`_
-	- `OOI Quality Control Algorithm Tables <https://github.com/ooi-integration/qc-lookup>`_
-- `QARTOD in Practice <https://drive.google.com/open?id=0BwGScp7mjYjyNGVRUG5ZTTNPdUU>`_
+- `OOI Quality Control Algorithm Tables <https://github.com/ooi-integration/qc-lookup>`_
 
 R
 
