@@ -1,4 +1,7 @@
+bokeh
 ipykernel
+matplotlib
 nbsphinx
+pynco
 sphinx
 sphinx-autodoc-typehints
