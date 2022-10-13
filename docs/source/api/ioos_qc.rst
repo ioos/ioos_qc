@@ -40,6 +40,7 @@ ioos\_qc.config module
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:
 
 ioos\_qc.gliders module
 -----------------------
