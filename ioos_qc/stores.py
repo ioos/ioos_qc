@@ -3,10 +3,7 @@
 import inspect
 import logging
 from typing import List
-try:
-    import simplejson as json
-except ImportError:
-    import json
+import json
 from pathlib import Path
 from importlib import import_module
 

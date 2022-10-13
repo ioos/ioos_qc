@@ -10,5 +10,4 @@ pyparsing
 ruamel.yaml
 scipy
 shapely
-simplejson
 xarray
