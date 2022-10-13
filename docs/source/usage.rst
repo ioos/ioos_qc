@@ -5,9 +5,9 @@ At its core, ``ioos_qc`` is a collection of modules and methods to run various q
 
 The following implementations are available in ``ioos_qc``:
 
-* `IOOS QARTOD <https://ioos.noaa.gov/project/qartod/>`_ - `API </api/ioos_qc.html#module-ioos_qc.qartod>`_
-* `ARGO - API </api/ioos_qc.html#module-ioos_qc.argo>`_
-* `AXDS - API </api/ioos_qc.html#module-ioos_qc.axds>`_ - A collection of checks used by `Axiom Data Science <https://axiomdatascience.com>`_
+* `IOOS QARTOD <https://ioos.noaa.gov/project/qartod/>`_ - :mod:`API <ioos_qc.qartod>`
+* :mod:`ARGO - API <ioos_qc.argo>`
+* :mod:`AXDS - API <ioos_qc.axds>` - A collection of checks used by `Axiom Data Science <https://axiomdatascience.com>`_
 
 Basic usage
 -----------
@@ -211,7 +211,7 @@ Usage
 Streams
 -------
 
-Streams represent the data input types for running quality control tests. A user "runs" a stream of data through a collection of quality control tests defined by a Config_. A list of possible Streams can be found in the `Streams API </api/ioos_qc.html#module-ioos_qc.streams>`_.
+Streams represent the data input types for running quality control tests. A user "runs" a stream of data through a collection of quality control tests defined by a Config_. A list of possible Streams can be found in the :mod:`Streams API <ioos_qc.streams>`.
 All streams return a generator of QC results that contain contextual information that can be useful when using the results. You can iterate over the results generator directly or you can collect them into more familiar ``list`` or ``dict`` objects before usage. If you are
 working in a streaming environment you will want to use generator result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the Stores_ provided by ``ioos_qc``.
 
@@ -225,7 +225,7 @@ working in a streaming environment you will want to use generator result objects
 Results
 ~~~~~~~
 
-Each yielded result will be a `StreamConfigResult </api/ioos_qc.html#ioos_qc.results.StreamConfigResult>`_ or a `ContextResult </api/ioos_qc.html#ioos_qc.results.ContextResult>`_, depending on which type of Config_ object was used. Collected results are only ever of one type, a `CollectedResult </api/ioos_qc.html#ioos_qc.results.CollectedResult>`_, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
+Each yielded result will be a :mod:`StreamConfigResult <ioos_qc.results.StreamConfigResult>` or a :mod:`ContextResult <ioos_qc.results.ContextResult>`, depending on which type of Config_ object was used. Collected results are only ever of one type, a :mod:`CollectedResult <ioos_qc.results.CollectedResult>`, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
 
 .. note::
 
@@ -233,7 +233,7 @@ Each yielded result will be a `StreamConfigResult </api/ioos_qc.html#ioos_qc.res
 
 .. warning::
 
-    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of `CollectedResult objects <api/ioos_qc.html#ioos_qc.results.CollectedResult>`_ should be used in any applications, including any implementation of Stores_, going forward.
+    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of :mod:`CollectedResult objects <ioos_qc.results.CollectedResult>` should be used in any applications, including any implementation of Stores_, going forward.
 
 
 .. code-block:: python
@@ -517,7 +517,7 @@ A subset of the NumpyStream, the NetcdfStream simply extracts numpy arrays from 
 Stores
 ------
 
-Stores represent different data formats for storing quality control Results_ from Streams_. The results from any ``Stream`` should be able to be passed into any ``Store`` implementation defined in the `Stores API </api/ioos_qc.html#module-ioos_qc.stores>`_.
+Stores represent different data formats for storing quality control Results_ from Streams_. The results from any ``Stream`` should be able to be passed into any ``Store`` implementation defined in the :mod:`Stores API <ioos_qc.stores>`.
 
 ``ioos_qc`` comes with some built-in Stores_:
 
