@@ -213,7 +213,7 @@ class Config:
     so things like subsetting by time and space only happen once for each test in the same Context.
 
     How the individual checks are collected is up to each individual Stream implementation, this
-    class only pares various formats and versions of a config into a list of Call objects.
+    class only pairs various formats and versions of a config into a list of Call objects.
     """
 
     def __init__(self, source, version=None, default_stream_key='_stream'):

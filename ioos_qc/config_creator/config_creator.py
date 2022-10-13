@@ -223,7 +223,7 @@ class QcVariableConfig(dict):
         self.update(config)
 
     def _validate_fx(self, input_fx, test_name):
-        """Thows exception if input_fx contains tokens not specifically allowed"""
+        """Throws exception if input_fx contains tokens not specifically allowed"""
         tokens = input_fx.split(' ')
         for token in tokens:
             try:
