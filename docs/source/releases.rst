@@ -11,8 +11,8 @@ Special thanks to @jessicaaustin, @JessyBarette, @yosoyjay, and @eldobbins for r
 Changes from **1.0.0**:
 
 * Core
-    * `Added <https://github.com/ioos/ioos_qc/pull/39>`_ the concepts of ``Config``, ``Streams``, and ``Stores``, see usage documentation for details.
-    * `Added <https://github.com/ioos/ioos_qc/pull/39/commits/be7d1daf02791fc7a9443b80ac9f4a91f0578e63>`_ ability to generate Config objects based on climatologies
+    * `Added the concepts <https://github.com/ioos/ioos_qc/pull/39>`_ of ``Config``, ``Streams``, and ``Stores``, see usage documentation for details.
+    * `Added ability <https://github.com/ioos/ioos_qc/pull/39/commits/be7d1daf02791fc7a9443b80ac9f4a91f0578e63>`_ to generate Config objects based on climatologies
 * Tests
     * Added a `Density Inversion <https://github.com/ioos/ioos_qc/pull/42>`_ test
     * Attenuated signal test `was reworked <https://github.com/ioos/ioos_qc/pull/32>`_
