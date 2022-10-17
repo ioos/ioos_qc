@@ -9,7 +9,7 @@ Changes from **2.0.1**:
 Special thanks to @ocefpaf for pushing web compatibility forward!
 
 * Core
-    * Added ability to run :code:`ioos_qc`` in various python web integration technologies (WASM, :code:`pyscript`). See `PR log <https://github.com/ioos/ioos_qc/pulls?q=is%3Apr+is%3Aclosed+author%3Aocefpaf>`_ for details
+    * Added ability to run :code:`ioos_qc` in various python web integration technologies (WASM, :code:`pyscript`). See `PR log <https://github.com/ioos/ioos_qc/pulls?q=is%3Apr+is%3Aclosed+author%3Aocefpaf>`_ for details
     * Updated project to use :code:`setuptools_scm`
     * `Moved CI from Travis to GHA <https://github.com/ioos/ioos_qc/pull/70>`_
     * `Cleaned up pandas deprecations <https://github.com/ioos/ioos_qc/pull/89>`_
