@@ -35,6 +35,11 @@ class QartodFlags(object):
 FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
+WEEK_PERIODS = [
+    'week',
+    'weekofyear',
+]
+
 span = namedtuple('Span', 'minv maxv')
 
 
@@ -342,7 +347,11 @@ class ClimatologyConfig(object):
                 # If a period is defined, extract the attribute from the
                 # pd.DatetimeIndex object before comparison. The min and max
                 # values are in this period unit already.
-                tinp_copy = getattr(tinp, m.period).to_series()
+                if m.period in WEEK_PERIODS:
+                    # The weekofyear accessor was depreacated
+                    tinp_copy = pd.Index(tinp.isocalendar().week, dtype='int64')
+                else:
+                    tinp_copy = getattr(tinp, m.period).to_series()
             else:
                 # If a period isn't defined, make a new Timestamp object
                 # to align with the above name 'tinp_copy'
