@@ -20,6 +20,13 @@ from ioos_qc.results import collect_results, CollectedResult
 L = logging.getLogger(__name__)  # noqa
 
 
+def column_from_collected_result(cr):
+    stream_label = f'{cr.stream_id}.' if cr.stream_id else ''
+    package_label = f'{cr.package}.' if cr.package else ''
+    test_label = f'{cr.test}' if cr.test else ''
+    return cf_safe_name(f'{stream_label}{package_label}{test_label}')
+
+
 class BaseStore:
 
     def save(self, *args, **kwargs):
@@ -106,15 +113,13 @@ class PandasStore(BaseStore):
                 continue
 
             # Add data column
-            if write_data and cr.stream_id not in df:
+            if write_data and cr.stream_id not in df and cr.stream_id:
+                L.info(f"Adding column {cr.stream_id}")
                 df[cr.stream_id] = cr.data
 
             # Add QC results column
             # Aggregate will have None stream_id, so allow it to be that way!
-            stream_label = f'{cr.stream_id}.' if cr.stream_id else ''
-            package_label = f'{cr.package}.' if cr.package else ''
-            test_label = f'{cr.test}' if cr.test else ''
-            column_name = cf_safe_name(f'{stream_label}{package_label}{test_label}')
+            column_name = column_from_collected_result(cr)
             if column_name not in df:
                 df[column_name] = cr.results
             else:
@@ -141,15 +146,18 @@ class CFNetCDFStore(BaseStore):
     def stream_ids(self) -> List[str]:
         return self._stream_ids
 
-    def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: dict = {}, write_data: bool = False, include: list = None, exclude: list = None):
+    def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: dict = {}, write_data: bool = False, include: list = None, exclude: list = None, compute_aggregate: bool = False):
         ps = PandasStore(self.results, self.axes)
+        if compute_aggregate is True:
+            ps.compute_aggregate(name='qc_rollup')
+
         df = ps.save(write_data=write_data, include=include, exclude=exclude)
 
         # Write a new file
         attrs = {}
-        for cr in self.collected_results:
+        for cr in ps.collected_results:
 
-            column_name = cf_safe_name(f'{cr.stream_id}.{cr.package}.{cr.test}')
+            column_name = column_from_collected_result(cr)
 
             # Set the ancillary variables
             if cr.stream_id not in attrs:
@@ -189,14 +197,19 @@ class CFNetCDFStore(BaseStore):
                 # We can't do this across different contexts and this would repeat the regions
                 # and windows for each variable even if they are equal. This needs another look.
                 if len(config.contexts) == 1:
-                    calls = config.calls_by_stream_id(column_name)
+                    calls = config.calls_by_stream_id(cr.stream_id)
 
+                    calls = [
+                        c for c in calls
+                        if c.module == cr.package and c.method == cr.test
+
+                    ]
                     if not calls:
                         # No stream_id found!
                         continue
 
                     # Use the first call of this stream_id. There will be only 1 because there
-                    # is only one context
+                    # is only one context with one matching package and method
                     call = calls[0]
                     if call.region:
                         attrs[column_name]['ioos_qc_region'] = json.dumps(
@@ -210,7 +223,7 @@ class CFNetCDFStore(BaseStore):
                         )
 
                     qc_varconfig = json.dumps(
-                        call.config(),
+                        call.kwargs,
                         cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True
                     )
                     attrs[column_name]['ioos_qc_config'] = qc_varconfig

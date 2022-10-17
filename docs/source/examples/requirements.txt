@@ -4,4 +4,4 @@ jupyter
 matplotlib>=3
 numpy
 pandas
-pocean-core
+pocean-core>=3
