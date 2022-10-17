@@ -504,9 +504,8 @@ class QcConfigCreator:
         # - reshape masked y to (ntimes, ...) where ntimes is y.shape[0]
         # - assume that NaNs are same shape through time (i.e. will not work with wetting-drying)
         y_no_nans = y[~np.isnan(y)].reshape(y.shape[0], -1)
-        # CubicSpline require y to the finite and sometimes segfaults when passing an empty list.
         if y_no_nans.size == 0:
-            y_no_nans = np.zeros_like(x)
+            raise ValueError("CubicSpline require y to the finite.")
         spline = CubicSpline(x, y_no_nans, bc_type='periodic')
 
         # Get days of year for independent variable
