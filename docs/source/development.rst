@@ -23,8 +23,7 @@ Build docs::
     conda activate ioosqc38_docs
     conda install -y --file requirements.txt \
         --file tests/requirements.txt \
-        --file docs/requirements.txt \
-        --file docs/source/examples/requirements.txt
+        --file docs/requirements.txt
     cd docs
     make html
 

@@ -131,7 +131,18 @@ class Call:
             ret += f' ending={self.window.ending}'
         if self.context.region is not None:
             ret += ' region=True'
-        ret += f' {self.module}.{self.method}({self.args}, {self.kwargs})>'
+
+        ret += f' function={self.module}.{self.method}('
+
+        if self.args:
+            ret += ', '.join([ x for x in self.args if x ])
+
+        if self.kwargs:
+            ret += ', '.join([
+                f'{k}={v}' for k, v in self.kwargs.items()
+            ])
+
+        ret += ')>'
         return ret
 
     def run(self, **passedkwargs):

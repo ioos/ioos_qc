@@ -478,14 +478,13 @@ def spike_test(inp: Sequence[N],
         suspect_threshold: The SUSPECT threshold value, in observations units.
         fail_threshold: The SUSPECT threshold value, in observations units.
         method: ['average'(default),'differential'] optional input to assign the method used to detect spikes.
-
-        "average": Determine if there is a spike at data point n-1 by subtracting
-        the midpoint of n and n-2 and taking the absolute value of this
-        quantity, and checking if it exceeds a low or high threshold.
-
-        "differential": Determine if there is a spike at data point n by calculating the difference
-        between n and n-1 and n+1 and n variation. To considered, (n - n-1)*(n+1 - n) should
-        be smaller than zero (in opposite direction).
+            * "average": Determine if there is a spike at data point n-1 by subtracting
+            the midpoint of n and n-2 and taking the absolute value of this
+            quantity, and checking if it exceeds a low or high threshold.
+            -
+            * "differential": Determine if there is a spike at data point n by calculating the difference
+            between n and n-1 and n+1 and n variation. To considered, (n - n-1)*(n+1 - n) should
+            be smaller than zero (in opposite direction).
 
     Returns:
         A masked array of flag values equal in size to that of the input.

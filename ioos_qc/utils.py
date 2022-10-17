@@ -53,30 +53,37 @@ def load_config_from_xarray(source):
 
     # Iterate over variables and construct a config object
     y = odict()
-    source = source.filter_by_attrs(
+    qc_dataset = source.filter_by_attrs(
         ioos_qc_module=lambda x: x is not None,
         ioos_qc_test=lambda x: x is not None,
         ioos_qc_config=lambda x: x is not None,
         ioos_qc_target=lambda x: x is not None,
     )
-    for dv in source.variables:
-        if dv in source.dims:
-            continue
-        vobj = source[dv]
 
-        # Because a data variables can have more than one check
-        # associated with it we need to merge any existing configs
-        # for this variable
-        newdict = odict({
-            vobj.ioos_qc_module: odict({
-                vobj.ioos_qc_test: odict(json.loads(vobj.ioos_qc_config))
+    for dv in qc_dataset.data_vars:
+
+        if dv in qc_dataset.dims:
+            continue
+
+        vobj = qc_dataset[dv]
+
+        try:
+            # Because a data variables can have more than one check
+            # associated with it we need to merge any existing configs
+            # for this variable
+            newdict = odict({
+                vobj.ioos_qc_module: odict({
+                    vobj.ioos_qc_test: odict(json.loads(vobj.ioos_qc_config))
+                })
             })
-        })
-        merged = dict_update(
-            y.get(vobj.ioos_qc_target, {}),
-            newdict
-        )
-        y[vobj.ioos_qc_target] = merged
+            merged = dict_update(
+                y.get(vobj.ioos_qc_target, {}),
+                newdict
+            )
+            y[vobj.ioos_qc_target] = merged
+        except BaseException:
+            L.error(f"Could not pull QC config from {vobj.name}, skipping")
+            continue
 
     # If we opened this xarray dataset from a file we should close it
     if to_close is True:
