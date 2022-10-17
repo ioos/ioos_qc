@@ -1,7 +1,31 @@
 IOOS QC Releases and Migration Guide
 ====================================
 
-2.0.0 (June 2021)
+2.1.0 (October 2022)
+####################
+
+Changes from **2.0.1**:
+
+Special thanks to @ocefpaf for pushing web compatibility forward!
+
+* Core
+    * Added ability to run :code:`ioos_qc`` in various python web integration technologies (WASM, :code:`pyscript`). See `PR log <https://github.com/ioos/ioos_qc/pulls?q=is%3Apr+is%3Aclosed+author%3Aocefpaf>`_ for details
+    * Updated project to use :code:`setuptools_scm`
+    * `Moved CI from Travis to GHA <https://github.com/ioos/ioos_qc/pull/70>`_
+    * `Cleaned up pandas deprecations <https://github.com/ioos/ioos_qc/pull/89>`_
+    * `Added work around <https://github.com/ioos/ioos_qc/pull/88>`_ for `CubicSpline scipy bug <https://github.com/scipy/scipy/issues/17241>`_
+* Docs
+    * Improved content and process in `#73 <https://github.com/ioos/ioos_qc/pull/73>`_ and `#87 <https://github.com/ioos/ioos_qc/pull/87>`_
+    * `Fixed the netCDF example notebook <https://github.com/ioos/ioos_qc/pull/90>`_
+
+2.0.1 (August 2021)
+###################
+
+* Core
+    * `Added spike test methods <https://github.com/ioos/ioos_qc/pull/50>`_
+    * `Fixed masked array bug in spike test <https://github.com/ioos/ioos_qc/pull/62>`_
+
+2.0.0 (July 2021)
 ###################
 
 As of this release, backwards compatibility with ``1.0.0`` has been broken for the ``QcConfig`` and ``NcQcConfig`` (they no longer exist). Look at the documentation for the new ``Config`` objects. The basic test interface and functionality did not change with this release and if you were not using any of the internal complex objects you should be safe to upgrade. Of course please test your own implementations first.
