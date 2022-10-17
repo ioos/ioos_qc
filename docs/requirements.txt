@@ -1,8 +1,9 @@
 bokeh
 erddapy
 ipykernel
-matplotlib
+matplotlib>=3
 nbsphinx
+pocean-core>=3
 pynco
 sphinx
 sphinx-autodoc-typehints
