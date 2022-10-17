@@ -4,7 +4,7 @@ geojson
 h5netcdf
 jsonschema
 numba
-numpy>=1.14,<=1.22.4
+numpy>=1.14
 pandas
 pyparsing
 ruamel.yaml
