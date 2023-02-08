@@ -7,12 +7,12 @@ from bokeh.layouts import gridplot
 L = logging.getLogger(__name__)
 
 
-def bokeh_plot(data, var_name, results, title, module, test_name):
-    plot = bokeh_plot_var(data, var_name, results, title, module, test_name)
+def bokeh_plot(time, data, results, title, module, test_name):
+    plot = bokeh_plot_var(time, data, results, title, module, test_name)
     return gridplot([[plot]], sizing_mode='fixed')
 
 
-def bokeh_plot_var(time, data, var_name, results, title, module, test_name):
+def bokeh_plot_var(time, data, results, title, module, test_name):
     """ Method to plot QC results using Bokeh """
 
     if module not in results or test_name not in results[module]:
