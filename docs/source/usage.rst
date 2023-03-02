@@ -69,7 +69,6 @@ Configurations
 
 Configuration objects represent a collection of quality control tests to run and the parameters for each one. There are three main types of `Config` objects:
 
-- StreamConfig_: This configures QC tests for a single stream of data like a ``list``, ``tuple``, ``numpy.ndarray``, ``dask.array``, ``pandas.Series``, ``netCDF4.Variable``, or ``xarray.DataArray``. This can be used standalone, or as a building block for the following more complex configs.
 - ContextConfig_: This defines a collection of ``StreamConfig`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``windows``) -- and/or spatial domains (``regions``).
 - Config_: A collection of ``ContextConfig`` objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.
 
@@ -81,34 +80,6 @@ Each configuration type can be initialized through Python objects or from files 
 In addition, the ``ContextConfig`` and ``Config`` objects can be initialized with:
 
 - netCDF4/xarray filepath (``str`` or ``Path`` object) or ``Dataset``
-
-
-StreamConfig
-~~~~~~~~~~~~
-A ``StreamConfig`` object defines a specific `ioos_qc` test module and test function along with the configuration parameters in which to run it with.
-
-.. note::
-
-    In earlier versions, ``StreamConfig`` was known as ``QcConfig``.
-
-Usage
-^^^^^
-
-.. code-block:: python
-    :linenos:
-    :caption: A basic ``StreamConfig`` object
-
-    from ioos_qc.config import StreamConfig
-
-    config = {
-        'qartod': {
-            'gross_range_test': {
-                'suspect_span': [1, 11],
-                'fail_span': [0, 12],
-            }
-        }
-    }
-    c = StreamConfig(config)
 
 
 ContextConfig
