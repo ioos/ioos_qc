@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
         os: [ubuntu-latest]
         numba: [true, false]
       fail-fast: false
@@ -18,35 +18,30 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Setup Micromamba
-      uses: mamba-org/provision-with-micromamba@main
+    - name: Setup Micromamba ${{ matrix.python-version }}
+      uses: mamba-org/setup-micromamba@v1
       with:
-        environment-file: false
+        environment-name: TEST
+        init-shell: bash
+        create-args: >-
+          python=3 pip
+          --file requirements.txt
+          --file tests/requirements.txt
+          --channel conda-forge
 
-    - name: Python ${{ matrix.python-version }}
+    - name: Install ioos_qc
       shell: bash -l {0}
       run: |
-        micromamba create --name TEST python=${{ matrix.python-version }} --file requirements.txt --file tests/requirements.txt --channel conda-forge
-        micromamba activate TEST
-        pip install -e . --no-deps --force-reinstall
+        python -m pip install -e . --no-deps --force-reinstall
 
     - name: numba
       # numba is listed in requirements.txt so we need to remove it below.
       if: ${{ ! matrix.numba }}
       shell: bash -l {0}
       run: |
-        micromamba activate TEST
         micromamba remove numba
-
-    - name: Debug conda
-      shell: bash -l {0}
-      run: |
-        micromamba activate TEST
-        micromamba info --all
-        micromamba list
 
     - name: Tests
       shell: bash -l {0}
       run: |
-        micromamba activate TEST
-        python -m  pytest --disable-warnings
+        python -m pytest --disable-warnings
