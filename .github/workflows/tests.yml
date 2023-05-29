@@ -24,7 +24,7 @@ jobs:
         environment-name: TEST
         init-shell: bash
         create-args: >-
-          python=3 pip
+          python=${{ matrix.python-version }} pip
           --file requirements.txt
           --file tests/requirements.txt
           --channel conda-forge
