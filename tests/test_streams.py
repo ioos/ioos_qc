@@ -28,8 +28,8 @@ class PandasStreamTest(unittest.TestCase):
         config = """
             region: something
             window:
-                starting: 2020-01-01T00:00:00Z
-                ending: 2020-04-01T00:00:00Z
+                starting: 2020-01-01T00:00:00
+                ending: 2020-04-01T00:00:00
             streams:
                 variable1:
                     qartod:
@@ -146,8 +146,8 @@ class NumpyStreamTest(unittest.TestCase):
         config = """
             region: something
             window:
-                starting: 2020-01-01T00:00:00Z
-                ending: 2020-04-01T00:00:00Z
+                starting: 2020-01-01T00:00:00
+                ending: 2020-04-01T00:00:00
             streams:
                 variable1:
                     qartod:
@@ -206,8 +206,8 @@ class NetcdfStreamTest(unittest.TestCase):
         config = """
             region: something
             window:
-                starting: 2020-01-01T00:00:00Z
-                ending: 2020-04-01T00:00:00Z
+                starting: 2020-01-01T00:00:00
+                ending: 2020-04-01T00:00:00
             streams:
                 variable1:
                     qartod:
@@ -271,8 +271,8 @@ class XarrayStreamTest(unittest.TestCase):
         config = """
             region: something
             window:
-                starting: 2020-01-01T00:00:00Z
-                ending: 2020-04-01T00:00:00Z
+                starting: 2020-01-01T00:00:00
+                ending: 2020-04-01T00:00:00
             streams:
                 variable1:
                     qartod:
@@ -336,8 +336,8 @@ class XarrayStreamManyContextTest(unittest.TestCase):
             contexts:
                 -   region: something
                     window:
-                        starting: 2020-01-01T00:00:00Z
-                        ending: 2020-02-01T00:00:00Z
+                        starting: 2020-01-01T00:00:00
+                        ending: 2020-02-01T00:00:00
                     streams:
                         variable1:
                             qartod:
@@ -351,8 +351,8 @@ class XarrayStreamManyContextTest(unittest.TestCase):
                                     fail_span: [22, 25]
                 -   region: something else
                     window:
-                        starting: 2020-02-01T00:00:00Z
-                        ending: 2020-03-01T00:00:00Z
+                        starting: 2020-02-01T00:00:00
+                        ending: 2020-03-01T00:00:00
                     streams:
                         variable1:
                             qartod:
@@ -423,8 +423,8 @@ class PandasStreamManyContextTest(unittest.TestCase):
             contexts:
                 -   region: something
                     window:
-                        starting: 2020-01-01T00:00:00Z
-                        ending: 2020-02-01T00:00:00Z
+                        starting: 2020-01-01T00:00:00
+                        ending: 2020-02-01T00:00:00
                     streams:
                         variable1:
                             qartod:
@@ -438,8 +438,8 @@ class PandasStreamManyContextTest(unittest.TestCase):
                                     fail_span: [22, 25]
                 -   region: something else
                     window:
-                        starting: 2020-02-01T00:00:00Z
-                        ending: 2020-03-01T00:00:00Z
+                        starting: 2020-02-01T00:00:00
+                        ending: 2020-03-01T00:00:00
                     streams:
                         variable1:
                             qartod:

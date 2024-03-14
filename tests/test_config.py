@@ -112,8 +112,8 @@ class ContextConfigRegionWindowLoadTest(unittest.TestCase):
         config_str = """
             region: something
             window:
-                starting: 2020-01-01T00:00:00Z
-                ending: 2020-04-01T00:00:00Z
+                starting: 2020-01-01T00:00:00
+                ending: 2020-04-01T00:00:00
             streams:
                 variable1:
                     qartod:
@@ -171,8 +171,8 @@ class ContextListConfigLoadTest(unittest.TestCase):
                             type: Point
                             coordinates: [-72, 34]
                     window:
-                        starting: 2020-01-01T00:00:00Z
-                        ending: 2020-04-01T00:00:00Z
+                        starting: 2020-01-01T00:00:00
+                        ending: 2020-04-01T00:00:00
                     streams:
                         variable1:
                             qartod:
@@ -188,8 +188,8 @@ class ContextListConfigLoadTest(unittest.TestCase):
                             type: Point
                             coordinates: [-80,40]
                     window:
-                        starting: 2020-01-01T00:00:00Z
-                        ending: 2020-04-01T00:00:00Z
+                        starting: 2020-01-01T00:00:00
+                        ending: 2020-04-01T00:00:00
                     streams:
                         variable1:
                             qartod:
