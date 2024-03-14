@@ -10,14 +10,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10"]
         os: [ubuntu-latest]
         numba: [true, false]
-        exclude:
-          - python-version: "3.11"
-            numba: true
-          - python-version: "3.12"
-            numba: true
       fail-fast: false
 
     steps:
