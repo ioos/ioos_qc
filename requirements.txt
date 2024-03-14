@@ -1,9 +1,7 @@
-bokeh
 geographiclib
 geojson
 h5netcdf
 jsonschema
-numba<0.57
 numpy>=1.14
 pandas
 pyparsing

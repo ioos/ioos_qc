@@ -1,0 +1,7 @@
+bokeh
+dask
+flake8
+nco
+numba<0.57
+pytest
+pytest-flake8>=1.0.4
