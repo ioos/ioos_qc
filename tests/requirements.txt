@@ -1,6 +1,0 @@
-dask
-erddapy
-flake8
-isort
-pytest
-pytest-flake8>=1.0.4  # https://github.com/tholo/pytest-flake8/pull/59
