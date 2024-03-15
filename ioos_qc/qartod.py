@@ -372,8 +372,9 @@ class ClimatologyConfig(object):
                 with np.errstate(invalid='ignore'):
                     z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
             else:
-                # Only test the values with masked Z, ie values with no Z
-                z_idx = zinp.mask
+                # If there is no z data in the config, don't try to filter by depth!
+                # Set z_idx to all True to prevent filtering
+                z_idx = np.ones(inp.size, dtype=bool)
 
             # Combine the T and Z indexes
             values_idx = (t_idx & z_idx)
