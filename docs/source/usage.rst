@@ -69,7 +69,7 @@ Configurations
 
 Configuration objects represent a collection of quality control tests to run and the parameters for each one. There are three main types of `Config` objects:
 
-- ContextConfig_: This defines a collection of ``StreamConfig`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``windows``) -- and/or spatial domains (``regions``).
+- ContextConfig_: This defines a collection of ``ConfigTypes`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``windows``) -- and/or spatial domains (``regions``).
 - Config_: A collection of ``ContextConfig`` objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.
 
 Each configuration type can be initialized through Python objects or from files and can be represented in the following ways:
@@ -84,7 +84,7 @@ In addition, the ``ContextConfig`` and ``Config`` objects can be initialized wit
 
 ContextConfig
 ~~~~~~~~~~~~~
-A ``ContextConfig`` object defines multiple ``StreamConfig`` objects as well as optional `region` and `window` objects.
+A ``ContextConfig`` object defines multiple ``ConfigTypes`` objects as well as optional `region` and `window` objects.
 
 region
 ^^^^^^
