@@ -261,7 +261,7 @@ class Config:
                 # Return a list with just one ContextConfig
                 self._calls += list(ContextConfig(self.config).calls)
             elif dict_depth(self.config) >= 4:
-                # This is a StreamConfig
+                # This is a Config
                 self._calls += list(ContextConfig(odict(streams=self.config)).calls)
             else:
                 # This is a QcConfig
@@ -353,7 +353,7 @@ class Config:
 
 
 class ContextConfig:
-    """A collection of a Region, a TimeWindow and a list of StreamConfig objects
+    """A collection of a Region, a TimeWindow and a list of Config objects
 
     Defines a set of quality checks to run against multiple input streams.
     This can include a region and a time window to subset any DataStreams by before running checks.
@@ -366,11 +366,11 @@ class ContextConfig:
             ending: 2020-04-01T00:00:00Z
         streams:
             variable1:    # stream_id
-                qartod:   # StreamConfig
+                qartod:   # Config
                     location_test:
                         bbox: [-80, 40, -70, 60]
             variable2:    # stream_id
-                qartod:   # StreamConfig
+                qartod:   # Config
                     gross_range_test:
                         suspect_span: [1, 11]
                         fail_span: [0, 12]
@@ -382,7 +382,7 @@ class ContextConfig:
         config (odict): dict representation of the parsed ContextConfig source
         region (GeometryCollection): A `shapely` object representing the valid geographic region
         window (namedtuple): A TimeWindow object representing the valid time period
-        streams (odict): dict representation of the parsed StreamConfig objects
+        streams (odict): dict representation of the parsed Config objects
     """
 
     def __init__(self, source: ConfigTypes):
