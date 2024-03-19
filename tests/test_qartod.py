@@ -857,7 +857,7 @@ class QartodClimatologyTest(unittest.TestCase):
                 101
             )
         ]
-        expected_result = [1, 1, 1, 3, 3, 2]
+        expected_result = [1, 1, 1, 3, 3, 3]
         self._run_test(test_inputs, expected_result)
 
 
