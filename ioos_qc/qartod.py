@@ -738,8 +738,9 @@ def attenuated_signal_test(inp : Sequence[N],
         def window_func(w):
             # When pandas>=1.0 and numba are installed, this is about twice as fast
             try:
+                import numba
                 return w.apply(np.ptp, raw=True, engine='numba')
-            except (ImportError, TypeError):
+            except (ImportError, TypeError, numba.core.errors.NumbaTypeError):
                 return w.apply(np.ptp, raw=True)
         check_func = np.ptp
     else:
