@@ -10,6 +10,11 @@ from collections import namedtuple
 import numpy as np
 import pandas as pd
 
+try:
+    from numba.core.errors import NumbaTypeError
+except ImportError:
+    NumbaTypeError = TypeError
+
 from ioos_qc.utils import (
     isnan,
     isfixedlength,
@@ -739,7 +744,7 @@ def attenuated_signal_test(inp : Sequence[N],
             # When pandas>=1.0 and numba are installed, this is about twice as fast
             try:
                 return w.apply(np.ptp, raw=True, engine='numba')
-            except (ImportError, TypeError):
+            except (ImportError, TypeError, NumbaTypeError):
                 return w.apply(np.ptp, raw=True)
         check_func = np.ptp
     else:
