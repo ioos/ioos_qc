@@ -335,9 +335,6 @@ class ClimatologyConfig(object):
         flag_arr = np.ma.empty(inp.size, dtype='uint8')
         flag_arr.fill(QartodFlags.UNKNOWN)
 
-        # If the value is masked set the flag to MISSING
-        flag_arr[inp.mask] = QartodFlags.MISSING
-
         # Iterate over each member and apply its spans on the input data.
         # Member spans are applied in order and any data points that fall into
         # more than one member are flagged by each one.
@@ -388,11 +385,14 @@ class ClimatologyConfig(object):
                 fail_idx = np.zeros(inp.size, dtype=bool)
 
             suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
-
+            
             with np.errstate(invalid='ignore'):
                 flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
                 flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
                 flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
+        
+        # If the value is masked set the flag to MISSING
+        flag_arr[inp.mask] = QartodFlags.MISSING
 
         return flag_arr
 
@@ -423,11 +423,11 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
         config: A ClimatologyConfig object or a list of dicts containing tuples
             that can be used to create a ClimatologyConfig object. See ClimatologyConfig
             docs for more info.
+        inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
           This includes numpy datetime64, python datetime objects and pandas Timestamp object.
           ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
           If anything else is passed in the format is assumed to be seconds since the unix epoch.
-        vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
 
     Returns:
