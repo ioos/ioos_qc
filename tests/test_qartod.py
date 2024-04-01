@@ -720,7 +720,6 @@ class QartodClimatologyDepthTest(unittest.TestCase):
         self._run_test(test_inputs, expected_result)
 
 
-
 class QartodClimatologyMissingTest(unittest.TestCase):
     def setUp(self):
         self.cc = qartod.ClimatologyConfig()
@@ -773,7 +772,6 @@ class QartodClimatologyMissingTest(unittest.TestCase):
         ]
         expected_result = [3, 9, 1]
         self._run_test(test_inputs, expected_result)
-
 
 
 class QartodClimatologyTest(unittest.TestCase):
@@ -916,7 +914,6 @@ class QartodClimatologyTest(unittest.TestCase):
         expected_result = [1, 1, 1, 3, 3, 3]
         self._run_test(test_inputs, expected_result)
     
-
 
 class QartodSpikeTest(unittest.TestCase):
 
