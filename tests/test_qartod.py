@@ -720,6 +720,60 @@ class QartodClimatologyDepthTest(unittest.TestCase):
         self._run_test(test_inputs, expected_result)
 
 
+class QartodClimatologyMissingTest(unittest.TestCase):
+    def setUp(self):
+        self.cc = qartod.ClimatologyConfig()
+        # different time range, no depth
+        self.cc.add(
+            tspan=(np.datetime64('2021-07'), np.datetime64('2021-09')),
+            vspan=(3.4, 5)
+        )
+
+    def _run_test(self, test_inputs, expected_result):
+        times, values, depths = zip(*test_inputs)
+        inputs = [
+            values,
+            np.asarray(values, dtype=np.float64),
+            dask_arr(np.asarray(values, dtype=np.float64))
+        ]
+
+        for i in inputs:
+            results = qartod.climatology_test(
+                config=self.cc,
+                tinp=times,
+                inp=i,
+                zinp=depths
+            )
+            npt.assert_array_equal(
+                results,
+                np.ma.array(expected_result)
+            )
+
+    def test_climatology_missing_values(self):
+        test_inputs = [
+            # Not missing value or depth, value out of bounds
+            (
+                np.datetime64('2021-07-16'),
+                0,
+                0
+            ),
+            # Missing value and depth
+            (
+                np.datetime64('2021-07-16'),
+                np.nan,
+                np.nan
+            ),
+            # Not missing value and depth, value within bounds
+            (
+                np.datetime64('2021-07-16'),
+                4.16743,
+                0.08931513
+            )
+        ]
+        expected_result = [3, 9, 1]
+        self._run_test(test_inputs, expected_result)
+
+
 class QartodClimatologyTest(unittest.TestCase):
 
     def setUp(self):
@@ -857,7 +911,7 @@ class QartodClimatologyTest(unittest.TestCase):
                 101
             )
         ]
-        expected_result = [1, 1, 1, 3, 3, 2]
+        expected_result = [1, 1, 1, 3, 3, 3]
         self._run_test(test_inputs, expected_result)
 
 

@@ -340,9 +340,6 @@ class ClimatologyConfig(object):
         flag_arr = np.ma.empty(inp.size, dtype='uint8')
         flag_arr.fill(QartodFlags.UNKNOWN)
 
-        # If the value is masked set the flag to MISSING
-        flag_arr[inp.mask] = QartodFlags.MISSING
-
         # Iterate over each member and apply its spans on the input data.
         # Member spans are applied in order and any data points that fall into
         # more than one member are flagged by each one.
@@ -377,8 +374,9 @@ class ClimatologyConfig(object):
                 with np.errstate(invalid='ignore'):
                     z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
             else:
-                # Only test the values with masked Z, ie values with no Z
-                z_idx = zinp.mask
+                # If there is no z data in the config, don't try to filter by depth!
+                # Set z_idx to all True to prevent filtering
+                z_idx = np.ones(inp.size, dtype=bool)
 
             # Combine the T and Z indexes
             values_idx = (t_idx & z_idx)
@@ -397,6 +395,9 @@ class ClimatologyConfig(object):
                 flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
                 flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
                 flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
+
+        # If the value is masked set the flag to MISSING
+        flag_arr[inp.mask] = QartodFlags.MISSING
 
         return flag_arr
 
@@ -427,11 +428,11 @@ def climatology_test(config : Union[ClimatologyConfig, Sequence[Dict[str, Tuple]
         config: A ClimatologyConfig object or a list of dicts containing tuples
             that can be used to create a ClimatologyConfig object. See ClimatologyConfig
             docs for more info.
+        inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
           This includes numpy datetime64, python datetime objects and pandas Timestamp object.
           ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
           If anything else is passed in the format is assumed to be seconds since the unix epoch.
-        vinp: Input data as a numeric numpy array or a list of numbers.
         zinp: Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
 
     Returns:
