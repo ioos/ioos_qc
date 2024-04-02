@@ -385,12 +385,12 @@ class ClimatologyConfig(object):
                 fail_idx = np.zeros(inp.size, dtype=bool)
 
             suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
-            
+
             with np.errstate(invalid='ignore'):
                 flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
                 flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
                 flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
-        
+
         # If the value is masked set the flag to MISSING
         flag_arr[inp.mask] = QartodFlags.MISSING
 

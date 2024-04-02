@@ -913,7 +913,7 @@ class QartodClimatologyTest(unittest.TestCase):
         ]
         expected_result = [1, 1, 1, 3, 3, 3]
         self._run_test(test_inputs, expected_result)
-    
+
 
 class QartodSpikeTest(unittest.TestCase):
 
