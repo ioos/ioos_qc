@@ -340,6 +340,9 @@ class ClimatologyConfig(object):
         flag_arr = np.ma.empty(inp.size, dtype='uint8')
         flag_arr.fill(QartodFlags.UNKNOWN)
 
+        # If the value is masked set the flag to MISSING
+        flag_arr[inp.mask] = QartodFlags.MISSING
+
         # Iterate over each member and apply its spans on the input data.
         # Member spans are applied in order and any data points that fall into
         # more than one member are flagged by each one.
@@ -376,7 +379,8 @@ class ClimatologyConfig(object):
             else:
                 # If there is no z data in the config, don't try to filter by depth!
                 # Set z_idx to all True to prevent filtering
-                z_idx = np.ones(inp.size, dtype=bool)
+                # Must use inp.data to create masked array so that the masked value is ignored when we assign the FAIL, SUSPECT, and GOOD flags
+                z_idx = np.ma.array(data=~np.isnan(inp.data), mask=inp.mask, fill_value=999999)
 
             # Combine the T and Z indexes
             values_idx = (t_idx & z_idx)
@@ -395,9 +399,6 @@ class ClimatologyConfig(object):
                 flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
                 flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
                 flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
-
-        # If the value is masked set the flag to MISSING
-        flag_arr[inp.mask] = QartodFlags.MISSING
 
         return flag_arr
 
