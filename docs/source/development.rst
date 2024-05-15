@@ -8,7 +8,7 @@ Create a conda environment::
 
     conda create -n ioosqc38 python=3.8
     conda activate ioosqc38
-    conda install --file requirements.txt --file tests/requirements.txt
+    conda install --file requirements.txt --file requirements-dev.txt
 
 Run tests::
 
@@ -22,7 +22,7 @@ Build docs::
     conda create -y -n ioosqc38_docs python=3.8
     conda activate ioosqc38_docs
     conda install -y --file requirements.txt \
-        --file tests/requirements.txt \
+        --file requirements-dev.txt \
         --file docs/requirements.txt
     cd docs
     make html
