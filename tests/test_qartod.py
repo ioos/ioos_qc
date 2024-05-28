@@ -33,7 +33,7 @@ class QartodLocationTest(unittest.TestCase):
         Ensure that longitudes and latitudes are within reasonable bounds.
         """
         lon = [  80.0, -78.5, 500.500]
-        lat = [np.NaN,  50.0,   -60.0]
+        lat = [np.nan,  50.0,   -60.0]
 
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
