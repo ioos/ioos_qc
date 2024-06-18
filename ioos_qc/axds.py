@@ -1,29 +1,24 @@
 #!/usr/bin/env python
-# coding=utf-8
 """Tests based on the IOOS QARTOD manuals."""
 import logging
-from typing import Tuple, Sequence
 from collections import namedtuple
+from typing import Sequence, Tuple
 
 import numpy as np
 
-from ioos_qc.utils import (
-    isnan,
-    add_flag_metadata,
-    mapdates
-)
 from ioos_qc.qartod import QartodFlags
+from ioos_qc.utils import add_flag_metadata, isnan, mapdates
 
-L = logging.getLogger(__name__)  # noqa
+L = logging.getLogger(__name__)
 
 FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
-span = namedtuple('Span', 'minv maxv')
+span = namedtuple("Span", "minv maxv")
 
 
-@add_flag_metadata(standard_name='gross_range_test_quality_flag',
-                   long_name='Gross Range Test Quality Flag')
+@add_flag_metadata(standard_name="gross_range_test_quality_flag",
+                   long_name="Gross Range Test Quality Flag")
 def valid_range_test(inp : Sequence[any],
                      valid_span : Tuple[any, any],
                      dtype : np.dtype = None,
@@ -41,6 +36,7 @@ def valid_range_test(inp : Sequence[any],
     behavior you can use the parameters `start_inclusive` and `end_inclusive`.
 
     Args:
+    ----
         inp (Sequence[any]): Data as a sequence of objects compatible with the fail_span objects
         fail_span (Tuple[any, any]): 2-tuple range which to flag outside data as FAIL. Objects
             should be of equal format to that of the inp parameter as they will be checked for
@@ -53,17 +49,18 @@ def valid_range_test(inp : Sequence[any],
             exclusive (False).
 
     Returns:
+    -------
         np.ma.core.MaskedArray: A masked array of flag values equal in size to that of the input.
-    """
 
+    """
     # Numpy array inputs
-    if dtype is None and hasattr(inp, 'dtype'):
+    if dtype is None and hasattr(inp, "dtype"):
         dtype = inp.dtype
     # Pandas column inputs
     # This is required because we don't want to restrict a user from using a pd.Series
     # directly with this function. If the data was coming from a Store, it would
     # always be a numpy array.
-    elif dtype is None and hasattr(inp, 'values') and hasattr(inp.values, 'dtype'):
+    elif dtype is None and hasattr(inp, "values") and hasattr(inp.values, "dtype"):
         dtype = inp.values.dtype
 
     # Save original shape
@@ -92,18 +89,18 @@ def valid_range_test(inp : Sequence[any],
     inp = inp.flatten()
 
     # Start with everything as passing (1)
-    flag_arr = np.ma.ones(inp.size, dtype='uint8')
+    flag_arr = np.ma.ones(inp.size, dtype="uint8")
 
     # Set fail on either side of the bounds, inclusive and exclusive
     if not isnan(valid_span[0]):
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             if start_inclusive is True:
                 flag_arr[inp < valid_span[0]] = QartodFlags.FAIL
             else:
                 flag_arr[inp <= valid_span[0]] = QartodFlags.FAIL
 
     if not isnan(valid_span[1]):
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             if end_inclusive is True:
                 flag_arr[inp > valid_span[1]] = QartodFlags.FAIL
             else:

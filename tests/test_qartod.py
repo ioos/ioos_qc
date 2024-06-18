@@ -1,23 +1,21 @@
 #!/usr/bin/env python
-# coding=utf-8
 import logging
 import unittest
 import warnings
 
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
+import pandas as pd
 
 from ioos_qc import qartod as qartod
 
-L = logging.getLogger('ioos_qc')
+L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
 L.handlers = [logging.StreamHandler()]
 
 
 def dask_arr(vals):
-    """
-    If dask is enabled for this environment, return dask array of values. Otherwise, return values.
+    """If dask is enabled for this environment, return dask array of values. Otherwise, return values.
     """
     try:
         import dask.array as da
@@ -29,29 +27,28 @@ def dask_arr(vals):
 class QartodLocationTest(unittest.TestCase):
 
     def test_location(self):
-        """
-        Ensure that longitudes and latitudes are within reasonable bounds.
+        """Ensure that longitudes and latitudes are within reasonable bounds.
         """
         lon = [  80.0, -78.5, 500.500]
         lat = [np.nan,  50.0,   -60.0]
 
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([4, 1, 4])
+            np.ma.array([4, 1, 4]),
         )
 
         lon = np.array(lon)
         lat = np.array(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([4, 1, 4])
+            np.ma.array([4, 1, 4]),
         )
 
         lon = dask_arr(lon)
         lat = dask_arr(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([4, 1, 4])
+            np.ma.array([4, 1, 4]),
         )
 
     def test_single_location_none(self):
@@ -60,21 +57,21 @@ class QartodLocationTest(unittest.TestCase):
         lat = [None]
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([9])
+            np.ma.array([9]),
         )
 
         lon = np.array(lon)
         lat = np.array(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([9])
+            np.ma.array([9]),
         )
 
         lon = dask_arr(lon)
         lat = dask_arr(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([9])
+            np.ma.array([9]),
         )
 
     def test_single_location_nan(self):
@@ -82,14 +79,14 @@ class QartodLocationTest(unittest.TestCase):
         lat = [np.nan]
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([9])
+            np.ma.array([9]),
         )
 
         lon = np.array(lon)
         lat = np.array(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([9])
+            np.ma.array([9]),
         )
 
         # Test dask nan input
@@ -97,21 +94,21 @@ class QartodLocationTest(unittest.TestCase):
         lat = dask_arr(lat)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat),
-            np.ma.array([9])
+            np.ma.array([9]),
         )
 
     def test_location_bad_input(self):
         # Wrong type lon
         with self.assertRaises(ValueError):
-            qartod.location_test(lon='hello', lat=70)
+            qartod.location_test(lon="hello", lat=70)
 
         # Wrong type lat
         with self.assertRaises(ValueError):
-            qartod.location_test(lon=70, lat='foo')
+            qartod.location_test(lon=70, lat="foo")
 
         # Wrong type bbox
         with self.assertRaises(ValueError):
-            qartod.location_test(lon=70, lat=70, bbox='hi')
+            qartod.location_test(lon=70, lat=70, bbox="hi")
 
         # Wrong size bbox
         with self.assertRaises(ValueError):
@@ -122,37 +119,36 @@ class QartodLocationTest(unittest.TestCase):
         lat = [None,  50,  59,  10, -60]
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4])
+            np.ma.array([4, 1, 1, 4, 4]),
         )
 
         lon = np.asarray([80,   -78, -71, -79, 500], dtype=np.float64)
         lat = np.asarray([None,  50,  59,  10, -60], dtype=np.float64)
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4])
+            np.ma.array([4, 1, 1, 4, 4]),
         )
 
         lon = dask_arr(np.asarray([80,   -78, -71, -79, 500], dtype=np.float64))
         lat = dask_arr(np.asarray([None,  50,  59,  10, -60], dtype=np.float64))
         npt.assert_array_equal(
             qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4])
+            np.ma.array([4, 1, 1, 4, 4]),
         )
 
     def test_location_distance_threshold(self):
-        """
-        Tests a user defined distance threshold between successive points.
+        """Tests a user defined distance threshold between successive points.
         """
         lon = np.array([-71.05, -71.06, -80.0])
         lat = np.array([41.0, 41.02, 45.05])
 
         npt.assert_array_equal(
             qartod.location_test(lon, lat),
-            np.array([1, 1, 1])
+            np.array([1, 1, 1]),
         )
         npt.assert_array_equal(
             qartod.location_test(lon, lat, range_max=3000.0),
-            np.ma.array([1, 1, 3])
+            np.ma.array([1, 1, 3]),
         )
 
 
@@ -167,14 +163,14 @@ class QartodGrossRangeTest(unittest.TestCase):
             15,                  # User range.
             20, 25, 30, 35, 40,  # Valid
             45,                  # User range.
-            51                   # Sensor range.
+            51,                   # Sensor range.
         ]
         result = np.ma.array([
             4, 3,
             3,
             1, 1, 1, 1, 1,
             3,
-            4
+            4,
         ])
 
         with warnings.catch_warnings():
@@ -184,7 +180,7 @@ class QartodGrossRangeTest(unittest.TestCase):
                 np.array(vals, dtype=np.integer),
                 np.array(vals, dtype=np.float64),
                 dask_arr(np.array(vals, dtype=np.integer)),
-                dask_arr(np.array(vals, dtype=np.float64))
+                dask_arr(np.array(vals, dtype=np.float64)),
             ]
 
         for i in inputs:
@@ -192,9 +188,9 @@ class QartodGrossRangeTest(unittest.TestCase):
                 qartod.gross_range_test(
                     inp=i,
                     fail_span=fail_span,
-                    suspect_span=suspect_span
+                    suspect_span=suspect_span,
                 ),
-                result
+                result,
             )
 
     def test_gross_range_bad_input(self):
@@ -202,21 +198,21 @@ class QartodGrossRangeTest(unittest.TestCase):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=10,
-                suspect_span=(1, 1)
+                suspect_span=(1, 1),
             )
 
         with self.assertRaises(ValueError):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=(1, 1),
-                suspect_span=10
+                suspect_span=10,
             )
 
         with self.assertRaises(ValueError):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=(1, 1),
-                suspect_span=(2, 2)
+                suspect_span=(2, 2),
             )
 
     def test_gross_range_check_masked(self):
@@ -230,7 +226,7 @@ class QartodGrossRangeTest(unittest.TestCase):
             20, 25, 30, 35, 40,  # Valid
             np.nan,              # np.nan
             51,                  # Sensor range.
-            np.ma.masked         # np.ma.masked
+            np.ma.masked,         # np.ma.masked
         ]
         result = np.ma.array([
             9,
@@ -239,7 +235,7 @@ class QartodGrossRangeTest(unittest.TestCase):
             1, 1, 1, 1, 1,
             9,
             4,
-            9
+            9,
         ])
 
         with warnings.catch_warnings():
@@ -247,7 +243,7 @@ class QartodGrossRangeTest(unittest.TestCase):
             inputs = [
                 vals,
                 np.array(vals, dtype=np.float64),
-                dask_arr(np.array(vals, dtype=np.float64))
+                dask_arr(np.array(vals, dtype=np.float64)),
             ]
 
         for i in inputs:
@@ -255,9 +251,9 @@ class QartodGrossRangeTest(unittest.TestCase):
                 qartod.gross_range_test(
                     vals,
                     fail_span,
-                    suspect_span
+                    suspect_span,
                 ),
-                result
+                result,
 
             )
 
@@ -269,45 +265,45 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
         cc.add(
             vspan=(10, 20),  # range of valid values
             tspan=tspan,  # jan, feb and march
-            period=period
+            period=period,
         )
         test_inputs = [
             # in feb, but outside range of valid values
             (
-                np.datetime64('2011-02-02'),
+                np.datetime64("2011-02-02"),
                 9,
-                None
+                None,
             ),
             # in feb, and within range of valid values
             (
-                np.datetime64('2013-02-03'),
+                np.datetime64("2013-02-03"),
                 11,
-                None
+                None,
             ),
             # Not run, outside of time range
             (
-                np.datetime64('2011-04-01'),
+                np.datetime64("2011-04-01"),
                 21,
-                None
+                None,
             ),
             # Not run, outside of time range
             (
-                np.datetime64('2011-12-31'),
+                np.datetime64("2011-12-31"),
                 21,
-                None
+                None,
             ),
             # leap day, with valid values
             (
-                np.datetime64('2020-02-29'),
+                np.datetime64("2020-02-29"),
                 15,
-                None
+                None,
             ),
         ]
         times, values, depths = zip(*test_inputs)
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
-            dask_arr(np.asarray(values, dtype=np.float64))
+            dask_arr(np.asarray(values, dtype=np.float64)),
         ]
 
         for i in inputs:
@@ -315,24 +311,24 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
                 config=cc,
                 tinp=times,
                 inp=i,
-                zinp=depths
+                zinp=depths,
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array([3, 1, 2, 2, 1])
+                np.ma.array([3, 1, 2, 2, 1]),
             )
 
     def test_climatology_test_periods_monthly(self):
-        self._run_test((0, 3), 'month')
+        self._run_test((0, 3), "month")
 
     def test_climatology_test_periods_week_of_year(self):
-        self._run_test((0, 12), 'weekofyear')
+        self._run_test((0, 12), "weekofyear")
 
     def test_climatology_test_periods_day_of_year(self):
-        self._run_test((0, 90), 'dayofyear')
+        self._run_test((0, 90), "dayofyear")
 
     def test_climatology_test_periods_quarter(self):
-        self._run_test((0, 1), 'quarter')
+        self._run_test((0, 1), "quarter")
 
 
 class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
@@ -340,7 +336,7 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
     # and test data ranges across several years
 
     def setUp(self):
-        self.tinp = list(pd.date_range(start='2018-01-01', end='2020-12-31', freq='D'))
+        self.tinp = list(pd.date_range(start="2018-01-01", end="2020-12-31", freq="D"))
         self.values = np.ones(len(self.tinp))
         self.zinp = np.zeros(len(self.tinp))
 
@@ -350,7 +346,7 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
             config=cc,
             tinp=self.tinp,
             inp=self.values,
-            zinp=self.zinp
+            zinp=self.zinp,
         )
 
     def test_quarterly_periods(self):
@@ -358,17 +354,17 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         cc = qartod.ClimatologyConfig()
         cc.add(
             tspan=(0, 1),       # Q1
-            period='quarter',
+            period="quarter",
             vspan=vspan,
         )
         cc.add(
             tspan=(1, 3),       # Q2-Q3
-            period='quarter',
+            period="quarter",
             vspan=vspan,
         )
         cc.add(
             tspan=(3, 4),       # Q4
-            period='quarter',
+            period="quarter",
             vspan=vspan,
         )
         self._run_test(cc)
@@ -378,27 +374,27 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         cc = qartod.ClimatologyConfig()
         cc.add(
             tspan=(0, 1),       # jan
-            period='month',
+            period="month",
             vspan=vspan,
         )
         cc.add(
             tspan=(1, 2),       # feb
-            period='month',
+            period="month",
             vspan=vspan,
         )
         cc.add(
             tspan=(2, 3),       # mar
-            period='month',
+            period="month",
             vspan=vspan,
         )
         cc.add(
             tspan=(3, 10),       # apr-nov
-            period='month',
+            period="month",
             vspan=vspan,
         )
         cc.add(
             tspan=(10, 11),       # dec
-            period='month',
+            period="month",
             vspan=vspan,
         )
         self._run_test(cc)
@@ -408,17 +404,17 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         cc = qartod.ClimatologyConfig()
         cc.add(
             tspan=(0, 1),       # first day of year
-            period='dayofyear',
+            period="dayofyear",
             vspan=vspan,
         )
         cc.add(
             tspan=(1, 363),       # jan 2 thru dec 30
-            period='dayofyear',
+            period="dayofyear",
             vspan=vspan,
         )
         cc.add(
             tspan=(363, 364),       # last day of year
-            period='dayofyear',
+            period="dayofyear",
             vspan=vspan,
         )
         self._run_test(cc)
@@ -428,17 +424,17 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         cc = qartod.ClimatologyConfig()
         cc.add(
             tspan=(0, 1),       # first week of year
-            period='weekofyear',
+            period="weekofyear",
             vspan=vspan,
         )
         cc.add(
             tspan=(1, 50),       # 2nd thru 51st week
-            period='weekofyear',
+            period="weekofyear",
             vspan=vspan,
         )
         cc.add(
             tspan=(50, 51),       # last week of year
-            period='weekofyear',
+            period="weekofyear",
             vspan=vspan,
         )
         self._run_test(cc)
@@ -450,10 +446,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def setUp(self):
         self.cc = qartod.ClimatologyConfig()
         self.cc.add(
-            tspan=(np.datetime64('2019-11-01'), np.datetime64('2020-02-04')),
+            tspan=(np.datetime64("2019-11-01"), np.datetime64("2020-02-04")),
             fspan=(40, 70),
             vspan=(50, 60),
-            zspan=(0, 10)
+            zspan=(0, 10),
         )
 
     def _run_test(self, test_inputs, expected_result):
@@ -461,7 +457,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
-            dask_arr(np.asarray(values, dtype=np.float64))
+            dask_arr(np.asarray(values, dtype=np.float64)),
         ]
 
         for i in inputs:
@@ -469,20 +465,20 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
                 config=self.cc,
                 tinp=times,
                 inp=i,
-                zinp=depths
+                zinp=depths,
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array(expected_result)
+                np.ma.array(expected_result),
             )
 
     def test_tspan_out_of_range_low(self):
         test_inputs = [
             (
-                np.datetime64('2019-10-31'),
+                np.datetime64("2019-10-31"),
                 55,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [2]
         self._run_test(test_inputs, expected_result)
@@ -490,10 +486,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_tspan_minimum(self):
         test_inputs = [
             (
-                np.datetime64('2019-11-01'),
+                np.datetime64("2019-11-01"),
                 55,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -501,10 +497,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_tspan_maximum(self):
         test_inputs = [
             (
-                np.datetime64('2020-02-04'),
+                np.datetime64("2020-02-04"),
                 55,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -512,10 +508,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_tspan_out_of_range_high(self):
         test_inputs = [
             (
-                np.datetime64('2020-02-05'),
+                np.datetime64("2020-02-05"),
                 55,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [2]
         self._run_test(test_inputs, expected_result)
@@ -523,10 +519,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_vspan_out_of_range_low(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 49,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [3]
         self._run_test(test_inputs, expected_result)
@@ -534,10 +530,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_vspan_minimum(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 50,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -545,10 +541,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_vspan_maximum(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 60,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -556,10 +552,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_vspan_out_of_range_high(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 61,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [3]
         self._run_test(test_inputs, expected_result)
@@ -567,10 +563,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_fspan_out_of_range_low(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 30,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [4]
         self._run_test(test_inputs, expected_result)
@@ -578,10 +574,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_fspan_minimum(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 40,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [3]
         self._run_test(test_inputs, expected_result)
@@ -589,10 +585,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_fspan_maximum(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 70,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [3]
         self._run_test(test_inputs, expected_result)
@@ -600,10 +596,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_fspan_out_of_range_high(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 71,
-                5
-            )
+                5,
+            ),
         ]
         expected_result = [4]
         self._run_test(test_inputs, expected_result)
@@ -611,10 +607,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_zspan_out_of_range_low(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 55,
-                -1
-            )
+                -1,
+            ),
         ]
         expected_result = [2]
         self._run_test(test_inputs, expected_result)
@@ -622,10 +618,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_zspan_minimum(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 55,
-                0
-            )
+                0,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -633,10 +629,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_zspan_maximum(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 55,
-                10
-            )
+                10,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -644,10 +640,10 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     def test_zspan_out_of_range_high(self):
         test_inputs = [
             (
-                np.datetime64('2020-01-01'),
+                np.datetime64("2020-01-01"),
                 55,
-                11
-            )
+                11,
+            ),
         ]
         expected_result = [2]
         self._run_test(test_inputs, expected_result)
@@ -659,15 +655,15 @@ class QartodClimatologyDepthTest(unittest.TestCase):
         self.cc = qartod.ClimatologyConfig()
         # with depths
         self.cc.add(
-            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
             vspan=(50, 60),
-            zspan=(0, 10)
+            zspan=(0, 10),
         )
         # same as above, but different depths
         self.cc.add(
-            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
             vspan=(70, 80),
-            zspan=(10, 100)
+            zspan=(10, 100),
         )
 
     def _run_test(self, test_inputs, expected_result):
@@ -675,7 +671,7 @@ class QartodClimatologyDepthTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
-            dask_arr(np.asarray(values, dtype=np.float64))
+            dask_arr(np.asarray(values, dtype=np.float64)),
         ]
 
         for i in inputs:
@@ -683,11 +679,11 @@ class QartodClimatologyDepthTest(unittest.TestCase):
                 config=self.cc,
                 tinp=times,
                 inp=i,
-                zinp=depths
+                zinp=depths,
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array(expected_result)
+                np.ma.array(expected_result),
             )
 
     def test_climatology_test_all_unknown(self):
@@ -695,25 +691,25 @@ class QartodClimatologyDepthTest(unittest.TestCase):
         # depths are passed in for any of the values
         test_inputs = [
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 9,
-                None
+                None,
             ),
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 11,
-                None
+                None,
             ),
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 21,
-                None
+                None,
             ),
             # not run, outside given time ranges
             (
-                np.datetime64('2015-01-02'),
+                np.datetime64("2015-01-02"),
                 21,
-                None
+                None,
             ),
         ]
         expected_result = [2, 2, 2, 2]
@@ -725,8 +721,8 @@ class QartodClimatologyMissingTest(unittest.TestCase):
         self.cc = qartod.ClimatologyConfig()
         # different time range, no depth
         self.cc.add(
-            tspan=(np.datetime64('2021-07'), np.datetime64('2021-09')),
-            vspan=(3.4, 5)
+            tspan=(np.datetime64("2021-07"), np.datetime64("2021-09")),
+            vspan=(3.4, 5),
         )
 
     def _run_test(self, test_inputs, expected_result):
@@ -734,7 +730,7 @@ class QartodClimatologyMissingTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
-            dask_arr(np.asarray(values, dtype=np.float64))
+            dask_arr(np.asarray(values, dtype=np.float64)),
         ]
 
         for i in inputs:
@@ -742,33 +738,33 @@ class QartodClimatologyMissingTest(unittest.TestCase):
                 config=self.cc,
                 tinp=times,
                 inp=i,
-                zinp=depths
+                zinp=depths,
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array(expected_result)
+                np.ma.array(expected_result),
             )
 
     def test_climatology_missing_values(self):
         test_inputs = [
             # Not missing value or depth, value out of bounds
             (
-                np.datetime64('2021-07-16'),
+                np.datetime64("2021-07-16"),
                 0,
-                0
+                0,
             ),
             # Missing value and depth
             (
-                np.datetime64('2021-07-16'),
+                np.datetime64("2021-07-16"),
                 np.nan,
-                np.nan
+                np.nan,
             ),
             # Not missing value and depth, value within bounds
             (
-                np.datetime64('2021-07-16'),
+                np.datetime64("2021-07-16"),
                 4.16743,
-                0.08931513
-            )
+                0.08931513,
+            ),
         ]
         expected_result = [3, 9, 1]
         self._run_test(test_inputs, expected_result)
@@ -779,28 +775,28 @@ class QartodClimatologyTest(unittest.TestCase):
     def setUp(self):
         self.cc = qartod.ClimatologyConfig()
         self.cc.add(
-            tspan=(np.datetime64('2011-01'), np.datetime64('2011-07')),
-            vspan=(10, 20)
+            tspan=(np.datetime64("2011-01"), np.datetime64("2011-07")),
+            vspan=(10, 20),
         )
         self.cc.add(
-            tspan=(np.datetime64('2011-07'), np.datetime64('2012-01')),
-            vspan=(30, 40)
+            tspan=(np.datetime64("2011-07"), np.datetime64("2012-01")),
+            vspan=(30, 40),
         )
         self.cc.add(
-            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
             vspan=(40, 50),
         )
         # same time range as above, but with depths
         self.cc.add(
-            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
             vspan=(50, 60),
-            zspan=(0, 10)
+            zspan=(0, 10),
         )
         # same as above, but different depths
         self.cc.add(
-            tspan=(np.datetime64('2012-01'), np.datetime64('2013-01')),
+            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
             vspan=(70, 80),
-            zspan=(10, 100)
+            zspan=(10, 100),
         )
 
     def _run_test(self, test_inputs, expected_result):
@@ -808,7 +804,7 @@ class QartodClimatologyTest(unittest.TestCase):
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
-            dask_arr(np.asarray(values, dtype=np.float64))
+            dask_arr(np.asarray(values, dtype=np.float64)),
         ]
 
         for i in inputs:
@@ -816,20 +812,20 @@ class QartodClimatologyTest(unittest.TestCase):
                 config=self.cc,
                 tinp=times,
                 inp=i,
-                zinp=depths
+                zinp=depths,
             )
             npt.assert_array_equal(
                 results,
-                np.ma.array(expected_result)
+                np.ma.array(expected_result),
             )
 
     def test_climatology_test(self):
         test_inputs = [
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 11,
-                None
-            )
+                None,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -839,8 +835,8 @@ class QartodClimatologyTest(unittest.TestCase):
             (
                 1293926400,  # Sunday, January 2, 2011 12:00:00 AM UTC
                 11,
-                None
-            )
+                None,
+            ),
         ]
         expected_result = [1]
         self._run_test(test_inputs, expected_result)
@@ -848,25 +844,25 @@ class QartodClimatologyTest(unittest.TestCase):
     def test_climatology_test_fail(self):
         test_inputs = [
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 9,
-                None
+                None,
             ),
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 11,
-                None
+                None,
             ),
             (
-                np.datetime64('2011-01-02'),
+                np.datetime64("2011-01-02"),
                 21,
-                None
+                None,
             ),
             # not run, outside given time ranges
             (
-                np.datetime64('2015-01-02'),
+                np.datetime64("2015-01-02"),
                 21,
-                None
+                None,
             ),
         ]
         expected_result = [3, 1, 3, 2]
@@ -876,40 +872,40 @@ class QartodClimatologyTest(unittest.TestCase):
         test_inputs = [
             # (0, 10) depth range, valid value
             (
-                np.datetime64('2012-01-02'),
+                np.datetime64("2012-01-02"),
                 51,
-                2
+                2,
             ),
             # (10, 100) depth range, valid value
             (
-                np.datetime64('2012-01-02'),
+                np.datetime64("2012-01-02"),
                 71,
-                90
+                90,
             ),
             # no depth range, valid value
             (
-                np.datetime64('2012-01-02'),
+                np.datetime64("2012-01-02"),
                 42,
-                None
+                None,
             ),
             # no depth range, invalid value
             (
-                np.datetime64('2012-01-02'),
+                np.datetime64("2012-01-02"),
                 39,
-                None
+                None,
             ),
             # (10, 100) depth range, invalid value
             (
-                np.datetime64('2012-01-02'),
+                np.datetime64("2012-01-02"),
                 59,
-                11
+                11,
             ),
             # Not run, has depth that's outside of given depth ranges
             (
-                np.datetime64('2012-01-02'),
+                np.datetime64("2012-01-02"),
                 79,
-                101
-            )
+                101,
+            ),
         ]
         expected_result = [1, 1, 1, 3, 3, 3]
         self._run_test(test_inputs, expected_result)
@@ -922,10 +918,8 @@ class QartodSpikeTest(unittest.TestCase):
         self.fail_threshold = 50
 
     def test_spike(self):
+        """Test to make ensure single value spike detection works properly.
         """
-        Test to make ensure single value spike detection works properly.
-        """
-
         arr = [10, 12, 999.99, 13, 15, 40, 9, 9]
 
         # First and last elements should always be good data, unless someone
@@ -935,21 +929,20 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.float64),
-            dask_arr(np.asarray(arr, dtype=np.float64))
+            dask_arr(np.asarray(arr, dtype=np.float64)),
         ]
         for i in inputs:
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
                     suspect_threshold=self.suspect_threshold,
-                    fail_threshold=self.fail_threshold
+                    fail_threshold=self.fail_threshold,
                 ),
-                expected
+                expected,
             )
 
     def test_spike_negative_vals(self):
-        """
-        Test to make spike detection works properly for negative values.
+        """Test to make spike detection works properly for negative values.
         """
         arr = [-10, -12, -999.99, -13, -15, -40, -9, -9]
 
@@ -960,21 +953,20 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.float64),
-            dask_arr(np.asarray(arr, dtype=np.float64))
+            dask_arr(np.asarray(arr, dtype=np.float64)),
         ]
         for i in inputs:
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
                     suspect_threshold=self.suspect_threshold,
-                    fail_threshold=self.fail_threshold
+                    fail_threshold=self.fail_threshold,
                 ),
-                expected
+                expected,
             )
 
     def test_spike_initial_final_values(self):
-        """
-        The test is not defined for the initial and final values in the array
+        """The test is not defined for the initial and final values in the array
         """
         arr = [-100, -99, -99, -98]
         expected = [2, 1, 1, 2]
@@ -983,16 +975,14 @@ class QartodSpikeTest(unittest.TestCase):
             qartod.spike_test(
                 inp=arr,
                 suspect_threshold=self.suspect_threshold,
-                fail_threshold=self.fail_threshold
+                fail_threshold=self.fail_threshold,
             ),
-            expected
+            expected,
         )
 
     def test_spike_masked(self):
+        """Test with missing data.
         """
-        Test with missing data.
-        """
-
         arr = [10, 12, 999.99, 13, 15, 40, 9, 9, None, 10, 10, 999.99, 10, None]
 
         # First and last elements should always be good data, unless someone
@@ -1002,21 +992,20 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.float64),
-            dask_arr(np.asarray(arr, dtype=np.float64))
+            dask_arr(np.asarray(arr, dtype=np.float64)),
         ]
         for i in inputs:
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
                     suspect_threshold=self.suspect_threshold,
-                    fail_threshold=self.fail_threshold
+                    fail_threshold=self.fail_threshold,
                 ),
-                expected
+                expected,
             )
 
     def test_spike_realdata(self):
-        """
-        Test with real-world data.
+        """Test with real-world data.
         """
         suspect_threshold = 0.5
         fail_threshold = 1
@@ -1030,21 +1019,20 @@ class QartodSpikeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.float64),
-            dask_arr(np.asarray(arr, dtype=np.float64))
+            dask_arr(np.asarray(arr, dtype=np.float64)),
         ]
         for i in inputs:
             npt.assert_array_equal(
                 qartod.spike_test(
                     inp=i,
                     suspect_threshold=suspect_threshold,
-                    fail_threshold=fail_threshold
+                    fail_threshold=fail_threshold,
                 ),
-                expected
+                expected,
             )
 
     def test_spike_methods(self):
-        """
-        Test the different input methods and review the different flags expected.
+        """Test the different input methods and review the different flags expected.
         """
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
         suspect_threshold = .5
@@ -1058,9 +1046,9 @@ class QartodSpikeTest(unittest.TestCase):
                 inp=inp,
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
-                method='average'
+                method="average",
             ),
-            average_method_expected
+            average_method_expected,
         )
 
         # Test diff method
@@ -1069,9 +1057,9 @@ class QartodSpikeTest(unittest.TestCase):
                 inp=inp,
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
-                method='differential'
+                method="differential",
             ),
-            diff_method_expected
+            diff_method_expected,
         )
 
         # Test default method (average)
@@ -1081,7 +1069,7 @@ class QartodSpikeTest(unittest.TestCase):
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
             ),
-            average_method_expected
+            average_method_expected,
         )
 
     def test_spike_test_bad_method(self):
@@ -1094,14 +1082,14 @@ class QartodSpikeTest(unittest.TestCase):
                 inp=inp,
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
-                method='bad'
+                method="bad",
             )
         with self.assertRaises(ValueError):
             qartod.spike_test(
                 inp=inp,
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
-                method=123
+                method=123,
             )
 
     def test_spike_test_inputs(self):
@@ -1128,8 +1116,8 @@ class QartodSpikeTest(unittest.TestCase):
 class QartodRateOfChangeTest(unittest.TestCase):
 
     def setUp(self):
-        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 06:00:00',
-                               step=np.timedelta64(15, 'm'), dtype=np.datetime64)
+        self.times = np.arange("2015-01-01 00:00:00", "2015-01-01 06:00:00",
+                               step=np.timedelta64(15, "m"), dtype=np.datetime64)
         self.times_epoch_secs = [t.astype(int) for t in self.times]
         self.threshold = 5 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
 
@@ -1140,13 +1128,13 @@ class QartodRateOfChangeTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.float64),
-            dask_arr(np.asarray(arr, dtype=np.float64))
+            dask_arr(np.asarray(arr, dtype=np.float64)),
         ]
         for i in inputs:
             result = qartod.rate_of_change_test(
                 inp=i,
                 tinp=times,
-                threshold=self.threshold
+                threshold=self.threshold,
             )
             npt.assert_array_equal(expected, result)
 
@@ -1155,9 +1143,9 @@ class QartodRateOfChangeTest(unittest.TestCase):
             qartod.rate_of_change_test(
                 inp=i,
                 tinp=self.times_epoch_secs,
-                threshold=self.threshold
+                threshold=self.threshold,
             ),
-            expected
+            expected,
         )
 
     def test_rate_of_change_missing_values(self):
@@ -1167,7 +1155,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         result = qartod.rate_of_change_test(
             inp=arr,
             tinp=times,
-            threshold=self.threshold
+            threshold=self.threshold,
         )
         npt.assert_array_equal(expected, result)
 
@@ -1178,7 +1166,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         result = qartod.rate_of_change_test(
             inp=arr,
             tinp=times,
-            threshold=self.threshold
+            threshold=self.threshold,
         )
         npt.assert_array_equal(expected, result)
 
@@ -1186,8 +1174,8 @@ class QartodRateOfChangeTest(unittest.TestCase):
 class QartodFlatLineTest(unittest.TestCase):
 
     def setUp(self):
-        self.times = np.arange('2015-01-01 00:00:00', '2015-01-01 03:30:00',
-                               step=np.timedelta64(15, 'm'), dtype=np.datetime64)
+        self.times = np.arange("2015-01-01 00:00:00", "2015-01-01 03:30:00",
+                               step=np.timedelta64(15, "m"), dtype=np.datetime64)
         self.times_epoch_secs = [t.astype(int) for t in self.times]
         self.suspect_threshold = 3000   # 50 mins, or count of 3
         self.fail_threshold = 4800  # 80 mins, or count of 5
@@ -1199,7 +1187,7 @@ class QartodFlatLineTest(unittest.TestCase):
         inputs = [
             arr,
             np.asarray(arr, dtype=np.float64),
-            dask_arr(np.asarray(arr, dtype=np.float64))
+            dask_arr(np.asarray(arr, dtype=np.float64)),
         ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -1207,7 +1195,7 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
+                tolerance=self.tolerance,
             )
             npt.assert_array_equal(result, expected)
 
@@ -1218,9 +1206,9 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times_epoch_secs,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
+                tolerance=self.tolerance,
             ),
-            expected
+            expected,
         )
 
         # test negative array - should return same result
@@ -1231,9 +1219,9 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
+                tolerance=self.tolerance,
             ),
-            expected
+            expected,
         )
 
         # test empty array - should return empty result
@@ -1245,9 +1233,9 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
+                tolerance=self.tolerance,
             ),
-            expected
+            expected,
         )
 
         # test nothing fails
@@ -1259,9 +1247,9 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=0.00000000001
+                tolerance=0.00000000001,
             ),
-            expected
+            expected,
         )
 
     def test_flat_line_starting_from_beginning(self):
@@ -1272,7 +1260,7 @@ class QartodFlatLineTest(unittest.TestCase):
             inputs = [
                 arr,
                 np.asarray(arr, dtype=np.float64),
-                dask_arr(np.asarray(arr, dtype=np.float64))
+                dask_arr(np.asarray(arr, dtype=np.float64)),
             ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -1280,7 +1268,7 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
+                tolerance=self.tolerance,
             )
             npt.assert_array_equal(result, expected)
 
@@ -1292,7 +1280,7 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=time,
                 suspect_threshold=3,
                 fail_threshold=5,
-                tolerance=0.1
+                tolerance=0.1,
             )
             npt.assert_array_equal(result, expected)
 
@@ -1316,7 +1304,7 @@ class QartodFlatLineTest(unittest.TestCase):
             tinp=time,
             suspect_threshold=suspect_threshold,
             fail_threshold=fail_threshold,
-            tolerance=tolerance
+            tolerance=tolerance,
         )
         npt.assert_array_equal(result, expected)
 
@@ -1328,7 +1316,7 @@ class QartodFlatLineTest(unittest.TestCase):
             inputs = [
                 arr,
                 np.asarray(arr, dtype=np.float64),
-                dask_arr(np.asarray(arr, dtype=np.float64))
+                dask_arr(np.asarray(arr, dtype=np.float64)),
             ]
         for i in inputs:
             result = qartod.flat_line_test(
@@ -1336,7 +1324,7 @@ class QartodFlatLineTest(unittest.TestCase):
                 tinp=self.times,
                 suspect_threshold=self.suspect_threshold,
                 fail_threshold=self.fail_threshold,
-                tolerance=self.tolerance
+                tolerance=self.tolerance,
             )
             npt.assert_array_equal(result, expected)
 
@@ -1354,13 +1342,13 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 test_period=test_period,
                 min_obs=min_obs,
                 min_period=min_period,
-                check_type=check_type
+                check_type=check_type,
             ),
-            expected
+            expected,
         )
 
         # test epoch secs - should return same result
-        times_epoch_secs = [np.datetime64(t, 's').astype(int) for t in times]
+        times_epoch_secs = [np.datetime64(t, "s").astype(int) for t in times]
         npt.assert_array_equal(
             qartod.attenuated_signal_test(
                 inp=signal,
@@ -1370,93 +1358,93 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
                 test_period=test_period,
                 min_obs=min_obs,
                 min_period=min_period,
-                check_type=check_type
+                check_type=check_type,
             ),
-            expected
+            expected,
         )
 
     def test_attenuated_signal(self):
         # good signal, all pass
         signal = np.array([1, 2, 3, 4])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([1, 1, 1, 1])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=0.75, fail_threshold=0.5, check_type='std',
+                       suspect_threshold=0.75, fail_threshold=0.5, check_type="std",
                        expected=expected)
 
         # Only suspect
         signal = np.array([1, 2, 3, 4])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([3, 3, 3, 3])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=5, fail_threshold=0, check_type='std',
+                       suspect_threshold=5, fail_threshold=0, check_type="std",
                        expected=expected)
 
         # Not changing should fail
         signal = np.array([1, 1, 1, 1])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([4, 4, 4, 4])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=10, fail_threshold=8, check_type='std',
+                       suspect_threshold=10, fail_threshold=8, check_type="std",
                        expected=expected)
 
         # std deviation less than fail threshold
         signal = np.array([10, 20, 30, 40])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([4, 4, 4, 4])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=100000, fail_threshold=1000, check_type='std',
+                       suspect_threshold=100000, fail_threshold=1000, check_type="std",
                        expected=expected)
 
     def test_attenuated_signal_range(self):
         # range less than fail threshold
         signal = np.array([10, 20, 30, 40])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([4, 4, 4, 4])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=50, fail_threshold=31, check_type='range',
+                       suspect_threshold=50, fail_threshold=31, check_type="range",
                        expected=expected)
 
         # range less than suspect threshold
         signal = np.array([10, 20, 30, 40])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([3, 3, 3, 3])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=31, fail_threshold=10, check_type='range',
+                       suspect_threshold=31, fail_threshold=10, check_type="range",
                        expected=expected)
 
         signal = np.array([3, 4, 5, 8.1, 9, 8.5, 8.7, 8.4, 8.2, 8.35, 2, 1])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=0.15, fail_threshold=0.1, check_type='range',
+                       suspect_threshold=0.15, fail_threshold=0.1, check_type="range",
                        expected=expected)
 
     def test_attenuated_signal_time_window(self):
         # test time windowed range
         signal = [1, 2, 3, 100, 1000]
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(len(signal))
         ])
         time_window = 2 * 86400     # 2 days
 
         def _run_test_time_window(min_obs, min_period, expected):
             self._run_test(times=times, signal=signal,
-                           suspect_threshold=100, fail_threshold=10, check_type='range',
+                           suspect_threshold=100, fail_threshold=10, check_type="range",
                            expected=expected,
                            test_period=time_window,
                            min_obs=min_obs,
@@ -1489,37 +1477,37 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
     def test_attenuated_signal_missing(self):
         signal = np.array([None, 2, 3, 4])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([9, 1, 1, 1])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=0.75, fail_threshold=0.5, check_type='std',
+                       suspect_threshold=0.75, fail_threshold=0.5, check_type="std",
                        expected=expected)
 
         signal = np.array([None, None, None, None])
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(signal.size)
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)
         ])
         expected = np.array([9, 9, 9, 9])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=0.75, fail_threshold=0.5, check_type='std',
+                       suspect_threshold=0.75, fail_threshold=0.5, check_type="std",
                        expected=expected)
 
         # range less than 30
         signal = [10, None, None, 40]
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(len(signal))
         ])
         expected = np.array([4, 9, 9, 4])
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=50, fail_threshold=31, check_type='range',
+                       suspect_threshold=50, fail_threshold=31, check_type="range",
                        expected=expected)
 
     def test_attenuated_signal_missing_time_window(self):
         # test time windowed range with missing values
         signal = [1, None, 10, 100, 1000]
         times = np.array([
-            np.datetime64('2019-01-01') + np.timedelta64(i, 'D') for i in range(len(signal))
+            np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(len(signal))
         ])
         time_window = 2 * 86400     # 2 days
         min_obs = 2                 # 2 days (since 1 obs per day)
@@ -1527,7 +1515,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # test time windowed range
         expected = [2, 9, 2, 3, 1]
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=100, fail_threshold=50, check_type='range',
+                       suspect_threshold=100, fail_threshold=50, check_type="range",
                        expected=expected,
                        test_period=time_window,
                        min_obs=min_obs)
@@ -1536,7 +1524,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         expected = [2, 9, 2, 3, 1]
         time_window = 2 * 86400
         self._run_test(times=times, signal=signal,
-                       suspect_threshold=150, fail_threshold=40, check_type='std',
+                       suspect_threshold=150, fail_threshold=40, check_type="std",
                        expected=expected,
                        test_period=time_window,
                        min_obs=min_obs)
@@ -1610,33 +1598,31 @@ class QartodDensityInversionTest(unittest.TestCase):
 
         # Wrong type suspect_threshold
         with self.assertRaises(TypeError):
-            qartod.density_inversion_test(inp=density, zinp=depth, suspect_threshold='bad')
+            qartod.density_inversion_test(inp=density, zinp=depth, suspect_threshold="bad")
 
         # Wrong type fail_threshold
         with self.assertRaises(TypeError):
-            qartod.density_inversion_test(inp=density, zinp=depth, fail_threshold='bad')
+            qartod.density_inversion_test(inp=density, zinp=depth, fail_threshold="bad")
 
         # Wrong type for both fail_threshold and suspect_threshold
         with self.assertRaises(TypeError):
             qartod.density_inversion_test(inp=density, zinp=depth,
-                                          suspect_threshold='bad', fail_threshold='bad')
+                                          suspect_threshold="bad", fail_threshold="bad")
 
         # Wrong type density
         with self.assertRaises(ValueError):
-            qartod.density_inversion_test(inp='density', zinp=depth, suspect_threshold=-0.3)
+            qartod.density_inversion_test(inp="density", zinp=depth, suspect_threshold=-0.3)
 
         # Wrong type depth
         with self.assertRaises(ValueError):
-            qartod.density_inversion_test(inp=density, zinp='depth', suspect_threshold=-0.3)
+            qartod.density_inversion_test(inp=density, zinp="depth", suspect_threshold=-0.3)
 
 
 class QartodUtilsTests(unittest.TestCase):
 
     def test_qartod_compare(self):
+        """Tests that the compare function works as intended.
         """
-        Tests that the compare function works as intended.
-        """
-
         range_flags = np.array([1, 1, 1, 9, 1, 1, 9, 9])
         spike_flags = np.array([2, 1, 1, 1, 1, 1, 9, 9])
         grdtn_flags = np.array([1, 3, 3, 4, 3, 1, 2, 9])
@@ -1644,9 +1630,9 @@ class QartodUtilsTests(unittest.TestCase):
         primary_flags = qartod.qartod_compare([
             range_flags,
             spike_flags,
-            grdtn_flags
+            grdtn_flags,
         ])
         np.testing.assert_array_equal(
             primary_flags,
-            np.array([1, 3, 3, 4, 3, 1, 2, 9])
+            np.array([1, 3, 3, 4, 3, 1, 2, 9]),
         )

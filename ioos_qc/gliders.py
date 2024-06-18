@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 """Deprecated module. Consider using ARGO instead."""
 import warnings
 
