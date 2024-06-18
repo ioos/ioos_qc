@@ -1,3 +1,79 @@
 [build-system]
-requires = ["setuptools>=41.2", "setuptools_scm", "wheel"]
 build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools>=42",
+  "setuptools-scm",
+  "wheel",
+]
+
+[project]
+name = "ioos_qc"
+description = "IOOS QARTOD and Quality Control tests implemented in Python"
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+maintainers = [
+  { name = "Kyle Wilcox", email = "kyle@axds.co" },
+  { name = "Filipe Fernandes", email = "ocefpaf+ioos_qc@gmail.com" },
+]
+requires-python = ">=3.8"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dynamic = [
+  "dependencies",
+  "version",
+]
+urls.documentation = "https://ioos.github.io/ioos_qc"
+urls.homepage = "https://github.com/ioos/ioos_qc"
+urls.repository = "https://github.com/ioos/ioos_qc"
+
+[project.optional-dependencies]
+test = ["dask", "pytest"]
+extras = ["bokeh", "nco", "numba"]
+
+[tool.setuptools]
+packages = [
+  "ioos_qc",
+]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+dependencies = { file = [
+  "requirements.txt",
+] }
+
+[tool.setuptools_scm]
+write_to = "ioos_qc/_version.py"
+write_to_template = "__version__ = '{version}'"
+tag_regex = "^(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
+
+[tool.check-manifest]
+ignore = [
+  "*.yml",
+  ".coveragerc",
+  "docs",
+  "docs/*",
+  "tests",
+  "tests/*",
+]
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-module = false
+fail-under = 85
+exclude = [
+  "docs",
+  "tests",
+]
+verbose = 1
+quiet = false
+color = true
