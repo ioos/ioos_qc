@@ -1,6 +1,19 @@
-include *.rst
 include *.txt
-include *.ini
-include VERSION
-include setup.cfg
-recursive-include ioos_qc *.py
+include README.md
+include pyproject.toml
+
+graft ioos_qc
+
+prune .github
+prune *.egg-info
+prune docs
+prune resources
+prune tests
+
+exclude *.nc
+exclude *.yml
+exclude .coveragerc
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude ioos_qc/_version.py
+exclude ruff.toml
