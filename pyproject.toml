@@ -62,13 +62,6 @@ ignore = [
   "tests/*",
 ]
 
-[tool.pytest.ini_options]
-filterwarnings = [
-  "error:::ioos_qc.*",
-  "ignore::UserWarning",
-  "ignore::RuntimeWarning",
-]
-
 [tool.interrogate]
 ignore-init-method = true
 ignore-init-module = false
