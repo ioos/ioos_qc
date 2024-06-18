@@ -1,26 +1,25 @@
 #!python
 from ioos_qc.config_creator import (
+    QC_CONFIG_CREATOR_SCHEMA,
+    VARIABLE_CONFIG_SCHEMA,
     CreatorConfig,
     QcConfigCreator,
     QcVariableConfig,
-    QC_CONFIG_CREATOR_SCHEMA,
-    VARIABLE_CONFIG_SCHEMA
 )
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'creator_config_file',
+        "creator_config_file",
         type=str,
-        help='path to creator config file (e.g. creator_config.json)'
+        help="path to creator config file (e.g. creator_config.json)",
     )
     parser.add_argument(
-        'variable_config_file',
+        "variable_config_file",
         type=str,
-        help='path to variable config file (e.g. air_config.json)'
+        help="path to variable config file (e.g. air_config.json)",
     )
     args = parser.parse_args()
 

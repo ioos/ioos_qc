@@ -1,24 +1,23 @@
 #!/usr/bin/env python
-# coding=utf-8
 import io
-import logging
 import json
-from typing import Any, Union
-from numbers import Real
-from geographiclib.geodesic import Geodesic
-from pathlib import Path
-from datetime import date, datetime
+import logging
 from collections import OrderedDict as odict
 from collections.abc import Mapping
+from datetime import date, datetime
+from numbers import Real
+from pathlib import Path
+from typing import Any, Union
 
+import geojson
 import numpy as np
 import pandas as pd
 import xarray as xr
-import geojson
+from geographiclib.geodesic import Geodesic
 from ruamel.yaml import YAML
 
 N = Real
-L = logging.getLogger(__name__)  # noqa
+L = logging.getLogger(__name__)
 
 
 def add_flag_metadata(**kwargs):
@@ -30,7 +29,7 @@ def add_flag_metadata(**kwargs):
 
 
 def openf(p, **kwargs):
-    """ Helper to allow one-line-lambdas to read file contents
+    """Helper to allow one-line-lambdas to read file contents
     """
     with open(p, **kwargs) as f:
         return f.read()
@@ -39,7 +38,6 @@ def openf(p, **kwargs):
 def load_config_from_xarray(source):
     """Load an xarray dataset as a config dict
     """
-
     to_close = False
     if not isinstance(source, xr.Dataset):
         source = xr.open_dataset(source, decode_cf=False)
@@ -47,9 +45,9 @@ def load_config_from_xarray(source):
 
     # If a global attribute exists, load as a YAML or JSON string and
     # ignore any config at the variable level
-    if 'ioos_qc_config' in source.attrs:
+    if "ioos_qc_config" in source.attrs:
         L.info("Using global attribute ioos_qc_config for QC config")
-        return load_config_as_dict(source.attrs['ioos_qc_config'])
+        return load_config_as_dict(source.attrs["ioos_qc_config"])
 
     # Iterate over variables and construct a config object
     y = odict()
@@ -73,12 +71,12 @@ def load_config_from_xarray(source):
             # for this variable
             newdict = odict({
                 vobj.ioos_qc_module: odict({
-                    vobj.ioos_qc_test: odict(json.loads(vobj.ioos_qc_config))
-                })
+                    vobj.ioos_qc_test: odict(json.loads(vobj.ioos_qc_config)),
+                }),
             })
             merged = dict_update(
                 y.get(vobj.ioos_qc_target, {}),
-                newdict
+                newdict,
             )
             y[vobj.ioos_qc_target] = merged
         except BaseException:
@@ -92,12 +90,12 @@ def load_config_from_xarray(source):
     return y
 
 
-def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO]
+def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO],
                         ) -> odict:
     """Load an object as a config dict. The source can be a dict, odict,
     YAML string, JSON string, a StringIO, or a file path to a valid YAML or JSON file.
     """
-    yaml = YAML(typ='safe')
+    yaml = YAML(typ="safe")
     if isinstance(source, odict):
         return source
     elif isinstance(source, dict):
@@ -112,8 +110,8 @@ def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO]
             lambda x: odict(yaml.load(x)),
             lambda x: odict(json.loads(x)),
             lambda x: load_config_from_xarray(x),
-            lambda x: odict(yaml.load(openf(x))),  # noqa
-            lambda x: odict(json.loads(openf(x))),  # noqa
+            lambda x: odict(yaml.load(openf(x))),
+            lambda x: odict(json.loads(openf(x))),
         ]
         for lf in load_funcs:
             try:
@@ -133,22 +131,18 @@ def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO]
             except BaseException:
                 continue
 
-    raise ValueError('Config source is not valid!')
+    raise ValueError("Config source is not valid!")
 
 
 def isfixedlength(lst : Union[list, tuple],
-                  length : int
+                  length : int,
                   ) -> bool:
     if not isinstance(lst, (list, tuple)):
-        raise ValueError('Required: list/tuple, Got: {}'.format(type(lst)))
+        raise ValueError(f"Required: list/tuple, Got: {type(lst)}")
 
     if len(lst) != length:
         raise ValueError(
-            'Incorrect list/tuple length for {}. Required: {}, Got: {}'.format(
-                lst,
-                length,
-                len(lst)
-            )
+            f"Incorrect list/tuple length for {lst}. Required: {length}, Got: {len(lst)}",
         )
 
     return True
@@ -163,26 +157,26 @@ def isnan(v : Any) -> bool:
 
 
 def mapdates(dates):
-    if hasattr(dates, 'dtype') and hasattr(dates.dtype, 'tz'):
+    if hasattr(dates, "dtype") and hasattr(dates.dtype, "tz"):
         # pandas time objects with a datetime component, remove the timezone
-        return dates.dt.tz_localize(None).astype('datetime64[ns]').to_numpy()
-    elif hasattr(dates, 'dtype') and hasattr(dates, 'to_numpy'):
+        return dates.dt.tz_localize(None).astype("datetime64[ns]").to_numpy()
+    elif hasattr(dates, "dtype") and hasattr(dates, "to_numpy"):
         # pandas time objects without a datetime component
-        return dates.to_numpy().astype('datetime64[ns]')
-    elif hasattr(dates, 'dtype') and np.issubdtype(dates.dtype, np.datetime64):
+        return dates.to_numpy().astype("datetime64[ns]")
+    elif hasattr(dates, "dtype") and np.issubdtype(dates.dtype, np.datetime64):
         # numpy datetime objects
-        return dates.astype('datetime64[ns]')
+        return dates.astype("datetime64[ns]")
     else:
         try:
             # Finally try unix epoch seconds
-            return pd.to_datetime(dates, unit='s').values.astype('datetime64[ns]')
+            return pd.to_datetime(dates, unit="s").values.astype("datetime64[ns]")
         except Exception:
             # strings work here but we don't advertise that
-            return np.array(dates, dtype='datetime64[ns]')
+            return np.array(dates, dtype="datetime64[ns]")
 
 
 def check_timestamps(times : np.ndarray,
-                     max_time_interval : N = None
+                     max_time_interval : N = None,
                      ) -> bool:
     """Sanity checks for timestamp arrays
 
@@ -194,20 +188,19 @@ def check_timestamps(times : np.ndarray,
     data.
 
     Args:
+    ----
         times: Input array of timestamps
         max_time_interval: The interval between values should not exceed this
             value. [optional]
-    """
 
+    """
     time_diff = np.diff(times)
     sort_diff = np.diff(sorted(times))
     # Check if there are differences between sorted and unsorted, and then
     # see if if there are any duplicate times.  Then check that none of the
     # diffs exceeds the sorted time.
     zero = np.array(0, dtype=time_diff.dtype)
-    if not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == zero):
-        return False
-    elif (max_time_interval is not None and
+    if not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == zero) or (max_time_interval is not None and
           np.any(sort_diff > max_time_interval)):
         return False
     else:
@@ -229,7 +222,7 @@ def dict_update(d : Mapping, u : Mapping) -> Mapping:
 
 
 def dict_depth(d):
-    """ Get the depth of a dict
+    """Get the depth of a dict
     """
     # https://stackoverflow.com/a/23499101
     if isinstance(d, dict):
@@ -240,12 +233,12 @@ def dict_depth(d):
 def cf_safe_name(name : str) -> str:
     import re
     if isinstance(name, str):
-        if re.match('^[0-9_]', name):
+        if re.match("^[0-9_]", name):
             # Add a letter to the front
-            name = "v_{}".format(name)
-        return re.sub(r'[^_a-zA-Z0-9]', "_", name)
+            name = f"v_{name}"
+        return re.sub(r"[^_a-zA-Z0-9]", "_", name)
 
-    raise ValueError('Could not convert "{}" to a safe name'.format(name))
+    raise ValueError(f'Could not convert "{name}" to a safe name')
 
 
 class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):

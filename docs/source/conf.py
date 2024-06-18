@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # ioos_qc documentation build configuration file, created by
 # sphinx-quickstart on Thu Aug 18 10:56:41 2016.
@@ -21,7 +20,7 @@ import os
 import sys
 
 p = os.path.abspath(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
 )
 sys.path.insert(0, p)
 
@@ -35,13 +34,13 @@ sys.path.insert(0, p)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.todo',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx_autodoc_typehints',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.todo",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx_autodoc_typehints",
     "nbsphinx",
 ]
 
@@ -59,25 +58,25 @@ napoleon_use_keyword = True
 napoleon_use_rtype = True
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = ['.rst']
+source_suffix = [".rst"]
 
 # The encoding of source files.
 #
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'ioos_qc'
-copyright = '2022, IOOS'
-author = 'IOOS'
+project = "ioos_qc"
+copyright = "2022, IOOS"
+author = "IOOS"
 
 # The version info for the project yo're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -108,8 +107,8 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-exclude_patterns += ['examples/usage/*.ipynb']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns += ["examples/usage/*.ipynb"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -131,7 +130,7 @@ exclude_patterns += ['examples/usage/*.ipynb']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -148,17 +147,17 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    'description': 'IOOS QARTOD and other Quality Control tests implemented in Python',
-    'github_user': 'ioos',
-    'github_repo': 'ioos_qc',
-    'github_button': 'true',
+    "description": "IOOS QARTOD and other Quality Control tests implemented in Python",
+    "github_user": "ioos",
+    "github_repo": "ioos_qc",
+    "github_button": "true",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -187,7 +186,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -267,7 +266,7 @@ html_show_sourcelink = False
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ioos_qcdoc'
+htmlhelp_basename = "ioos_qcdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -293,8 +292,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ioos_qc.tex', 'ioos_qc Documentation',
-     'IOOS', 'manual'),
+    (master_doc, "ioos_qc.tex", "ioos_qc Documentation",
+     "IOOS", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -337,11 +336,11 @@ latex_documents = [
 man_pages = [
     (
         master_doc,
-        'ioos_qc',
-        'ioos_qc Documentation',
+        "ioos_qc",
+        "ioos_qc Documentation",
         [author],
-        1
-    )
+        1,
+    ),
 ]
 
 # If true, show URL addresses after external links.
@@ -357,12 +356,12 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        'ioos_qc',
-        'ioos_qc Documentation',
+        "ioos_qc",
+        "ioos_qc Documentation",
         author,
-        'ioos_qc',
-        'Collection of utilities, scripts and tests to assist in automated quality assurance and quality control for oceanographic datasets and observing systems.',
-        'Miscellaneous'
+        "ioos_qc",
+        "Collection of utilities, scripts and tests to assist in automated quality assurance and quality control for oceanographic datasets and observing systems.",
+        "Miscellaneous",
     ),
 ]
 

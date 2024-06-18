@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-# coding=utf-8
 import logging
-from typing import NamedTuple, List
+from collections import OrderedDict as odict
+from collections import defaultdict
 from dataclasses import dataclass
-from collections import OrderedDict as odict, defaultdict
+from typing import List, NamedTuple
 
 import numpy as np
+
 from ioos_qc.qartod import QartodFlags
 
-L = logging.getLogger(__name__)  # noqa
+L = logging.getLogger(__name__)
 
 
 class CallResult(NamedTuple):
@@ -18,7 +19,7 @@ class CallResult(NamedTuple):
     results: np.ndarray
 
     def __repr__(self):
-        return f'<CallResult package={self.package} test={self.test}>'
+        return f"<CallResult package={self.package} test={self.test}>"
 
 
 class ContextResult(NamedTuple):
@@ -32,7 +33,7 @@ class ContextResult(NamedTuple):
     lon: np.ndarray = None
 
     def __repr__(self):
-        return f'<ContextResult stream_id={self.stream_id}>'
+        return f"<ContextResult stream_id={self.stream_id}>"
 
 
 @dataclass
@@ -49,27 +50,27 @@ class CollectedResult:
     lon: np.ndarray = None
 
     def __repr__(self):
-        return f'<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>'
+        return f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
 
     def function_name(self) -> str:
         return self.function.__name__
 
     @property
     def hash_key(self) -> str:
-        return f'{self.stream_id}:{self.package}.{self.test}'
+        return f"{self.stream_id}:{self.package}.{self.test}"
 
 
-def collect_results(results, how='list'):
-    if how in ['list', list]:
+def collect_results(results, how="list"):
+    if how in ["list", list]:
         return collect_results_list(results)
-    elif how in ['dict', dict]:
+    elif how in ["dict", dict]:
         return collect_results_dict(results)
 
 
 def collect_results_list(results):
-    """ Turns a list of ContextResult objects into an iterator of CollectedResult objects
-        by combining the subset_index information in each ContextResult together into
-        a single array of results.
+    """Turns a list of ContextResult objects into an iterator of CollectedResult objects
+    by combining the subset_index information in each ContextResult together into
+    a single array of results.
     """
     collected = odict()
 
@@ -97,7 +98,7 @@ def collect_results_list(results):
                 stream_id=r.stream_id,
                 package=tr.package,
                 test=tr.test,
-                function=tr.function
+                function=tr.function,
             )
 
             if cr.hash_key not in collected:
@@ -130,10 +131,10 @@ def collect_results_list(results):
 
 
 def collect_results_dict(results):
-    """ Turns a list of ContextResult objects into a dictionary of test results
-        by combining the subset_index information in each ContextResult together into
-        a single array of results. This is mostly here for historical purposes. Users
-        should migrate to using the Result objects directly.
+    """Turns a list of ContextResult objects into a dictionary of test results
+    by combining the subset_index information in each ContextResult together into
+    a single array of results. This is mostly here for historical purposes. Users
+    should migrate to using the Result objects directly.
     """
     # Magic for nested key generation
     # https://stackoverflow.com/a/27809959
@@ -148,7 +149,7 @@ def collect_results_dict(results):
             collected[r.package][r.test] = r.results
             continue
 
-        flag_arr = np.ma.empty_like(r.subset_indexes, dtype='uint8')
+        flag_arr = np.ma.empty_like(r.subset_indexes, dtype="uint8")
         flag_arr.fill(QartodFlags.UNKNOWN)
 
         # iterate over the CallResults

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 """Tests based on the ARGO QC manual."""
 import logging
 import warnings
@@ -9,29 +8,30 @@ from typing import Sequence
 import numpy as np
 
 from ioos_qc.qartod import QartodFlags
-from ioos_qc.utils import add_flag_metadata
-from ioos_qc.utils import great_circle_distance
-from ioos_qc.utils import mapdates
+from ioos_qc.utils import add_flag_metadata, great_circle_distance, mapdates
 
-L = logging.getLogger(__name__)  # noqa
+L = logging.getLogger(__name__)
 
 
-@add_flag_metadata(stanard_name='pressure_increasing_test_quality_flag',
-                   long_name='Pressure Increasing Test Quality Flag')
+@add_flag_metadata(stanard_name="pressure_increasing_test_quality_flag",
+                   long_name="Pressure Increasing Test Quality Flag")
 def pressure_increasing_test(inp):
-    """
-    Returns an array of flag values where each input is flagged with SUSPECT if
+    """Returns an array of flag values where each input is flagged with SUSPECT if
     it does not monotonically increase
 
     Ref: ARGO QC Manual: 8. Pressure increasing test
 
     Args:
+    ----
         inp: Pressure values as a numeric numpy array or a list of numbers.
+
     Returns:
+    -------
         A masked array of flag values equal in size to that of the input.
+
     """
     delta = np.diff(inp)
-    flags = np.ones_like(inp, dtype='uint8') * QartodFlags.GOOD
+    flags = np.ones_like(inp, dtype="uint8") * QartodFlags.GOOD
 
     # Correct for downcast vs upcast by flipping the sign if it's decreasing
     sign = np.sign(np.mean(delta))
@@ -44,13 +44,13 @@ def pressure_increasing_test(inp):
     return flags
 
 
-@add_flag_metadata(standard_name='speed_test_quality_flag',
-                   long_name='Speed Test Quality Flag')
+@add_flag_metadata(standard_name="speed_test_quality_flag",
+                   long_name="Speed Test Quality Flag")
 def speed_test(lon: Sequence[N],
                lat: Sequence[N],
                tinp: Sequence[N],
                suspect_threshold: float,
-               fail_threshold: float
+               fail_threshold: float,
                ) -> np.ma.core.MaskedArray:
     """Checks that the calculated speed between two points is within reasonable bounds.
 
@@ -67,6 +67,7 @@ def speed_test(lon: Sequence[N],
     Ref: ARGO QC Manual: 5. Impossible speed test
 
     Args:
+    ----
         lon: Longitudes as a numeric numpy array or a list of numbers.
         lat: Latitudes as a numeric numpy array or a list of numbers.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
@@ -79,9 +80,10 @@ def speed_test(lon: Sequence[N],
            Speeds exceeding this will be flagged as FAIL.
 
     Returns:
+    -------
         A masked array of flag values equal in size to that of the input.
-    """
 
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
@@ -89,7 +91,7 @@ def speed_test(lon: Sequence[N],
         tinp = mapdates(tinp)
 
     if lon.shape != lat.shape or lon.shape != tinp.shape:
-        raise ValueError(f'Lon ({lon.shape}) and lat ({lat.shape}) and tinp ({tinp.shape}) must be the same shape')
+        raise ValueError(f"Lon ({lon.shape}) and lat ({lat.shape}) and tinp ({tinp.shape}) must be the same shape")
 
     # Save original shape
     original_shape = lon.shape
@@ -102,7 +104,7 @@ def speed_test(lon: Sequence[N],
         return np.ma.masked_array([])
 
     # Start with everything as passing
-    flag_arr = QartodFlags.GOOD * np.ma.ones(lon.size, dtype='uint8')
+    flag_arr = QartodFlags.GOOD * np.ma.ones(lon.size, dtype="uint8")
 
     # If either lon or lat are masked we just set the flag to MISSING
     mloc = lon.mask & lat.mask
@@ -117,13 +119,13 @@ def speed_test(lon: Sequence[N],
     dist = great_circle_distance(lat, lon)
 
     # calculate speed in m/s
-    speed = np.ma.zeros(tinp.size, dtype='float')
-    speed[1:] = np.abs(dist[1:] / np.diff(tinp).astype('timedelta64[s]').astype(float))
+    speed = np.ma.zeros(tinp.size, dtype="float")
+    speed[1:] = np.abs(dist[1:] / np.diff(tinp).astype("timedelta64[s]").astype(float))
 
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         flag_arr[speed > suspect_threshold] = QartodFlags.SUSPECT
 
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         flag_arr[speed > fail_threshold] = QartodFlags.FAIL
 
     # first value is unknown, since we have no speed data for the first point

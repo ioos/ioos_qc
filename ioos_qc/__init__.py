@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 try:
     from ._version import __version__

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-# coding=utf-8
 import logging
 import unittest
 
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import xarray as xr
-import numpy.testing as npt
 
+from ioos_qc.results import collect_results
 from ioos_qc.streams import (
     Config,
     NetcdfStream,
@@ -15,9 +15,8 @@ from ioos_qc.streams import (
     PandasStream,
     XarrayStream,
 )
-from ioos_qc.results import collect_results
 
-L = logging.getLogger('ioos_qc')
+L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
 L.handlers = [logging.StreamHandler()]
 
@@ -41,46 +40,46 @@ class PandasStreamTest(unittest.TestCase):
 
         rows = 50
         data_inputs = {
-            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': np.array(2.0),
-            'lat': np.array(36.1),
-            'lon': np.array(-76.5),
-            'variable1': np.arange(0, rows),
+            "time": pd.date_range(start="01/01/2020", periods=rows, freq="D"),
+            "z": np.array(2.0),
+            "lat": np.array(36.1),
+            "lon": np.array(-76.5),
+            "variable1": np.arange(0, rows),
         }
         self.df = pd.DataFrame(data_inputs)
 
     def test_run(self):
         ps = PandasStream(self.df)
         raw_results = ps.run(self.config)
-        results = collect_results(raw_results, how='dict')
+        results = collect_results(raw_results, how="dict")
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:10],
-            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
 
         # Next ten (10-19 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][10:20],
-            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten (20-29 values) pass
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][20:30],
-            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+            results["variable1"]["qartod"]["gross_range_test"][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
         )
         # Next ten, first value (30) pass becuasethe test is inclusive
         # and (31-39 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][30:40],
-            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten, first value (40) suspect becuasethe test is inclusive
         # and (41-49 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:50],
-            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
 
 
@@ -98,7 +97,7 @@ class NumpyStreamTestLightConfig(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
-        self.tinp = pd.date_range(start='01/01/2020', periods=rows, freq='D').values
+        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").values
         self.zinp = np.full_like(self.tinp, 2.0)
         self.lat = np.full_like(self.tinp, 36.1)
         self.lon = np.full_like(self.tinp, -76.5)
@@ -109,34 +108,34 @@ class NumpyStreamTestLightConfig(unittest.TestCase):
 
         ns = NumpyStream(inp, self.tinp, self.zinp, self.lat, self.lon)
         results = ns.run(self.config)
-        results = collect_results(results, how='dict')
+        results = collect_results(results, how="dict")
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:10],
-            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
         # Next ten (10-19 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][10:20],
-            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten (20-29 values) pass
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][20:30],
-            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+            results["variable1"]["qartod"]["gross_range_test"][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
         )
         # Next ten, first value (30) pass because the test is inclusive
         # and (31-39 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][30:40],
-            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten, first value (40) suspect because the test is inclusive
         # and (41-49 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:50],
-            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
 
 
@@ -158,7 +157,7 @@ class NumpyStreamTest(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
-        self.tinp = pd.date_range(start='01/01/2020', periods=rows, freq='D').values
+        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").values
         self.zinp = np.full_like(self.tinp, 2.0)
         self.lat = np.full_like(self.tinp, 36.1)
         self.lon = np.full_like(self.tinp, -76.5)
@@ -169,34 +168,34 @@ class NumpyStreamTest(unittest.TestCase):
 
         ns = NumpyStream(inp, self.tinp, self.zinp, self.lat, self.lon)
         results = ns.run(self.config)
-        results = collect_results(results, how='dict')
+        results = collect_results(results, how="dict")
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:10],
-            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
         # Next ten (10-19 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][10:20],
-            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten (20-29 values) pass
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][20:30],
-            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+            results["variable1"]["qartod"]["gross_range_test"][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
         )
         # Next ten, first value (30) pass because the test is inclusive
         # and (31-39 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][30:40],
-            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten, first value (40) suspect because the test is inclusive
         # and (41-49 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:50],
-            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
 
 
@@ -219,11 +218,11 @@ class NetcdfStreamTest(unittest.TestCase):
 
         rows = 50
         data_inputs = {
-            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': np.array(2.0),
-            'lat': np.array(36.1),
-            'lon': np.array(-76.5),
-            'variable1': np.arange(0, rows),
+            "time": pd.date_range(start="01/01/2020", periods=rows, freq="D"),
+            "z": np.array(2.0),
+            "lat": np.array(36.1),
+            "lon": np.array(-76.5),
+            "variable1": np.arange(0, rows),
         }
         df = pd.DataFrame(data_inputs)
         self.ds = xr.Dataset.from_dataframe(df)
@@ -234,34 +233,34 @@ class NetcdfStreamTest(unittest.TestCase):
     def test_run(self):
         ns = NetcdfStream(self.ds)
         results = ns.run(self.config)
-        results = collect_results(results, how='dict')
+        results = collect_results(results, how="dict")
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:10],
-            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
         # Next ten (10-19 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][10:20],
-            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten (20-29 values) pass
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][20:30],
-            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+            results["variable1"]["qartod"]["gross_range_test"][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
         )
         # Next ten, first value (30) pass because the test is inclusive
         # and (31-39 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][30:40],
-            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten, first value (40) suspect because the test is inclusive
         # and (41-49 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:50],
-            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
 
 
@@ -284,13 +283,13 @@ class XarrayStreamTest(unittest.TestCase):
 
         rows = 50
         data_inputs = {
-            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': np.array(2.0),
-            'lat': np.array(36.1),
-            'lon': np.array(-76.5),
-            'variable1': np.arange(0, rows),
+            "time": pd.date_range(start="01/01/2020", periods=rows, freq="D"),
+            "z": np.array(2.0),
+            "lat": np.array(36.1),
+            "lon": np.array(-76.5),
+            "variable1": np.arange(0, rows),
         }
-        df = pd.DataFrame(data_inputs).set_index('time')
+        df = pd.DataFrame(data_inputs).set_index("time")
         self.ds = xr.Dataset.from_dataframe(df)
 
     def tearDown(self):
@@ -299,34 +298,34 @@ class XarrayStreamTest(unittest.TestCase):
     def test_run(self):
         xs = XarrayStream(self.ds)
         results = xs.run(self.config)
-        results = collect_results(results, how='dict')
+        results = collect_results(results, how="dict")
 
         # First ten (0-9 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:10],
-            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:10],
+            np.array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
         # Next ten (10-19 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][10:20],
-            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][10:20],
+            np.array([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten (20-29 values) pass
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][20:30],
-            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+            results["variable1"]["qartod"]["gross_range_test"][20:30],
+            np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
         )
         # Next ten, first value (30) pass because the test is inclusive
         # and (31-39 values) suspect
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][30:40],
-            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3])
+            results["variable1"]["qartod"]["gross_range_test"][30:40],
+            np.array([1, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
         )
         # Next ten, first value (40) suspect because the test is inclusive
         # and (41-49 values) fail
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:50],
-            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:50],
+            np.array([3, 4, 4, 4, 4, 4, 4, 4, 4, 4]),
         )
 
 
@@ -370,14 +369,14 @@ class XarrayStreamManyContextTest(unittest.TestCase):
         rows = 50
         self.vardata = np.arange(0, rows)
         data_inputs = {
-            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': np.array(2.0),
-            'lat': np.array(36.1),
-            'lon': np.array(-76.5),
-            'variable1': self.vardata,
-            'variable2': self.vardata,
+            "time": pd.date_range(start="01/01/2020", periods=rows, freq="D"),
+            "z": np.array(2.0),
+            "lat": np.array(36.1),
+            "lon": np.array(-76.5),
+            "variable1": self.vardata,
+            "variable2": self.vardata,
         }
-        df = pd.DataFrame(data_inputs).set_index('time')
+        df = pd.DataFrame(data_inputs).set_index("time")
         self.ds = xr.Dataset.from_dataframe(df)
 
     def tearDown(self):
@@ -386,34 +385,34 @@ class XarrayStreamManyContextTest(unittest.TestCase):
     def test_run_dict_results(self):
         xs = XarrayStream(self.ds)
         results = xs.run(self.config)
-        results = collect_results(results, how='dict')
+        results = collect_results(results, how="dict")
 
         # Variable 1
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:8],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:8],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][8:40],
-            np.full((32,), 4)
+            results["variable1"]["qartod"]["gross_range_test"][8:40],
+            np.full((32,), 4),
         )
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:48],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:48],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
 
         # Variable 2
         npt.assert_array_equal(
-            results['variable2']['qartod']['gross_range_test'][0:20],
-            np.full((20,), 4)
+            results["variable2"]["qartod"]["gross_range_test"][0:20],
+            np.full((20,), 4),
         )
         npt.assert_array_equal(
-            results['variable2']['qartod']['gross_range_test'][20:28],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            results["variable2"]["qartod"]["gross_range_test"][20:28],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
         npt.assert_array_equal(
-            results['variable2']['qartod']['gross_range_test'][28:50],
-            np.full((22,), 4)
+            results["variable2"]["qartod"]["gross_range_test"][28:50],
+            np.full((22,), 4),
         )
 
 
@@ -457,85 +456,85 @@ class PandasStreamManyContextTest(unittest.TestCase):
         rows = 50
         self.vardata = np.arange(0, rows)
         data_inputs = {
-            'time': pd.date_range(start='01/01/2020', periods=rows, freq='D'),
-            'z': np.array(2.0),
-            'lat': np.array(36.1),
-            'lon': np.array(-76.5),
-            'variable1': self.vardata,
-            'variable2': self.vardata,
+            "time": pd.date_range(start="01/01/2020", periods=rows, freq="D"),
+            "z": np.array(2.0),
+            "lat": np.array(36.1),
+            "lon": np.array(-76.5),
+            "variable1": self.vardata,
+            "variable2": self.vardata,
         }
         self.df = pd.DataFrame(data_inputs)
 
     def test_run_dict_results(self):
         ps = PandasStream(self.df)
         results = ps.run(self.config)
-        results = collect_results(results, how='dict')
+        results = collect_results(results, how="dict")
 
         # Variable 1
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][0:8],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][0:8],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][8:40],
-            np.full((32,), 4)
+            results["variable1"]["qartod"]["gross_range_test"][8:40],
+            np.full((32,), 4),
         )
         npt.assert_array_equal(
-            results['variable1']['qartod']['gross_range_test'][40:48],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            results["variable1"]["qartod"]["gross_range_test"][40:48],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
 
         # Variable 2
         npt.assert_array_equal(
-            results['variable2']['qartod']['gross_range_test'][0:20],
-            np.full((20,), 4)
+            results["variable2"]["qartod"]["gross_range_test"][0:20],
+            np.full((20,), 4),
         )
         npt.assert_array_equal(
-            results['variable2']['qartod']['gross_range_test'][20:28],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            results["variable2"]["qartod"]["gross_range_test"][20:28],
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
         npt.assert_array_equal(
-            results['variable2']['qartod']['gross_range_test'][28:50],
-            np.full((22,), 4)
+            results["variable2"]["qartod"]["gross_range_test"][28:50],
+            np.full((22,), 4),
         )
 
     def test_run_list_results(self):
         ps = PandasStream(self.df)
         results = ps.run(self.config)
-        results = collect_results(results, how='list')
+        results = collect_results(results, how="list")
 
-        var1_gr = next(res for res in results if res.stream_id == 'variable1' and res.test == 'gross_range_test')
-        var2_gr = next(res for res in results if res.stream_id == 'variable2' and res.test == 'gross_range_test')
+        var1_gr = next(res for res in results if res.stream_id == "variable1" and res.test == "gross_range_test")
+        var2_gr = next(res for res in results if res.stream_id == "variable2" and res.test == "gross_range_test")
         # Variable 1
         # Actual data returned in full
         npt.assert_array_equal(
             var1_gr.data,
-            self.vardata
+            self.vardata,
         )
         # QC tests
         npt.assert_array_equal(
             var1_gr.results[0:8],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
         npt.assert_array_equal(
             var1_gr.results[8:40],
-            np.full((32,), 4)
+            np.full((32,), 4),
         )
         npt.assert_array_equal(
             var1_gr.results[40:48],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
 
         # Variable 2
         npt.assert_array_equal(
             var2_gr.results[0:20],
-            np.full((20,), 4)
+            np.full((20,), 4),
         )
         npt.assert_array_equal(
             var2_gr.results[20:28],
-            np.array([4, 4, 3, 1, 1, 3, 4, 4])
+            np.array([4, 4, 3, 1, 1, 3, 4, 4]),
         )
         npt.assert_array_equal(
             var2_gr.results[28:50],
-            np.full((22,), 4)
+            np.full((22,), 4),
         )
