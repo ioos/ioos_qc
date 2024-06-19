@@ -2050,9 +2050,7 @@ class QartodDensityInversionTest(unittest.TestCase):
         density = [1024, 1024, 1025]
         depth = [1, 2, 3]
 
-        match = (
-            "'less'|<"
-        )
+        match = "'less'|<"
         # Wrong type suspect_threshold
         with pytest.raises(TypeError, match=match):
             qartod.density_inversion_test(
