@@ -18,7 +18,7 @@ class CallResult(NamedTuple):
     function: callable
     results: np.ndarray
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<CallResult package={self.package} test={self.test}>"
 
 
@@ -32,7 +32,7 @@ class ContextResult(NamedTuple):
     lat: np.ndarray = None
     lon: np.ndarray = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<ContextResult stream_id={self.stream_id}>"
 
 
@@ -49,7 +49,7 @@ class CollectedResult:
     lat: np.ndarray = None
     lon: np.ndarray = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
 
     def function_name(self) -> str:
@@ -65,6 +65,7 @@ def collect_results(results, how="list"):
         return collect_results_list(results)
     elif how in ["dict", dict]:
         return collect_results_dict(results)
+    return None
 
 
 def collect_results_list(results):
@@ -76,7 +77,6 @@ def collect_results_list(results):
 
     # ContextResults
     for r in results:
-
         cr = None
         # Shortcut for CallResult objects when someone uses QcConfig.run() directly
         # and doesn't go through a Stream object
@@ -93,7 +93,6 @@ def collect_results_list(results):
 
         # CallResults
         for tr in r.results:
-
             cr = CollectedResult(
                 stream_id=r.stream_id,
                 package=tr.package,
@@ -103,12 +102,30 @@ def collect_results_list(results):
 
             if cr.hash_key not in collected:
                 # Set the initial values
-                cr.results = np.ma.masked_all(shape=r.subset_indexes.shape, dtype=tr.results.dtype)
-                cr.data = np.ma.masked_all(shape=r.subset_indexes.shape, dtype=r.data.dtype)
-                cr.tinp = np.ma.masked_all(shape=r.subset_indexes.shape, dtype=r.tinp.dtype)
-                cr.zinp = np.ma.masked_all(shape=r.subset_indexes.shape, dtype=r.zinp.dtype)
-                cr.lat = np.ma.masked_all(shape=r.subset_indexes.shape, dtype=r.lat.dtype)
-                cr.lon = np.ma.masked_all(shape=r.subset_indexes.shape, dtype=r.lon.dtype)
+                cr.results = np.ma.masked_all(
+                    shape=r.subset_indexes.shape,
+                    dtype=tr.results.dtype,
+                )
+                cr.data = np.ma.masked_all(
+                    shape=r.subset_indexes.shape,
+                    dtype=r.data.dtype,
+                )
+                cr.tinp = np.ma.masked_all(
+                    shape=r.subset_indexes.shape,
+                    dtype=r.tinp.dtype,
+                )
+                cr.zinp = np.ma.masked_all(
+                    shape=r.subset_indexes.shape,
+                    dtype=r.zinp.dtype,
+                )
+                cr.lat = np.ma.masked_all(
+                    shape=r.subset_indexes.shape,
+                    dtype=r.lat.dtype,
+                )
+                cr.lon = np.ma.masked_all(
+                    shape=r.subset_indexes.shape,
+                    dtype=r.lon.dtype,
+                )
                 collected[cr.hash_key] = cr
 
             collected[cr.hash_key].results[r.subset_indexes] = tr.results
@@ -142,7 +159,6 @@ def collect_results_dict(results):
 
     # ContextResults
     for r in results:
-
         # Shortcut for CallResult objects when someone uses QcConfig.run() directly
         # and doesn't go through a Stream object
         if isinstance(r, CallResult):
@@ -159,7 +175,11 @@ def collect_results_dict(results):
             testresults = tr.results
 
             if testname not in collected[r.stream_id][testpackage]:
-                collected[r.stream_id][testpackage][testname] = np.copy(flag_arr)
-            collected[r.stream_id][testpackage][testname][r.subset_indexes] = testresults
+                collected[r.stream_id][testpackage][testname] = np.copy(
+                    flag_arr,
+                )
+            collected[r.stream_id][testpackage][testname][r.subset_indexes] = (
+                testresults
+            )
 
     return collected

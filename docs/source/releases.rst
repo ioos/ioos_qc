@@ -139,4 +139,3 @@ Specific changes to be aware of include:
 ####################
 
 See https://github.com/ioos/qartod and https://ioos.github.io/qartod/
-

@@ -7,7 +7,7 @@ requires = [
 ]
 
 [project]
-name = "ioos_qc"
+name = "ioos-qc"
 description = "IOOS QARTOD and Quality Control tests implemented in Python"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
@@ -28,13 +28,19 @@ dynamic = [
   "dependencies",
   "version",
 ]
+optional-dependencies.extras = [
+  "bokeh",
+  "nco",
+  "numba",
+]
+optional-dependencies.test = [
+  "dask",
+  "pytest",
+]
+
 urls.documentation = "https://ioos.github.io/ioos_qc"
 urls.homepage = "https://github.com/ioos/ioos_qc"
 urls.repository = "https://github.com/ioos/ioos_qc"
-
-[project.optional-dependencies]
-test = ["dask", "pytest"]
-extras = ["bokeh", "nco", "numba"]
 
 [tool.setuptools]
 packages = [

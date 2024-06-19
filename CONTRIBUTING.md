@@ -245,5 +245,3 @@ importance of writing tested and maintainable software.
 
 * [How to Contribute to Open Source Guide](https://opensource.guide/how-to-contribute/)
 * [Zen of Scientific Software Maintenance](https://jrleeman.github.io/ScientificSoftwareMaintenance/)
-
-

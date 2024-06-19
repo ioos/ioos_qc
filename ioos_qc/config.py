@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""QC Config objects
+"""QC Config objects.
 
 Module to store the different QC modules in ioos_qc
 
@@ -8,6 +8,7 @@ Attributes
     tw (namedtuple): The TimeWindow namedtuple definition
 
 """
+
 import io
 import logging
 import warnings
@@ -53,7 +54,7 @@ class Context:
     def __hash__(self):
         return hash(self.__key__())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Context window={self.window} region={self.region}>"
 
 
@@ -125,7 +126,7 @@ class Call:
             return self.__key__() == other.__key__()
         return NotImplemented
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ret = f"<Call stream_id={self.stream_id}"
         if self.context.window.starting:
             ret += f" starting={self.window.starting}"
@@ -137,12 +138,10 @@ class Call:
         ret += f" function={self.module}.{self.method}("
 
         if self.args:
-            ret += ", ".join([ x for x in self.args if x ])
+            ret += ", ".join([x for x in self.args if x])
 
         if self.kwargs:
-            ret += ", ".join([
-                f"{k}={v}" for k, v in self.kwargs.items()
-            ])
+            ret += ", ".join([f"{k}={v}" for k, v in self.kwargs.items()])
 
         ret += ")>"
         return ret
@@ -153,17 +152,17 @@ class Call:
         # Get our own copy of the kwargs object so we can change it
         testkwargs = deepcopy(passedkwargs)
         # Merges dicts
-        testkwargs = odict({ **self.kwargs, **testkwargs })
+        testkwargs = odict({**self.kwargs, **testkwargs})
 
         # Get the arguments that the test functions support
         sig = signature(self.func)
         valid_keywords = [
-            p.name for p in sig.parameters.values()
+            p.name
+            for p in sig.parameters.values()
             if p.kind == p.POSITIONAL_OR_KEYWORD
         ]
         testkwargs = {
-            k: v for k, v in testkwargs.items()
-            if k in valid_keywords
+            k: v for k, v in testkwargs.items() if k in valid_keywords
         }
         try:
             results.append(
@@ -181,7 +180,7 @@ class Call:
 
 
 def extract_calls(source) -> List[Call]:
-    """Extracts call objects from a source object
+    """Extracts call objects from a source object.
 
     Args:
     ----
@@ -201,13 +200,12 @@ def extract_calls(source) -> List[Call]:
         return [source]
     elif isinstance(source, (tuple, list)):
         # list of Call objects
-        calls = [ c for c in source if isinstance(c, Call) ]
+        calls = [c for c in source if isinstance(c, Call)]
         # list of objects with the 'calls' attribute
         [
-            calls.extend([
-                x for x in c.calls if isinstance(x, Call)
-            ])
-            for c in source if hasattr(c, "calls")
+            calls.extend([x for x in c.calls if isinstance(x, Call)])
+            for c in source
+            if hasattr(c, "calls")
         ]
         return calls
     elif isinstance(source, Config):
@@ -230,7 +228,12 @@ class Config:
     class only pairs various formats and versions of a config into a list of Call objects.
     """
 
-    def __init__(self, source, version=None, default_stream_key="_stream"):
+    def __init__(
+        self,
+        source,
+        version=None,
+        default_stream_key="_stream",
+    ) -> None:
         """Args:
         ----
             source: The QC configuration representation in one of the following formats:
@@ -266,16 +269,21 @@ class Config:
                 self._calls += list(ContextConfig(self.config).calls)
             elif dict_depth(self.config) >= 4:
                 # This is a Config
-                self._calls += list(ContextConfig(odict(streams=self.config)).calls)
+                self._calls += list(
+                    ContextConfig(odict(streams=self.config)).calls,
+                )
             else:
                 # This is a QcConfig
-                self._calls += list(ContextConfig(odict(streams={default_stream_key: self.config})).calls)
-                #raise ValueError("Can not add context to a QC Config object. Create it manually.")
+                self._calls += list(
+                    ContextConfig(
+                        odict(streams={default_stream_key: self.config}),
+                    ).calls,
+                )
+                # raise ValueError("Can not add context to a QC Config object. Create it manually.")
 
     @property
     def contexts(self):
-        """Group the calls into context groups and return them
-        """
+        """Group the calls into context groups and return them."""
         contexts = {}
         for c in self._calls:
             if c.context in contexts:
@@ -286,8 +294,7 @@ class Config:
 
     @property
     def stream_ids(self):
-        """Return a list of unique stream_ids for the Config
-        """
+        """Return a list of unique stream_ids for the Config."""
         streams = []
         stream_map = {}
 
@@ -310,21 +317,23 @@ class Config:
     @property
     def aggregate_calls(self):
         return [
-            c for c in self._calls
+            c
+            for c in self._calls
             if hasattr(c.func, "aggregate") and c.func.aggregate is True
         ]
 
-    def has(self, stream_id : str, method: Union[callable, str]):
+    def has(self, stream_id: str, method: Union[callable, str]):
         if isinstance(method, str):
             for c in self._calls:
                 if c.stream_id == stream_id and c.method_path == method:
                     return c
         elif isinstance(method, callable):
             for c in self._calls:
-                if (c.stream_id == stream_id and
-                    c.method == method.__module__ and
-                    c.method == method.__name__
-                   ):
+                if (
+                    c.stream_id == stream_id
+                    and c.method == method.__module__
+                    and c.method == method.__name__
+                ):
                     return c
         return False
 
@@ -355,7 +364,7 @@ class Config:
 
 
 class ContextConfig:
-    """A collection of a Region, a TimeWindow and a list of Config objects
+    """A collection of a Region, a TimeWindow and a list of Config objects.
 
     Defines a set of quality checks to run against multiple input streams.
     This can include a region and a time window to subset any DataStreams by before running checks.
@@ -389,7 +398,7 @@ class ContextConfig:
 
     """
 
-    def __init__(self, source: ConfigTypes):
+    def __init__(self, source: ConfigTypes) -> None:
         self.config = load_config_as_dict(source)
 
         self._calls = []
@@ -403,16 +412,23 @@ class ContextConfig:
                 self.region = self.config["region"]
             elif self.config["region"] and "features" in self.config["region"]:
                 # Feature based GeoJSON
-                self.region = GeometryCollection([
-                    shape(feature["geometry"]) for feature in self.config["region"]["features"]
-                ])
+                self.region = GeometryCollection(
+                    [
+                        shape(feature["geometry"])
+                        for feature in self.config["region"]["features"]
+                    ],
+                )
             elif self.config["region"] and "geometry" in self.config["region"]:
                 # Geometry based GeoJSON
-                self.region = GeometryCollection([
-                    shape(self.config["region"]["geometry"]),
-                ])
+                self.region = GeometryCollection(
+                    [
+                        shape(self.config["region"]["geometry"]),
+                    ],
+                )
             else:
-                L.warning("Ignoring region because it could not be parsed, is it valid GeoJSON?")
+                L.warning(
+                    "Ignoring region because it could not be parsed, is it valid GeoJSON?",
+                )
 
         # Window
         if "window" in self.config and isinstance(self.config["window"], tw):
@@ -436,18 +452,21 @@ class ContextConfig:
         run later by iterating over the configs.
         """
         for stream_id, sc in self.config["streams"].items():
-
             for package, modules in sc.items():
                 try:
                     testpackage = import_module(f"ioos_qc.{package}")
                 except ImportError:
-                    L.warning(f'No ioos_qc package "{package}" was found, skipping.')
+                    L.warning(
+                        f'No ioos_qc package "{package}" was found, skipping.',
+                    )
                     continue
 
                 for testname, kwargs in modules.items():
                     kwargs = kwargs or {}
                     if not hasattr(testpackage, testname):
-                        L.warning(f'No ioos_qc method "{package}.{testname}" was found, skipping')
+                        L.warning(
+                            f'No ioos_qc method "{package}.{testname}" was found, skipping',
+                        )
                         continue
                     else:
                         runfunc = getattr(testpackage, testname)
@@ -481,9 +500,9 @@ class ContextConfig:
 
         """
         extracted = extract_calls(source)
-        self._calls.extend([ e for e in extracted if e.context == self.context ])
+        self._calls.extend([e for e in extracted if e.context == self.context])
 
-    def __str__(self):
+    def __str__(self) -> str:
         # sc = list(self.streams.keys())
         return (
             f"<ContextConfig "
@@ -493,12 +512,12 @@ class ContextConfig:
             ">"
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
 class QcConfig(Config):
-    def __init__(self, source, default_stream_key="_stream"):
+    def __init__(self, source, default_stream_key="_stream") -> None:
         """A Config objects with no concept of a Stream ID. Typically used when running QC on a single
         stream. This just sets up a stream with the name passed in as the "default_stream_key"
         parameter.
@@ -525,6 +544,7 @@ class QcConfig(Config):
 
     def run(self, **passedkwargs):
         from ioos_qc.streams import NumpyStream
+
         # Cleanup kwarg names
         passedkwargs["time"] = passedkwargs.pop("tinp", None)
         passedkwargs["z"] = passedkwargs.pop("zinp", None)
@@ -543,10 +563,11 @@ class QcConfig(Config):
 
 
 class NcQcConfig(Config):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
+        msg = (
+            "The NcQcConfig object has been replaced by ioos_qc.config.Config "
+            "and ioos_qc.streams.XarrayStream"
+        )
         raise NotImplementedError(
-
-                "The NcQcConfig object has been replaced by ioos_qc.config.Config "
-                "and ioos_qc.streams.XarrayStream",
-
+            msg,
         )

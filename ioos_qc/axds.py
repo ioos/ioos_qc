@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests based on the IOOS QARTOD manuals."""
+
 import logging
 from collections import namedtuple
 from typing import Sequence, Tuple
@@ -17,14 +18,17 @@ NOTEVAL_VALUE = QartodFlags.UNKNOWN
 span = namedtuple("Span", "minv maxv")
 
 
-@add_flag_metadata(standard_name="gross_range_test_quality_flag",
-                   long_name="Gross Range Test Quality Flag")
-def valid_range_test(inp : Sequence[any],
-                     valid_span : Tuple[any, any],
-                     dtype : np.dtype = None,
-                     start_inclusive : bool = True,
-                     end_inclusive : bool = False,
-                     ) -> np.ma.core.MaskedArray:
+@add_flag_metadata(
+    standard_name="gross_range_test_quality_flag",
+    long_name="Gross Range Test Quality Flag",
+)
+def valid_range_test(
+    inp: Sequence[any],
+    valid_span: Tuple[any, any],
+    dtype: np.dtype = None,
+    start_inclusive: bool = True,
+    end_inclusive: bool = False,
+) -> np.ma.core.MaskedArray:
     """Checks that values are within a min/max range. This is not unlike a `qartod.gross_range_test`
     with fail and suspect bounds being equal, except that here we specify the inclusive range that
     should pass instead of the exclusive bounds which should fail. This also supports datetime-like
@@ -60,14 +64,20 @@ def valid_range_test(inp : Sequence[any],
     # This is required because we don't want to restrict a user from using a pd.Series
     # directly with this function. If the data was coming from a Store, it would
     # always be a numpy array.
-    elif dtype is None and hasattr(inp, "values") and hasattr(inp.values, "dtype"):
+    elif (
+        dtype is None
+        and hasattr(inp, "values")
+        and hasattr(inp.values, "dtype")
+    ):
         dtype = inp.values.dtype
 
     # Save original shape
     original_shape = inp.shape
 
     if dtype is None:
-        L.warning("Trying to guess data input type, try specifying the dtype parameter")
+        L.warning(
+            "Trying to guess data input type, try specifying the dtype parameter",
+        )
         # Try to figure out the dtype so masked values can be calculated
         try:
             # Try datetime-like objects
@@ -77,11 +87,15 @@ def valid_range_test(inp : Sequence[any],
             try:
                 # Try floating point numbers
                 inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
-                valid_span = np.ma.masked_invalid(np.array(valid_span).astype(np.floating))
+                valid_span = np.ma.masked_invalid(
+                    np.array(valid_span).astype(np.floating),
+                )
             except BaseException:
                 # Well, we tried.
+                msg = "Could not determine the type of input, try using the dtype parameter"
                 raise ValueError(
-                    "Could not determine the type of input, try using the dtype parameter")
+                    msg,
+                )
     else:
         inp = np.ma.masked_invalid(np.array(inp, dtype=dtype))
         valid_span = np.ma.masked_invalid(np.array(valid_span, dtype=dtype))

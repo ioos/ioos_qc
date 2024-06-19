@@ -107,7 +107,7 @@ def BNF():
     expr_list = delimitedList(Group(expr))
     # add parse action that replaces the function identifier with a (name, number of args) tuple
     fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
-        lambda t: t.insert(0, (t.pop(0), len(t[0])))
+        lambda t: t.insert(0, (t.pop(0), len(t[0]))),
     )
     atom = (
         addop[...]
@@ -144,13 +144,13 @@ def evaluate_stack(s, stats):
     elif op == "E":
         return math.e  # 2.718281828
     elif op == "mean":
-        return stats['mean']
+        return stats["mean"]
     elif op == "min":
-        return stats['min']
+        return stats["min"]
     elif op == "max":
-        return stats['max']
+        return stats["max"]
     elif op == "std":
-        return stats['std']
+        return stats["std"]
     elif op in fn:
         # note: args are pushed onto the stack in reverse order
         args = reversed([evaluate_stack(s, stats) for _ in range(num_args)])
