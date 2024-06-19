@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import io
 import json
 import logging
@@ -36,7 +35,7 @@ class ConfigLoadTest(unittest.TestCase):
                 foo: [1, null]
         """
         self.handle, self.yamlfile = tempfile.mkstemp(suffix=".yaml")
-        with open(self.yamlfile, "w") as f:
+        with Path.open(self.yamlfile, "w") as f:
             f.write(template)
 
         self.expected_dict = {
@@ -53,21 +52,21 @@ class ConfigLoadTest(unittest.TestCase):
 
     def tearDown(self):
         os.close(self.handle)
-        os.remove(self.yamlfile)
+        Path.unlink(self.yamlfile)
 
     def test_load_yaml_dict_object(self):
-        with open(self.yamlfile) as f:
+        with Path.open(self.yamlfile) as f:
             y = yaml.load(f.read())
             qc = QcConfig(y)
         assert qc.config == self.expected_dict
 
     def test_load_yaml_str(self):
-        with open(self.yamlfile) as f:
+        with Path.open(self.yamlfile) as f:
             qc = QcConfig(f.read())
         assert qc.config == self.expected_dict
 
     def test_load_json_str(self):
-        with open(self.yamlfile) as f:
+        with Path.open(self.yamlfile) as f:
             js = json.dumps(yaml.load(f.read()))
         qc = QcConfig(js)
         assert qc.config == self.expected_dict
@@ -83,7 +82,7 @@ class ConfigLoadTest(unittest.TestCase):
     def test_load_json_stringio(self):
         st = io.StringIO()
         qc = QcConfig(self.yamlfile)
-        with open(self.yamlfile) as f:
+        with Path.open(self.yamlfile) as f:
             js = json.dumps(yaml.load(f.read()))
             st.write(js)
         qc = QcConfig(st)
@@ -92,7 +91,7 @@ class ConfigLoadTest(unittest.TestCase):
 
     def test_load_yaml_stringio(self):
         st = io.StringIO()
-        with open(self.yamlfile) as f:
+        with Path.open(self.yamlfile) as f:
             st.write(f.read())
         qc = QcConfig(st)
         st.close()
@@ -284,12 +283,12 @@ class ClimatologyConfigConversionTest(unittest.TestCase):
                       period: month
         """
         self.handle, self.yamlfile = tempfile.mkstemp(suffix=".yaml")
-        with open(self.yamlfile, "w") as f:
+        with Path.open(self.yamlfile, "w") as f:
             f.write(template)
 
     def tearDown(self):
         os.close(self.handle)
-        os.remove(self.yamlfile)
+        Path.unlink(self.yamlfile)
 
     def test_climatology_config_yaml_conversion(self):
         qc = QcConfig(self.yamlfile)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import logging
 import unittest
 import warnings
@@ -6,8 +5,9 @@ import warnings
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
+import pytest
 
-from ioos_qc import qartod as qartod
+from ioos_qc import qartod
 
 L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
@@ -15,8 +15,7 @@ L.handlers = [logging.StreamHandler()]
 
 
 def dask_arr(vals):
-    """If dask is enabled for this environment, return dask array of values. Otherwise, return values.
-    """
+    """If dask is enabled for this environment, return dask array of values. Otherwise, return values."""
     try:
         import dask.array as da
         return da.from_array(vals, chunks=2)
@@ -27,8 +26,7 @@ def dask_arr(vals):
 class QartodLocationTest(unittest.TestCase):
 
     def test_location(self):
-        """Ensure that longitudes and latitudes are within reasonable bounds.
-        """
+        """Ensure that longitudes and latitudes are within reasonable bounds."""
         lon = [  80.0, -78.5, 500.500]
         lat = [np.nan,  50.0,   -60.0]
 
@@ -98,20 +96,21 @@ class QartodLocationTest(unittest.TestCase):
         )
 
     def test_location_bad_input(self):
+        match = "could not convert string to float:"
         # Wrong type lon
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match=match):
             qartod.location_test(lon="hello", lat=70)
 
         # Wrong type lat
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match=match):
             qartod.location_test(lon=70, lat="foo")
 
         # Wrong type bbox
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match="Required: list/tuple, Got:"):
             qartod.location_test(lon=70, lat=70, bbox="hi")
 
         # Wrong size bbox
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match="Incorrect list/tuple length for"):
             qartod.location_test(lon=70, lat=70, bbox=(1, 2))
 
     def test_location_bbox(self):
@@ -137,8 +136,7 @@ class QartodLocationTest(unittest.TestCase):
         )
 
     def test_location_distance_threshold(self):
-        """Tests a user defined distance threshold between successive points.
-        """
+        """Tests a user defined distance threshold between successive points."""
         lon = np.array([-71.05, -71.06, -80.0])
         lat = np.array([41.0, 41.02, 45.05])
 
@@ -194,21 +192,22 @@ class QartodGrossRangeTest(unittest.TestCase):
             )
 
     def test_gross_range_bad_input(self):
-        with self.assertRaises(ValueError):
+        match = "Required: list/tuple"
+        with pytest.raises(ValueError, match=match):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=10,
                 suspect_span=(1, 1),
             )
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match=match):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=(1, 1),
                 suspect_span=10,
             )
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match="Suspect Span"):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=(1, 1),
@@ -246,7 +245,7 @@ class QartodGrossRangeTest(unittest.TestCase):
                 dask_arr(np.array(vals, dtype=np.float64)),
             ]
 
-        for i in inputs:
+        for _i in inputs:
             npt.assert_array_equal(
                 qartod.gross_range_test(
                     vals,
@@ -918,8 +917,7 @@ class QartodSpikeTest(unittest.TestCase):
         self.fail_threshold = 50
 
     def test_spike(self):
-        """Test to make ensure single value spike detection works properly.
-        """
+        """Test to make ensure single value spike detection works properly."""
         arr = [10, 12, 999.99, 13, 15, 40, 9, 9]
 
         # First and last elements should always be good data, unless someone
@@ -942,8 +940,7 @@ class QartodSpikeTest(unittest.TestCase):
             )
 
     def test_spike_negative_vals(self):
-        """Test to make spike detection works properly for negative values.
-        """
+        """Test to make spike detection works properly for negative values."""
         arr = [-10, -12, -999.99, -13, -15, -40, -9, -9]
 
         # First and last elements should always be good data, unless someone
@@ -966,8 +963,7 @@ class QartodSpikeTest(unittest.TestCase):
             )
 
     def test_spike_initial_final_values(self):
-        """The test is not defined for the initial and final values in the array
-        """
+        """The test is not defined for the initial and final values in the array."""
         arr = [-100, -99, -99, -98]
         expected = [2, 1, 1, 2]
 
@@ -981,8 +977,7 @@ class QartodSpikeTest(unittest.TestCase):
         )
 
     def test_spike_masked(self):
-        """Test with missing data.
-        """
+        """Test with missing data."""
         arr = [10, 12, 999.99, 13, 15, 40, 9, 9, None, 10, 10, 999.99, 10, None]
 
         # First and last elements should always be good data, unless someone
@@ -1005,8 +1000,7 @@ class QartodSpikeTest(unittest.TestCase):
             )
 
     def test_spike_realdata(self):
-        """Test with real-world data.
-        """
+        """Test with real-world data."""
         suspect_threshold = 0.5
         fail_threshold = 1
 
@@ -1032,8 +1026,7 @@ class QartodSpikeTest(unittest.TestCase):
             )
 
     def test_spike_methods(self):
-        """Test the different input methods and review the different flags expected.
-        """
+        """Test the different input methods and review the different flags expected."""
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
         suspect_threshold = .5
         fail_threshold = 1
@@ -1077,14 +1070,15 @@ class QartodSpikeTest(unittest.TestCase):
         suspect_threshold = .5
         fail_threshold = 1
 
-        with self.assertRaises(ValueError):
+        match = "Unknown method:"
+        with pytest.raises(ValueError, match=match):
             qartod.spike_test(
                 inp=inp,
                 suspect_threshold=suspect_threshold,
                 fail_threshold=fail_threshold,
                 method="bad",
             )
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match=match):
             qartod.spike_test(
                 inp=inp,
                 suspect_threshold=suspect_threshold,
@@ -1239,7 +1233,8 @@ class QartodFlatLineTest(unittest.TestCase):
         )
 
         # test nothing fails
-        arr = np.random.random(len(self.times))
+        rng = np.random.default_rng()
+        arr = rng.normal(size=len(self.times))
         expected = np.ones_like(arr)
         npt.assert_array_equal(
             qartod.flat_line_test(
@@ -1596,33 +1591,34 @@ class QartodDensityInversionTest(unittest.TestCase):
         density = [1024, 1024, 1025]
         depth = [1, 2, 3]
 
+        match = "ufunc 'less' did not contain a loop with signature matching types"
         # Wrong type suspect_threshold
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError, match=match):
             qartod.density_inversion_test(inp=density, zinp=depth, suspect_threshold="bad")
 
         # Wrong type fail_threshold
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError, match=match):
             qartod.density_inversion_test(inp=density, zinp=depth, fail_threshold="bad")
 
         # Wrong type for both fail_threshold and suspect_threshold
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError, match=match):
             qartod.density_inversion_test(inp=density, zinp=depth,
                                           suspect_threshold="bad", fail_threshold="bad")
 
+        match = "could not convert string to float"
         # Wrong type density
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match=match):
             qartod.density_inversion_test(inp="density", zinp=depth, suspect_threshold=-0.3)
 
         # Wrong type depth
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match=match):
             qartod.density_inversion_test(inp=density, zinp="depth", suspect_threshold=-0.3)
 
 
 class QartodUtilsTests(unittest.TestCase):
 
     def test_qartod_compare(self):
-        """Tests that the compare function works as intended.
-        """
+        """Tests that the compare function works as intended."""
         range_flags = np.array([1, 1, 1, 9, 1, 1, 9, 9])
         spike_flags = np.array([2, 1, 1, 1, 1, 1, 9, 9])
         grdtn_flags = np.array([1, 3, 3, 4, 3, 1, 2, 9])

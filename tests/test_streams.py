@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import logging
 import unittest
 
@@ -97,7 +96,7 @@ class NumpyStreamTestLightConfig(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
-        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").values
+        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").to_numpy()
         self.zinp = np.full_like(self.tinp, 2.0)
         self.lat = np.full_like(self.tinp, 36.1)
         self.lon = np.full_like(self.tinp, -76.5)
@@ -157,7 +156,7 @@ class NumpyStreamTest(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
-        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").values
+        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").to_numpy()
         self.zinp = np.full_like(self.tinp, 2.0)
         self.lat = np.full_like(self.tinp, 36.1)
         self.lon = np.full_like(self.tinp, -76.5)

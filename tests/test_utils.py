@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 import json
 import os
 import tempfile
 import time
 import unittest
+from pathlib import Path
 
 import h5netcdf.legacyapi as nc4
 import numpy as np
@@ -21,25 +21,28 @@ class AuxillaryCheckTest(unittest.TestCase):
     def test_bad_time_sorting(self):
         # Simply reversing the order ought to fail the sort check.
         reversed_times = self.times[::-1]
-        self.assertFalse(utils.check_timestamps(reversed_times))
+        assert not utils.check_timestamps(reversed_times)
 
     def test_bad_time_repeat(self):
         """Check that repeated timestamps are picked up."""
         repeated = np.concatenate([np.repeat(self.times[0], 3),
                                    self.times[3:]])
-        self.assertFalse(utils.check_timestamps(repeated))
+        assert not utils.check_timestamps(repeated)
 
     def test_bad_interval(self):
         """Check that bad time intervals return false."""
         # Intentionally set a small interval (3 min) to fail.
         interval = np.timedelta64(3, "m")
-        self.assertFalse(utils.check_timestamps(self.times, interval))
+        assert not utils.check_timestamps(self.times, interval)
 
 
 class TestReadXarrayConfig(unittest.TestCase):
 
     def setUp(self):
-        self.fh, self.fp = tempfile.mkstemp(suffix=".nc", prefix="ioos_qc_tests_")
+        self.fh, self.fp = tempfile.mkstemp(
+            suffix=".nc",
+            prefix="ioos_qc_tests_",
+            )
         self.config = {
             "suspect_span": [1, 11],
             "fail_span": [0, 12],
@@ -54,7 +57,7 @@ class TestReadXarrayConfig(unittest.TestCase):
 
     def tearDown(self):
         os.close(self.fh)
-        os.remove(self.fp)
+        Path.unlink(self.fp)
 
     def test_load_from_xarray_file(self):
         c = utils.load_config_as_dict(self.fp)
@@ -71,16 +74,14 @@ class TestReadXarrayConfig(unittest.TestCase):
 class TestGreatCircle(unittest.TestCase):
 
     def setUp(self):
-        """Test 1 million great circle calculations
-        """
+        """Test 1 million great circle calculations."""
         points = 10000
         self.lon = np.linspace(-179, 179, points)
         self.lat = np.linspace(-89, 89, points)
 
     def test_great_circle(self):
-        s = time.perf_counter()
+        time.perf_counter()
         dist = utils.great_circle_distance(self.lat, self.lon)
-        e = time.perf_counter()
-        print(f"Great Circle: {e - s:0.4f} seconds")
+        time.perf_counter()
         close = np.isclose(dist[1:-1], dist[2:], atol=1)
         assert close.all()

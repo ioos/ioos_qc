@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+import datetime
 import logging
+import sys
 import unittest
-from datetime import datetime
 from functools import partial
 
+import packaging
 from shapely.geometry import GeometryCollection, Point
 
 import ioos_qc
@@ -13,6 +14,12 @@ L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
 L.handlers = [logging.StreamHandler()]
 
+if packaging.version.parse(
+    f"{sys.version_info.major}.{sys.version_info.minor}",
+) < packaging.version.parse(
+    "3.11",
+):
+    datetime.UTC = datetime.timezone.utc
 
 class StreamConfigLoadTest(unittest.TestCase):
     def setUp(self):
@@ -111,8 +118,8 @@ class ContextConfigRegionWindowLoadTest(unittest.TestCase):
         config_str = """
             region: something
             window:
-                starting: 2020-01-01T00:00:00
-                ending: 2020-04-01T00:00:00
+                starting: 2020-01-01T00:00:00+00:00
+                ending: 2020-04-01T00:00:00+00:00
             streams:
                 variable1:
                     qartod:
@@ -127,8 +134,8 @@ class ContextConfigRegionWindowLoadTest(unittest.TestCase):
         self.config = Config(config_str)
         self.context = Context(
             window=tw(
-                starting=datetime(2020, 1, 1, 0, 0, 0),
-                ending=datetime(2020, 4, 1, 0, 0, 0),
+                starting=datetime.datetime(2020, 1, 1, 0, 0, 0, tzinfo=datetime.UTC),
+                ending=datetime.datetime(2020, 4, 1, 0, 0, 0, tzinfo=datetime.UTC),
             ),
         )
         self.calls = [
@@ -170,8 +177,8 @@ class ContextListConfigLoadTest(unittest.TestCase):
                             type: Point
                             coordinates: [-72, 34]
                     window:
-                        starting: 2020-01-01T00:00:00
-                        ending: 2020-04-01T00:00:00
+                        starting: 2020-01-01T00:00:00+00:00
+                        ending: 2020-04-01T00:00:00+00:00
                     streams:
                         variable1:
                             qartod:
@@ -187,8 +194,8 @@ class ContextListConfigLoadTest(unittest.TestCase):
                             type: Point
                             coordinates: [-80,40]
                     window:
-                        starting: 2020-01-01T00:00:00
-                        ending: 2020-04-01T00:00:00
+                        starting: 2020-01-01T00:00:00+00:00
+                        ending: 2020-04-01T00:00:00+00:00
                     streams:
                         variable1:
                             qartod:
@@ -201,8 +208,8 @@ class ContextListConfigLoadTest(unittest.TestCase):
                                     fail_span: [0, 12]
         """
         window = tw(
-            starting=datetime(2020, 1, 1, 0, 0, 0),
-            ending=datetime(2020, 4, 1, 0, 0, 0),
+            starting=datetime.datetime(2020, 1, 1, 0, 0, 0, tzinfo=datetime.UTC),
+            ending=datetime.datetime(2020, 4, 1, 0, 0, 0, tzinfo=datetime.UTC),
         )
         self.config = Config(config_str)
         self.context1 = Context(
@@ -256,7 +263,7 @@ class ContextListConfigLoadTest(unittest.TestCase):
 
     def test_load(self):
         assert len(self.config.contexts) == 2
-        for _, calls in self.config.contexts.items():
+        for calls in self.config.contexts.values():
             assert len(calls) == 2
             for c in calls:
                 assert c in self.calls

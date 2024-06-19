@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import logging
 import unittest
 
@@ -24,8 +23,7 @@ class ArgoSpeedTest(unittest.TestCase):
         self.fail_threshold = 3  # 3 m/s or 0.18 km/min or 10.8 km/hr
 
     def test_speed_test(self):
-        """Happy path: some pass, fail and suspect
-        """
+        """Happy path: some pass, fail and suspect."""
         # all pass
         lon = np.array([-71.05, -71.05, -71.05, -71.05, -71.05, -71.05])
         lat = np.array([41.01, 41.02, 41.03, 41.04, 41.05, 41.05])
@@ -80,31 +78,24 @@ class ArgoSpeedTest(unittest.TestCase):
         )
 
     def test_speed_test_error_scenario(self):
-        """Different shapes for lon/lat/tinp should error
-        """
+        """Different shapes for lon/lat/tinp should error."""
         tinp = self.times[0:2]
 
         # different tinp shape
         lat = np.array([41.01])
         lon = np.array([-71.05])
-        try:
+        with pytest.raises(ValueError, match="must be the same shape"):
             argo.speed_test(lon, lat, tinp,
                             suspect_threshold=self.suspect_threshold,
                             fail_threshold=self.fail_threshold)
-            pytest.fail("should throw exception for mismatched arrays")
-        except ValueError as expected:
-            assert "shape" in str(expected)
 
         # different lat shape
         lat = np.array([41.01])
         lon = np.array([-71.05, -71.05])
-        try:
+        with pytest.raises(ValueError, match="must be the same shape"):
             argo.speed_test(lon, lat, tinp,
                             suspect_threshold=self.suspect_threshold,
                             fail_threshold=self.fail_threshold)
-            pytest.fail("should throw exception for mismatched arrays")
-        except ValueError as expected:
-            assert "shape" in str(expected)
 
 
 class ArgoPressureIncreasingTest(unittest.TestCase):

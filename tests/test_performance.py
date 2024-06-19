@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import logging
 import unittest
 
@@ -25,11 +24,10 @@ class PerformanceTest(unittest.TestCase):
         self.n = 10
 
     def perf_test(self, qc, method_name=None, run_fn=None):
-        method_name = method_name
         if method_name is None and "argo" in qc.config:
-            method_name = list(qc.config["argo"])[0]
+            method_name = next(iter(qc.config["argo"]))
         if method_name is None:
-            method_name = list(qc.config["qartod"])[0]
+            method_name = next(iter(qc.config["qartod"]))
         if run_fn is None:
             def run_fn():
                 qc.run(
