@@ -1,20 +1,20 @@
 # Contributors Guide
 
-Interested in helping out the IOOS QARTOD?
+Interested in helping out the ioos_qc?
 Have a few minutes to tackle an issue? Or improve the documentation?
-In this guide we will get you setup and integrated into contributing to IOOS QARTOD!
+In this guide we will get you setup and integrated into contributing to ioos_qc!
 
 ## Introduction
 
-First off, thank you for considering contributing to IOOS QARTOD!
+First off, thank you for considering contributing to ioos_qc!
 
-QARTOD is collection of utilities, scripts and tests to assist in automated quality assurance and quality control for oceanographic datasets and observing systems.
-It's people like you that make the QARTOD useful and successful.
+ioos_qc is collection of utilities, scripts and tests to assist in automated quality assurance and quality control for oceanographic datasets and observing systems.
+It's people like you that make the ioos_qc useful and successful.
 There are many ways to contribute,
 from writing tutorials or examples,
 improvements to the documentation,
 submitting bug reports and feature requests,
-or even writing code which can be incorporated into QARTOD for everyone to use.
+or even writing code which can be incorporated into ioos_qc for everyone to use.
 
 Following these guidelines helps to communicate that you respect the time of the developers managing and developing these open source projects.
 In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
@@ -44,7 +44,7 @@ For unrelated changes, please submit multiple pull requests.
 
 ## Reporting a bug
 
-The easiest way to get involved is to report issues you encounter when using QARTOD or by requesting something you think is missing.
+The easiest way to get involved is to report issues you encounter when using ioos_qc or by requesting something you think is missing.
 
 * Head over to the project [issues](https://github.com/ioos/ioos_qc/issues) page.
 * Search to see if your issue already exists or has even been solved previously.
@@ -61,7 +61,7 @@ Install [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 This can also be installed from a variety of package managers, including ``conda`` if needed.
 
 Login to your [GitHub](https://github.com) account and make a fork of the
-[IOOS_QC repository](https://github.com/ioos/ioos_qc) by clicking the "Fork" button.
+[ioos_qc repository](https://github.com/ioos/ioos_qc) by clicking the "Fork" button.
 Clone your fork of the repository (in terminal on Mac/Linux or git shell/GUI on Windows)
 to the location you'd like to keep it.
 We are partial to creating a ``git_repos`` or ``projects`` directory in our home folder.
@@ -87,16 +87,16 @@ Create a new conda environment for us to configure, and give it a name.
 
 For Environment Setup:
 
-After ``-n`` you can specify any name you'd like; here we've chosen ``ioosqc38``.
+After ``-n`` you can specify any name you'd like; here we've chosen ``ioosqc312``.
 
 ```sh
-conda create -n ioosqc38 python=3.8
+conda create -n ioosqc312 python=3.12
 ```
 
 **IMPORTANT**: Always activate this environment when developing and testing your changes!
 
 ```sh
-conda activate ioosqc38
+conda activate ioosqc312
 ```
 
 You will have to do this any time you re-open your prompt.
@@ -112,7 +112,7 @@ Again, always check the local README for more information.
 Finally, to run all the tests!
 
 ```sh
-pytest
+python -m pytest --disable-warnings
 ```
 
 Once you are done with environemtn setup, its time to build docs:
@@ -120,20 +120,20 @@ Once you are done with environemtn setup, its time to build docs:
 Create the following environment:
 
 ```sh
-conda create -y -n ioosqc38_docs python=3.8
+conda create -y -n ioosqc312_docs python=3.12
 ```
 
 **IMPORTANT**: Always activate this environment when developing and testing your changes!
 
 ```sh
-conda activate ioosqc38_docs
+conda activate ioosqc312_docs
 ```
 
 You will have to do this any time you re-open your prompt.
 Currently there are no packages in this environment, let's change that.
 
 ```sh
-conda install -y --file requirements.txt \ --file requirements-dev.txt \ --file docs/requirements.txt
+conda install -y --file requirements.txt --file requirements-dev.txt --file docs/requirements.txt
 ```
 
 Note that those requirement file names may change depending on the repository.
@@ -150,7 +150,7 @@ Then open a browser to:
 
 Run Jupyter server and edit notebook examples:
 ```sh
-conda activate ioosqc38_docs
+conda activate ioosqc312_docs
 cd docs/source/examples
 jupyter notebook
 ```
@@ -159,14 +159,14 @@ jupyter notebook
 This way, ``nbsphinx`` will build the notebook output during the build stage.
 
 Now you're all set!
-You have an environment called ``ioosqc38`` that you can work in.
+You have an environment called ``ioosqc312`` that you can work in.
 Remember, you will need to activate this environment the
 next time you want to use it after closing the terminal.
 If you want to get back to the root environment, run ``conda deactivate``.
 
 ## Pull Requests
 
-The changes to the QARTOD source (and documentation)
+The changes to the ioos_qc source (and documentation)
 should be made via GitHub pull requests against ``main``,
 even for those with administration rights.
 While it's tempting to make changes directly to ``main`` and push them up,
