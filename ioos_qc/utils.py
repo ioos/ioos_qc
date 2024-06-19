@@ -1,13 +1,16 @@
-#!/usr/bin/env python
+"""Utilities."""
+
+from __future__ import annotations
+
 import io
 import json
 import logging
-from collections import OrderedDict as odict
+from collections import OrderedDict
 from collections.abc import Mapping
 from datetime import date, datetime
 from numbers import Real
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import geojson
 import numpy as np
@@ -21,6 +24,8 @@ L = logging.getLogger(__name__)
 
 
 def add_flag_metadata(**kwargs):
+    """Add flag metadata."""
+
     def wrapper(func: callable):
         for k, v in kwargs.items():
             setattr(func, k, v)
@@ -30,8 +35,8 @@ def add_flag_metadata(**kwargs):
 
 
 def openf(p, **kwargs):
-    """Helper to allow one-line-lambdas to read file contents."""
-    with open(p, **kwargs) as f:
+    """Allow one-line-lambdas to read file contents."""
+    with Path(p).open(**kwargs) as f:
         return f.read()
 
 
@@ -49,7 +54,7 @@ def load_config_from_xarray(source):
         return load_config_as_dict(source.attrs["ioos_qc_config"])
 
     # Iterate over variables and construct a config object
-    y = odict()
+    y = OrderedDict()
     qc_dataset = source.filter_by_attrs(
         ioos_qc_module=lambda x: x is not None,
         ioos_qc_test=lambda x: x is not None,
@@ -67,11 +72,11 @@ def load_config_from_xarray(source):
             # Because a data variables can have more than one check
             # associated with it we need to merge any existing configs
             # for this variable
-            newdict = odict(
+            newdict = OrderedDict(
                 {
-                    vobj.ioos_qc_module: odict(
+                    vobj.ioos_qc_module: OrderedDict(
                         {
-                            vobj.ioos_qc_test: odict(
+                            vobj.ioos_qc_test: OrderedDict(
                                 json.loads(vobj.ioos_qc_config),
                             ),
                         },
@@ -83,7 +88,7 @@ def load_config_from_xarray(source):
                 newdict,
             )
             y[vobj.ioos_qc_target] = merged
-        except BaseException:
+        except BaseException:  # noqa: BLE001
             L.error(f"Could not pull QC config from {vobj.name}, skipping")
             continue
 
@@ -95,45 +100,47 @@ def load_config_from_xarray(source):
 
 
 def load_config_as_dict(
-    source: Union[str, dict, odict, Path, io.StringIO],
-) -> odict:
-    """Load an object as a config dict. The source can be a dict, odict,
-    YAML string, JSON string, a StringIO, or a file path to a valid YAML or JSON file.
+    source: str | dict | OrderedDict | Path | io.StringIO,
+) -> OrderedDict:
+    """Load an object as a config dict. The source can be a dict, OrderedDict,
+    YAML string, JSON string, a StringIO, or a file path to a valid YAML or
+    JSON file.
+
     """
     yaml = YAML(typ="safe")
-    if isinstance(source, odict):
+    if isinstance(source, OrderedDict):
         return source
-    elif isinstance(source, dict):
-        return odict(source)
-    elif isinstance(source, xr.Dataset):
+    if isinstance(source, dict):
+        return OrderedDict(source)
+    if isinstance(source, xr.Dataset):
         return load_config_from_xarray(source)
-    elif isinstance(source, (str, Path)):
+    if isinstance(source, (str, Path)):
         source = str(source)
 
         # Try to load as YAML, then JSON, then file path
         load_funcs = [
-            lambda x: odict(yaml.load(x)),
-            lambda x: odict(json.loads(x)),
+            lambda x: OrderedDict(yaml.load(x)),
+            lambda x: OrderedDict(json.loads(x)),
             lambda x: load_config_from_xarray(x),
-            lambda x: odict(yaml.load(openf(x))),
-            lambda x: odict(json.loads(openf(x))),
+            lambda x: OrderedDict(yaml.load(openf(x))),
+            lambda x: OrderedDict(json.loads(openf(x))),
         ]
         for lf in load_funcs:
             try:
                 return lf(source)
-            except BaseException:
+            except BaseException:  # noqa: S112, PERF203, BLE001
                 continue
 
     elif isinstance(source, io.StringIO):
         # Try to load as YAML, then JSON, then file path
         load_funcs = [
-            lambda x: odict(yaml.load(x)),
-            lambda x: odict(json.load(x)),
+            lambda x: OrderedDict(yaml.load(x)),
+            lambda x: OrderedDict(json.load(x)),
         ]
         for lf in load_funcs:
             try:
                 return lf(source.getvalue())
-            except BaseException:
+            except BaseException:  # noqa: S112, PERF203, BLE001
                 continue
 
     msg = "Config source is not valid!"
@@ -141,15 +148,19 @@ def load_config_as_dict(
 
 
 def isfixedlength(
-    lst: Union[list, tuple],
+    lst: list | tuple,
     length: int,
 ) -> bool:
+    """Check if a list has the correct length."""
     if not isinstance(lst, (list, tuple)):
         msg = f"Required: list/tuple, Got: {type(lst)}"
-        raise ValueError(msg)
+        raise TypeError(msg)
 
     if len(lst) != length:
-        msg = f"Incorrect list/tuple length for {lst}. Required: {length}, Got: {len(lst)}"
+        msg = (
+            f"Incorrect list/tuple length for {lst}. Required: {length}, "
+            "Got: {len(lst)}"
+        )
         raise ValueError(
             msg,
         )
@@ -158,28 +169,33 @@ def isfixedlength(
 
 
 def isnan(v: Any) -> bool:
+    """Return True if a value is NaN."""
     return v is None or v is np.nan or v is np.ma.masked
 
 
 def mapdates(dates):
+    """Map dates objects to datetime64[ns]."""
     if hasattr(dates, "dtype") and hasattr(dates.dtype, "tz"):
         # pandas time objects with a datetime component, remove the timezone
         return dates.dt.tz_localize(None).astype("datetime64[ns]").to_numpy()
-    elif hasattr(dates, "dtype") and hasattr(dates, "to_numpy"):
+    if hasattr(dates, "dtype") and hasattr(dates, "to_numpy"):
         # pandas time objects without a datetime component
         return dates.to_numpy().astype("datetime64[ns]")
-    elif hasattr(dates, "dtype") and np.issubdtype(dates.dtype, np.datetime64):
+    if hasattr(dates, "dtype") and np.issubdtype(dates.dtype, np.datetime64):
         # numpy datetime objects
         return dates.astype("datetime64[ns]")
-    else:
-        try:
-            # Finally try unix epoch seconds
-            return pd.to_datetime(dates, unit="s").values.astype(
+    try:
+        # Finally try unix epoch seconds
+        return (
+            pd.to_datetime(dates, unit="s")
+            .to_numpy()
+            .astype(
                 "datetime64[ns]",
             )
-        except Exception:
-            # strings work here but we don't advertise that
-            return np.array(dates, dtype="datetime64[ns]")
+        )
+    except Exception:  # noqa: BLE001
+        # strings work here but we don't advertise that
+        return np.array(dates, dtype="datetime64[ns]")
 
 
 def check_timestamps(
@@ -217,7 +233,10 @@ def check_timestamps(
 
 
 def dict_update(d: Mapping, u: Mapping) -> Mapping:
-    # http://stackoverflow.com/a/3233356
+    """Update value of a nested dictionary of varying depth.
+
+    http://stackoverflow.com/a/3233356
+    """
     for k, v in u.items():
         if isinstance(d, Mapping):
             if isinstance(v, Mapping):
@@ -239,6 +258,7 @@ def dict_depth(d):
 
 
 def cf_safe_name(name: str) -> str:
+    """Make CF safe names."""
     import re
 
     if isinstance(name, str):
@@ -252,23 +272,25 @@ def cf_safe_name(name: str) -> str:
 
 
 class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
+    """Encode numpy dates for geospatial formats."""
+
     def default(self, obj: Any) -> Any:
         """If input object is an ndarray it will be converted into a list."""
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        elif isinstance(obj, np.generic):
+        if isinstance(obj, np.generic):
             return obj.item()
-        # elif isinstance(obj, pd.Timestamp):
-        #     return obj.to_pydatetime().isoformat()
-        elif isinstance(obj, (datetime, date)):
+        if isinstance(obj, (datetime, date)):
             return obj.isoformat()
-        elif np.isnan(obj):
+        if np.isnan(obj):
             return None
 
         return geojson.factory.GeoJSON.to_instance(obj)
 
 
 def great_circle_distance(lat_arr, lon_arr):
+    """Compute great circle distances."""
+
     def gc(y1, x1, y2, x2):
         return Geodesic.WGS84.Inverse(y1, x1, y2, x2)["s12"]
 
