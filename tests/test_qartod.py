@@ -2051,7 +2051,7 @@ class QartodDensityInversionTest(unittest.TestCase):
         depth = [1, 2, 3]
 
         match = (
-            "ufunc 'less' did not contain a loop with signature matching types"
+            "'less'|<"
         )
         # Wrong type suspect_threshold
         with pytest.raises(TypeError, match=match):

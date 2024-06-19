@@ -62,7 +62,7 @@ class TestReadXarrayConfig(unittest.TestCase):
 
     def tearDown(self):
         os.close(self.fh)
-        Path.unlink(self.fp)
+        Path(self.fp).unlink()
 
     def test_load_from_xarray_file(self):
         c = utils.load_config_as_dict(self.fp)
