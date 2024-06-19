@@ -22,7 +22,6 @@ L.handlers = [logging.StreamHandler()]
 
 class PandasStreamTest(unittest.TestCase):
     def setUp(self):
-
         config = """
             region: something
             window:
@@ -84,7 +83,6 @@ class PandasStreamTest(unittest.TestCase):
 
 class NumpyStreamTestLightConfig(unittest.TestCase):
     def setUp(self):
-
         config = """
             streams:
                 variable1:
@@ -96,7 +94,11 @@ class NumpyStreamTestLightConfig(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
-        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").to_numpy()
+        self.tinp = pd.date_range(
+            start="01/01/2020",
+            periods=rows,
+            freq="D",
+        ).to_numpy()
         self.zinp = np.full_like(self.tinp, 2.0)
         self.lat = np.full_like(self.tinp, 36.1)
         self.lon = np.full_like(self.tinp, -76.5)
@@ -140,7 +142,6 @@ class NumpyStreamTestLightConfig(unittest.TestCase):
 
 class NumpyStreamTest(unittest.TestCase):
     def setUp(self):
-
         config = """
             region: something
             window:
@@ -156,7 +157,11 @@ class NumpyStreamTest(unittest.TestCase):
         self.config = Config(config)
 
         rows = 50
-        self.tinp = pd.date_range(start="01/01/2020", periods=rows, freq="D").to_numpy()
+        self.tinp = pd.date_range(
+            start="01/01/2020",
+            periods=rows,
+            freq="D",
+        ).to_numpy()
         self.zinp = np.full_like(self.tinp, 2.0)
         self.lat = np.full_like(self.tinp, 36.1)
         self.lon = np.full_like(self.tinp, -76.5)
@@ -200,7 +205,6 @@ class NumpyStreamTest(unittest.TestCase):
 
 class NetcdfStreamTest(unittest.TestCase):
     def setUp(self):
-
         config = """
             region: something
             window:
@@ -265,7 +269,6 @@ class NetcdfStreamTest(unittest.TestCase):
 
 class XarrayStreamTest(unittest.TestCase):
     def setUp(self):
-
         config = """
             region: something
             window:
@@ -502,8 +505,16 @@ class PandasStreamManyContextTest(unittest.TestCase):
         results = ps.run(self.config)
         results = collect_results(results, how="list")
 
-        var1_gr = next(res for res in results if res.stream_id == "variable1" and res.test == "gross_range_test")
-        var2_gr = next(res for res in results if res.stream_id == "variable2" and res.test == "gross_range_test")
+        var1_gr = next(
+            res
+            for res in results
+            if res.stream_id == "variable1" and res.test == "gross_range_test"
+        )
+        var2_gr = next(
+            res
+            for res in results
+            if res.stream_id == "variable2" and res.test == "gross_range_test"
+        )
         # Variable 1
         # Actual data returned in full
         npt.assert_array_equal(

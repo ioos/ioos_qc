@@ -26,7 +26,6 @@ def column_from_collected_result(cr):
 
 
 class BaseStore:
-
     def save(self, *args, **kwargs) -> None:
         """Serialize results to a store. This could save a file or publish messages."""
 
@@ -42,7 +41,7 @@ class PandasStore(BaseStore):
         # OK, time to evaluate the actual tests now that we need the results
         self.results = list(results)
         self.collected_results = collect_results(self.results, how="list")
-        self._stream_ids = [ cr.stream_id for cr in self.collected_results ]
+        self._stream_ids = [cr.stream_id for cr in self.collected_results]
         self.axes = axes or {
             "t": "time",
             "z": "z",
@@ -65,42 +64,78 @@ class PandasStore(BaseStore):
         )
         self.collected_results.append(agg)
 
-    def save(self,
-             write_data: bool = False,
-             write_axes: bool = True,
-             include: Optional[list] = None,
-             exclude: Optional[list] = None) -> pd.DataFrame:
-
+    def save(
+        self,
+        write_data: bool = False,
+        write_axes: bool = True,
+        include: Optional[list] = None,
+        exclude: Optional[list] = None,
+    ) -> pd.DataFrame:
         df = pd.DataFrame()
 
         for cr in self.collected_results:
-
             # Add time axis
-            if write_axes is True and self.axes["t"] not in df and cr.tinp is not None and cr.tinp.size != 0:
-                L.info(f"Adding column {self.axes['t']} from stream {cr.stream_id}")
+            if (
+                write_axes is True
+                and self.axes["t"] not in df
+                and cr.tinp is not None
+                and cr.tinp.size != 0
+            ):
+                L.info(
+                    f"Adding column {self.axes['t']} from stream {cr.stream_id}",
+                )
                 df[self.axes["t"]] = cr.tinp
 
             # Add z axis
-            if write_axes is True and self.axes["z"] not in df and cr.zinp is not None and cr.zinp.size != 0:
-                L.info(f"Adding column {self.axes['z']} from stream {cr.stream_id}")
+            if (
+                write_axes is True
+                and self.axes["z"] not in df
+                and cr.zinp is not None
+                and cr.zinp.size != 0
+            ):
+                L.info(
+                    f"Adding column {self.axes['z']} from stream {cr.stream_id}",
+                )
                 df[self.axes["z"]] = cr.zinp
 
             # Add x axis
-            if write_axes is True and self.axes["x"] not in df and cr.lon is not None and cr.lon.size != 0:
-                L.info(f"Adding column {self.axes['x']} from stream {cr.stream_id}")
+            if (
+                write_axes is True
+                and self.axes["x"] not in df
+                and cr.lon is not None
+                and cr.lon.size != 0
+            ):
+                L.info(
+                    f"Adding column {self.axes['x']} from stream {cr.stream_id}",
+                )
                 df[self.axes["x"]] = cr.lon
 
             # Add x axis
-            if write_axes is True and self.axes["y"] not in df and cr.lat is not None and cr.lat.size != 0:
-                L.info(f"Adding column {self.axes['y']} from stream {cr.stream_id}")
+            if (
+                write_axes is True
+                and self.axes["y"] not in df
+                and cr.lat is not None
+                and cr.lat.size != 0
+            ):
+                L.info(
+                    f"Adding column {self.axes['y']} from stream {cr.stream_id}",
+                )
                 df[self.axes["y"]] = cr.lat
 
             # Inclusion list, skip everything not defined
-            if include is not None and (cr.function not in include and cr.stream_id not in include and cr.test not in include):
+            if include is not None and (
+                cr.function not in include
+                and cr.stream_id not in include
+                and cr.test not in include
+            ):
                 continue
 
             # Exclusion list, skip everything defined
-            if exclude is not None and (cr.function in exclude or cr.stream_id in exclude or cr.test in cr.test in include):
+            if exclude is not None and (
+                cr.function in exclude
+                or cr.stream_id in exclude
+                or cr.test in cr.test in include
+            ):
                 continue
 
             # Add data column
@@ -114,18 +149,19 @@ class PandasStore(BaseStore):
             if column_name not in df:
                 df[column_name] = cr.results
             else:
-                L.warning(f"Found duplicate QC results column: {column_name}, skipping.")
+                L.warning(
+                    f"Found duplicate QC results column: {column_name}, skipping.",
+                )
 
         return df
 
 
 class CFNetCDFStore(BaseStore):
-
     def __init__(self, results, axes=None, **kwargs) -> None:
         # OK, time to evaluate the actual tests now that we need the results
         self.results = list(results)
         self.collected_results = collect_results(self.results, how="list")
-        self._stream_ids = [ cr.stream_id for cr in self.collected_results ]
+        self._stream_ids = [cr.stream_id for cr in self.collected_results]
         self.axes = axes or {
             "t": "time",
             "z": "z",
@@ -137,7 +173,17 @@ class CFNetCDFStore(BaseStore):
     def stream_ids(self) -> List[str]:
         return self._stream_ids
 
-    def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: Optional[dict] = None, write_data: bool = False, include: Optional[list] = None, exclude: Optional[list] = None, compute_aggregate: bool = False):
+    def save(
+        self,
+        path_or_ncd,
+        dsg,
+        config: Config,
+        dsg_kwargs: Optional[dict] = None,
+        write_data: bool = False,
+        include: Optional[list] = None,
+        exclude: Optional[list] = None,
+        compute_aggregate: bool = False,
+    ):
         if dsg_kwargs is None:
             dsg_kwargs = {}
         ps = PandasStore(self.results, self.axes)
@@ -149,7 +195,6 @@ class CFNetCDFStore(BaseStore):
         # Write a new file
         attrs = {}
         for cr in ps.collected_results:
-
             column_name = column_from_collected_result(cr)
 
             # Set the ancillary variables
@@ -159,19 +204,29 @@ class CFNetCDFStore(BaseStore):
                 }
             else:
                 # Update the source ancillary_variables
-                existing = getattr(attrs[cr.stream_id], "ancillary_variables", "").split(" ")
+                existing = getattr(
+                    attrs[cr.stream_id],
+                    "ancillary_variables",
+                    "",
+                ).split(" ")
                 existing += [column_name]
                 attrs[cr.stream_id] = " ".join(list(set(existing))).strip()
 
             # determine standard name and long name. These should be defined on each test function
             # https://github.com/cf-convention/cf-conventions/issues/216
-            standard_name = getattr(cr.function, "standard_name", "quality_flag")
+            standard_name = getattr(
+                cr.function,
+                "standard_name",
+                "quality_flag",
+            )
             long_name = getattr(cr.function, "long_name", "Quality Flag")
 
             # Get flags from module attribute called FLAGS
             flags = inspect.getmodule(cr.function).FLAGS
-            varflagnames = [ d for d in flags.__dict__ if not d.startswith("__") ]
-            varflagvalues = [ getattr(flags, d) for d in varflagnames ]
+            varflagnames = [
+                d for d in flags.__dict__ if not d.startswith("__")
+            ]
+            varflagvalues = [getattr(flags, d) for d in varflagnames]
 
             # Set QC variable attributes
             if column_name not in attrs:
@@ -193,9 +248,9 @@ class CFNetCDFStore(BaseStore):
                     calls = config.calls_by_stream_id(cr.stream_id)
 
                     calls = [
-                        c for c in calls
+                        c
+                        for c in calls
                         if c.module == cr.package and c.method == cr.test
-
                     ]
                     if not calls:
                         # No stream_id found!
@@ -207,31 +262,38 @@ class CFNetCDFStore(BaseStore):
                     if call.region:
                         attrs[column_name]["ioos_qc_region"] = json.dumps(
                             call.region,
-                            cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True,
+                            cls=GeoNumpyDateEncoder,
+                            allow_nan=False,
+                            ignore_nan=True,
                         )
                     if call.window.starting or call.window.ending:
                         attrs[column_name]["ioos_qc_window"] = json.dumps(
                             call.window,
-                            cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True,
+                            cls=GeoNumpyDateEncoder,
+                            allow_nan=False,
+                            ignore_nan=True,
                         )
 
                     qc_varconfig = json.dumps(
                         call.kwargs,
-                        cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True,
+                        cls=GeoNumpyDateEncoder,
+                        allow_nan=False,
+                        ignore_nan=True,
                     )
                     attrs[column_name]["ioos_qc_config"] = qc_varconfig
 
         if len(config.contexts) > 1:
             # We represent the config as one global config JSON object
             attrs["ioos_qc_config"] = json.dumps(
-                config.config, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True,
+                config.config,
+                cls=GeoNumpyDateEncoder,
+                allow_nan=False,
+                ignore_nan=True,
             )
 
         dsg_kwargs = {
             **dsg_kwargs,
-
-                "attributes": attrs,
-
+            "attributes": attrs,
         }
 
         # pocean requires these default columns, which should be removed as a requirement
@@ -241,11 +303,15 @@ class CFNetCDFStore(BaseStore):
         df["profile"] = 0
         if "z" not in df:
             df["z"] = 0
-        return dsg.from_dataframe(df, path_or_ncd, axes=self.axes, **dsg_kwargs)
+        return dsg.from_dataframe(
+            df,
+            path_or_ncd,
+            axes=self.axes,
+            **dsg_kwargs,
+        )
 
 
 class NetcdfStore:
-
     def save(self, path_or_ncd, config, results):
         """Updates the given netcdf with test configuration and results.
         If there is already a variable for a given test, it will update that variable with the latest results.
@@ -266,7 +332,6 @@ class NetcdfStore:
                 return ValueError("Input is not a valid file path or Dataset")
 
             for vname, qcobj in results.items():
-
                 if vname not in ncd.variables:
                     L.warning(f"{vname} not found in the Dataset, skipping")
                     continue
@@ -277,15 +342,15 @@ class NetcdfStore:
                 qcvar_names = []
 
                 for modu, tests in qcobj.items():
-
                     try:
                         testpackage = import_module(f"ioos_qc.{modu}")
                     except ImportError:
-                        L.error(f'No ioos_qc test package "{modu}" was found, skipping.')
+                        L.error(
+                            f'No ioos_qc test package "{modu}" was found, skipping.',
+                        )
                         continue
 
                     for testname, testresults in tests.items():
-
                         # Try to find a qc variable that matches this config
                         qcvars = ncd.get_variables_by_attributes(
                             ioos_qc_module=modu,
@@ -293,21 +358,33 @@ class NetcdfStore:
                             ioos_qc_target=vname,
                         )
                         if not qcvars:
-                            qcvarname = cf_safe_name(vname + "." + modu + "." + testname)
+                            qcvarname = cf_safe_name(
+                                vname + "." + modu + "." + testname,
+                            )
                         else:
                             if len(qcvars) > 1:
-                                names = [ v.name for v in qcvars ]
-                                L.warning(f"Found more than one QC variable match: {names}")
+                                names = [v.name for v in qcvars]
+                                L.warning(
+                                    f"Found more than one QC variable match: {names}",
+                                )
                             # Use the last one found
                             qcvarname = qcvars[-1].name
 
                         # Get flags from module attribute called FLAGS
                         flags = testpackage.FLAGS
-                        varflagnames = [ d for d in flags.__dict__ if not d.startswith("__") ]
-                        varflagvalues = [ getattr(flags, d) for d in varflagnames ]
+                        varflagnames = [
+                            d for d in flags.__dict__ if not d.startswith("__")
+                        ]
+                        varflagvalues = [
+                            getattr(flags, d) for d in varflagnames
+                        ]
 
                         if qcvarname not in ncd.variables:
-                            v = ncd.createVariable(qcvarname, np.byte, source_var.dimensions)
+                            v = ncd.createVariable(
+                                qcvarname,
+                                np.byte,
+                                source_var.dimensions,
+                            )
                         else:
                             v = ncd[qcvarname]
                         qcvar_names.append(qcvarname)
@@ -335,23 +412,59 @@ class NetcdfStore:
                         v.setncattr("ioos_qc_target", vname)
                         # If there is only one context we can write variable specific configs
                         if len(config.contexts) == 1:
-                            varconfig = config.contexts[0].streams[vname].config[modu][testname]
-                            varconfig = json.dumps(varconfig, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True)
+                            varconfig = (
+                                config.contexts[0]
+                                .streams[vname]
+                                .config[modu][testname]
+                            )
+                            varconfig = json.dumps(
+                                varconfig,
+                                cls=GeoNumpyDateEncoder,
+                                allow_nan=False,
+                                ignore_nan=True,
+                            )
                             v.setncattr("ioos_qc_config", varconfig)
-                            v.setncattr("ioos_qc_region", json.dumps(config.contexts[0].region, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True))
-                            v.setncattr("ioos_qc_window", json.dumps(config.contexts[0].window, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True))
+                            v.setncattr(
+                                "ioos_qc_region",
+                                json.dumps(
+                                    config.contexts[0].region,
+                                    cls=GeoNumpyDateEncoder,
+                                    allow_nan=False,
+                                    ignore_nan=True,
+                                ),
+                            )
+                            v.setncattr(
+                                "ioos_qc_window",
+                                json.dumps(
+                                    config.contexts[0].window,
+                                    cls=GeoNumpyDateEncoder,
+                                    allow_nan=False,
+                                    ignore_nan=True,
+                                ),
+                            )
 
                 # Update the source ancillary_variables
-                existing = getattr(source_var, "ancillary_variables", "").split(" ")
+                existing = getattr(
+                    source_var,
+                    "ancillary_variables",
+                    "",
+                ).split(" ")
                 if qcvar_names:
                     existing += qcvar_names
-                source_var.ancillary_variables = " ".join(list(set(existing))).strip()
+                source_var.ancillary_variables = " ".join(
+                    list(set(existing)),
+                ).strip()
 
             if len(config.contexts) > 1:
                 # We can't represent these at the variable level, so make one global config
                 ncd.setncattr(
                     "ioos_qc_config",
-                    json.dumps(config.config, cls=GeoNumpyDateEncoder, allow_nan=False, ignore_nan=True),
+                    json.dumps(
+                        config.config,
+                        cls=GeoNumpyDateEncoder,
+                        allow_nan=False,
+                        ignore_nan=True,
+                    ),
                 )
 
         finally:

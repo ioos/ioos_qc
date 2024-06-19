@@ -1,5 +1,6 @@
 #!python
 """Download and process source data used for ConfigCreator."""
+
 import logging
 import shutil
 from pathlib import Path
@@ -31,9 +32,17 @@ def ocean_atlas_download(output_dir, month, sources=SOURCES) -> None:
     }
     for name, name_in_file in variable_map.items():
         if name in ["temperature", "salinity"]:
-            url = sources["OCEAN_ATLAS"]["ts_url"].format(name, name_in_file, month.month)
+            url = sources["OCEAN_ATLAS"]["ts_url"].format(
+                name,
+                name_in_file,
+                month.month,
+            )
         else:
-            url = sources["OCEAN_ATLAS"]["other_url"].format(name, name_in_file, month.month)
+            url = sources["OCEAN_ATLAS"]["other_url"].format(
+                name,
+                name_in_file,
+                month.month,
+            )
         r = request.urlopen(url)
         data = r.read()
 
@@ -93,7 +102,9 @@ def ocean_atlas_variable_enhance(output_dir, month) -> None:
 
 def ocean_atlas_merge_time(output_dir) -> None:
     variable_merged_files = output_dir.glob("ocean_atlas_??.nc")
-    variable_merged_files = [str(merged_file) for merged_file in list(variable_merged_files)]
+    variable_merged_files = [
+        str(merged_file) for merged_file in list(variable_merged_files)
+    ]
     variable_merged_files.sort()
     output_file = output_dir.parent / "ocean_atlas.nc"
 
@@ -101,7 +112,11 @@ def ocean_atlas_merge_time(output_dir) -> None:
     options = [
         "-A",
     ]
-    nco.ncrcat(input=variable_merged_files, output=str(output_file), options=options)
+    nco.ncrcat(
+        input=variable_merged_files,
+        output=str(output_file),
+        options=options,
+    )
 
 
 def ocean_atlas_enhance(output_dir) -> None:
@@ -114,7 +129,11 @@ def ocean_atlas_enhance(output_dir) -> None:
         "-O",
         "-a _FillValue,,o,f,-127",
     ]
-    nco.ncatted(input=str(output_file), output=str(output_tmp_file), options=options)
+    nco.ncatted(
+        input=str(output_file),
+        output=str(output_tmp_file),
+        options=options,
+    )
 
     # pack to use bytes
     # - requires output file defined with -o option
@@ -123,7 +142,11 @@ def ocean_atlas_enhance(output_dir) -> None:
         "-M flt_byt",
         f"-o {output_file!s}",
     ]
-    nco.ncpdq(input=str(output_tmp_file), output=str(output_file), options=options)
+    nco.ncpdq(
+        input=str(output_tmp_file),
+        output=str(output_file),
+        options=options,
+    )
 
 
 def get_ocean_atlas(output_dir) -> None:
@@ -232,7 +255,9 @@ def main(output_dir, remove_tmp_files=False) -> None:
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Downloading and saving data for QcConfigCreator to {output_dir}")
+    logger.info(
+        f"Downloading and saving data for QcConfigCreator to {output_dir}",
+    )
     logger.info("Downloading Ocean Atlas")
     ocean_atlas_dir = output_dir / "ocean_atlas"
     ocean_atlas_dir.mkdir(exist_ok=True)

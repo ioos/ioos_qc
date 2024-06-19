@@ -21,10 +21,11 @@ L = logging.getLogger(__name__)
 
 
 def add_flag_metadata(**kwargs):
-    def wrapper(func : callable):
+    def wrapper(func: callable):
         for k, v in kwargs.items():
             setattr(func, k, v)
         return func
+
     return wrapper
 
 
@@ -57,7 +58,6 @@ def load_config_from_xarray(source):
     )
 
     for dv in qc_dataset.data_vars:
-
         if dv in qc_dataset.dims:
             continue
 
@@ -67,11 +67,17 @@ def load_config_from_xarray(source):
             # Because a data variables can have more than one check
             # associated with it we need to merge any existing configs
             # for this variable
-            newdict = odict({
-                vobj.ioos_qc_module: odict({
-                    vobj.ioos_qc_test: odict(json.loads(vobj.ioos_qc_config)),
-                }),
-            })
+            newdict = odict(
+                {
+                    vobj.ioos_qc_module: odict(
+                        {
+                            vobj.ioos_qc_test: odict(
+                                json.loads(vobj.ioos_qc_config),
+                            ),
+                        },
+                    ),
+                },
+            )
             merged = dict_update(
                 y.get(vobj.ioos_qc_target, {}),
                 newdict,
@@ -88,8 +94,9 @@ def load_config_from_xarray(source):
     return y
 
 
-def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO],
-                        ) -> odict:
+def load_config_as_dict(
+    source: Union[str, dict, odict, Path, io.StringIO],
+) -> odict:
     """Load an object as a config dict. The source can be a dict, odict,
     YAML string, JSON string, a StringIO, or a file path to a valid YAML or JSON file.
     """
@@ -133,9 +140,10 @@ def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO],
     raise ValueError(msg)
 
 
-def isfixedlength(lst : Union[list, tuple],
-                  length : int,
-                  ) -> bool:
+def isfixedlength(
+    lst: Union[list, tuple],
+    length: int,
+) -> bool:
     if not isinstance(lst, (list, tuple)):
         msg = f"Required: list/tuple, Got: {type(lst)}"
         raise ValueError(msg)
@@ -149,12 +157,8 @@ def isfixedlength(lst : Union[list, tuple],
     return True
 
 
-def isnan(v : Any) -> bool:
-    return (
-        v is None or
-        v is np.nan or
-        v is np.ma.masked
-    )
+def isnan(v: Any) -> bool:
+    return v is None or v is np.nan or v is np.ma.masked
 
 
 def mapdates(dates):
@@ -170,15 +174,18 @@ def mapdates(dates):
     else:
         try:
             # Finally try unix epoch seconds
-            return pd.to_datetime(dates, unit="s").values.astype("datetime64[ns]")
+            return pd.to_datetime(dates, unit="s").values.astype(
+                "datetime64[ns]",
+            )
         except Exception:
             # strings work here but we don't advertise that
             return np.array(dates, dtype="datetime64[ns]")
 
 
-def check_timestamps(times : np.ndarray,
-                     max_time_interval : N = None,
-                     ) -> bool:
+def check_timestamps(
+    times: np.ndarray,
+    max_time_interval: N = None,
+) -> bool:
     """Sanity checks for timestamp arrays.
 
     Checks that the times supplied are in monotonically increasing
@@ -201,10 +208,15 @@ def check_timestamps(times : np.ndarray,
     # see if if there are any duplicate times.  Then check that none of the
     # diffs exceeds the sorted time.
     zero = np.array(0, dtype=time_diff.dtype)
-    return not (not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == zero) or max_time_interval is not None and np.any(sort_diff > max_time_interval))
+    return not (
+        not np.array_equal(time_diff, sort_diff)
+        or np.any(sort_diff == zero)
+        or max_time_interval is not None
+        and np.any(sort_diff > max_time_interval)
+    )
 
 
-def dict_update(d : Mapping, u : Mapping) -> Mapping:
+def dict_update(d: Mapping, u: Mapping) -> Mapping:
     # http://stackoverflow.com/a/3233356
     for k, v in u.items():
         if isinstance(d, Mapping):
@@ -214,7 +226,7 @@ def dict_update(d : Mapping, u : Mapping) -> Mapping:
             else:
                 d[k] = u[k]
         else:
-            d = { k: u[k] }
+            d = {k: u[k]}
     return d
 
 
@@ -226,8 +238,9 @@ def dict_depth(d):
     return 0
 
 
-def cf_safe_name(name : str) -> str:
+def cf_safe_name(name: str) -> str:
     import re
+
     if isinstance(name, str):
         if re.match("^[0-9_]", name):
             # Add a letter to the front
@@ -239,8 +252,7 @@ def cf_safe_name(name : str) -> str:
 
 
 class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
-
-    def default(self, obj : Any) -> Any:
+    def default(self, obj: Any) -> Any:
         """If input object is an ndarray it will be converted into a list."""
         if isinstance(obj, np.ndarray):
             return obj.tolist()
@@ -259,6 +271,7 @@ class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
 def great_circle_distance(lat_arr, lon_arr):
     def gc(y1, x1, y2, x2):
         return Geodesic.WGS84.Inverse(y1, x1, y2, x2)["s12"]
+
     dist = np.ma.zeros(lon_arr.size, dtype=np.float64)
     dv = np.vectorize(gc)
     dist[1:] = dv(lat_arr[:-1], lon_arr[:-1], lat_arr[1:], lon_arr[1:])

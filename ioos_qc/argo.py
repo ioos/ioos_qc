@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests based on the ARGO QC manual."""
+
 import logging
 import warnings
 from numbers import Real as N
@@ -13,8 +14,10 @@ from ioos_qc.utils import add_flag_metadata, great_circle_distance, mapdates
 L = logging.getLogger(__name__)
 
 
-@add_flag_metadata(stanard_name="pressure_increasing_test_quality_flag",
-                   long_name="Pressure Increasing Test Quality Flag")
+@add_flag_metadata(
+    stanard_name="pressure_increasing_test_quality_flag",
+    long_name="Pressure Increasing Test Quality Flag",
+)
 def pressure_increasing_test(inp):
     """Returns an array of flag values where each input is flagged with SUSPECT if
     it does not monotonically increase.
@@ -44,14 +47,17 @@ def pressure_increasing_test(inp):
     return flags
 
 
-@add_flag_metadata(standard_name="speed_test_quality_flag",
-                   long_name="Speed Test Quality Flag")
-def speed_test(lon: Sequence[N],
-               lat: Sequence[N],
-               tinp: Sequence[N],
-               suspect_threshold: float,
-               fail_threshold: float,
-               ) -> np.ma.core.MaskedArray:
+@add_flag_metadata(
+    standard_name="speed_test_quality_flag",
+    long_name="Speed Test Quality Flag",
+)
+def speed_test(
+    lon: Sequence[N],
+    lat: Sequence[N],
+    tinp: Sequence[N],
+    suspect_threshold: float,
+    fail_threshold: float,
+) -> np.ma.core.MaskedArray:
     """Checks that the calculated speed between two points is within reasonable bounds.
 
     This test calculates a speed between subsequent points by
@@ -121,7 +127,9 @@ def speed_test(lon: Sequence[N],
 
     # calculate speed in m/s
     speed = np.ma.zeros(tinp.size, dtype="float")
-    speed[1:] = np.abs(dist[1:] / np.diff(tinp).astype("timedelta64[s]").astype(float))
+    speed[1:] = np.abs(
+        dist[1:] / np.diff(tinp).astype("timedelta64[s]").astype(float),
+    )
 
     with np.errstate(invalid="ignore"):
         flag_arr[speed > suspect_threshold] = QartodFlags.SUSPECT

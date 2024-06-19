@@ -23,7 +23,13 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    creator_config = CreatorConfig(args.creator_config_file, QC_CONFIG_CREATOR_SCHEMA)
-    variable_config = QcVariableConfig(args.variable_config_file, VARIABLE_CONFIG_SCHEMA)
+    creator_config = CreatorConfig(
+        args.creator_config_file,
+        QC_CONFIG_CREATOR_SCHEMA,
+    )
+    variable_config = QcVariableConfig(
+        args.variable_config_file,
+        VARIABLE_CONFIG_SCHEMA,
+    )
     qc = QcConfigCreator(creator_config)
     qc.create_config(variable_config)

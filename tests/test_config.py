@@ -21,6 +21,7 @@ if packaging.version.parse(
 ):
     datetime.UTC = datetime.timezone.utc
 
+
 class StreamConfigLoadTest(unittest.TestCase):
     def setUp(self):
         config_str = """
@@ -134,8 +135,24 @@ class ContextConfigRegionWindowLoadTest(unittest.TestCase):
         self.config = Config(config_str)
         self.context = Context(
             window=tw(
-                starting=datetime.datetime(2020, 1, 1, 0, 0, 0, tzinfo=datetime.UTC),
-                ending=datetime.datetime(2020, 4, 1, 0, 0, 0, tzinfo=datetime.UTC),
+                starting=datetime.datetime(
+                    2020,
+                    1,
+                    1,
+                    0,
+                    0,
+                    0,
+                    tzinfo=datetime.UTC,
+                ),
+                ending=datetime.datetime(
+                    2020,
+                    4,
+                    1,
+                    0,
+                    0,
+                    0,
+                    tzinfo=datetime.UTC,
+                ),
             ),
         )
         self.calls = [
@@ -208,7 +225,15 @@ class ContextListConfigLoadTest(unittest.TestCase):
                                     fail_span: [0, 12]
         """
         window = tw(
-            starting=datetime.datetime(2020, 1, 1, 0, 0, 0, tzinfo=datetime.UTC),
+            starting=datetime.datetime(
+                2020,
+                1,
+                1,
+                0,
+                0,
+                0,
+                tzinfo=datetime.UTC,
+            ),
             ending=datetime.datetime(2020, 4, 1, 0, 0, 0, tzinfo=datetime.UTC),
         )
         self.config = Config(config_str)

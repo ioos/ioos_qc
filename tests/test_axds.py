@@ -18,10 +18,13 @@ L.addHandler(logging.StreamHandler())
 
 
 class AxdsValidTimeBoundsTest(unittest.TestCase):
-
     def setUp(self):
-        self.times = np.arange("2015-01-01 00:00:00", "2015-01-01 06:00:00",
-                               step=np.timedelta64(1, "h"), dtype=np.datetime64)
+        self.times = np.arange(
+            "2015-01-01 00:00:00",
+            "2015-01-01 06:00:00",
+            step=np.timedelta64(1, "h"),
+            dtype=np.datetime64,
+        )
 
     def test_no_bounds(self):
         valid_spans = [
@@ -37,8 +40,10 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                ),
                 np.array([1, 1, 1, 1, 1, 1]),
             )
 
@@ -56,8 +61,10 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                ),
                 np.array([4, 4, 1, 1, 1, 1]),
             )
 
@@ -75,8 +82,10 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                ),
                 np.array([1, 1, 1, 1, 4, 4]),
             )
 
@@ -94,8 +103,10 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                ),
                 np.array([4, 4, 1, 1, 4, 4]),
             )
 
@@ -113,8 +124,10 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                ),
                 np.array([4, 4, 4, 4, 4, 4]),
             )
 
@@ -124,13 +137,19 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
             np.datetime64("2015-01-01T04:00:00"),
         )
 
-        times = np.arange("2015-01-01 00:00:00", "2015-01-01 06:00:00",
-                          step=np.timedelta64(1, "h"), dtype=np.datetime64)
+        times = np.arange(
+            "2015-01-01 00:00:00",
+            "2015-01-01 06:00:00",
+            step=np.timedelta64(1, "h"),
+            dtype=np.datetime64,
+        )
         times[0:2] = np.datetime64("NaT")
 
         npt.assert_array_equal(
-            axds.valid_range_test(times,
-                                  valid_span=valid_span),
+            axds.valid_range_test(
+                times,
+                valid_span=valid_span,
+            ),
             np.array([9, 9, 1, 1, 4, 4]),
         )
 
@@ -140,13 +159,19 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
             np.datetime64("NaT"),
         )
 
-        times = np.arange("2015-01-01 00:00:00", "2015-01-01 06:00:00",
-                          step=np.timedelta64(1, "h"), dtype=np.datetime64)
+        times = np.arange(
+            "2015-01-01 00:00:00",
+            "2015-01-01 06:00:00",
+            step=np.timedelta64(1, "h"),
+            dtype=np.datetime64,
+        )
         times[:] = np.datetime64("NaT")
 
         npt.assert_array_equal(
-            axds.valid_range_test(times,
-                                  valid_span=valid_span),
+            axds.valid_range_test(
+                times,
+                valid_span=valid_span,
+            ),
             np.array([9, 9, 9, 9, 9, 9]),
         )
 
@@ -164,49 +189,58 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                ),
                 np.array([4, 4, 1, 1, 4, 4]),
             )
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span,
-                                      start_inclusive=True,
-                                      end_inclusive=False),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                    start_inclusive=True,
+                    end_inclusive=False,
+                ),
                 np.array([4, 4, 1, 1, 4, 4]),
             )
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span,
-                                      start_inclusive=True,
-                                      end_inclusive=True),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                    start_inclusive=True,
+                    end_inclusive=True,
+                ),
                 np.array([4, 4, 1, 1, 1, 4]),
             )
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span,
-                                      start_inclusive=False,
-                                      end_inclusive=True),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                    start_inclusive=False,
+                    end_inclusive=True,
+                ),
                 np.array([4, 4, 4, 1, 1, 4]),
             )
 
         for valid_span in valid_spans:
             npt.assert_array_equal(
-                axds.valid_range_test(self.times,
-                                      valid_span=valid_span,
-                                      start_inclusive=False,
-                                      end_inclusive=False),
+                axds.valid_range_test(
+                    self.times,
+                    valid_span=valid_span,
+                    start_inclusive=False,
+                    end_inclusive=False,
+                ),
                 np.array([4, 4, 4, 1, 4, 4]),
             )
 
     def test_with_config(self):
-
         config_str = """
             variable1:
                 axds:

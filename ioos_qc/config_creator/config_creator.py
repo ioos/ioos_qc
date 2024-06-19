@@ -233,9 +233,11 @@ class QcVariableConfig(dict):
             try:
                 _ = float(token)
             except ValueError:
-                if token not in self.allowed_stats and \
-                   token not in self.allowed_operators and \
-                   token not in self.allowed_groupings:
+                if (
+                    token not in self.allowed_stats
+                    and token not in self.allowed_operators
+                    and token not in self.allowed_groupings
+                ):
                     msg = (
                         f"{token} not allowed in min/max specification in config of {test_name}.\n"
                         f"Allowable stats are: {list(self.allowed_stats)}.\n"
@@ -282,7 +284,8 @@ class QcConfigCreator:
         stats = self._get_stats(variable_config)
         L.debug("Creating config...")
         test_configs = {
-            name: self._create_test_section(name, variable_config, stats) for name in variable_config["tests"]
+            name: self._create_test_section(name, variable_config, stats)
+            for name in variable_config["tests"]
         }
 
         return {
@@ -294,7 +297,10 @@ class QcConfigCreator:
     def _load_datasets(self):
         """Load datasets."""
         L.debug(f"Loading {len(self.config)} datasets...")
-        return {name: xr.load_dataset(self.config[name]["file_path"]) for name in self.config}
+        return {
+            name: xr.load_dataset(self.config[name]["file_path"])
+            for name in self.config
+        }
 
     def _determine_dataset_years(self):
         """Determine year used in datasets, return as dict {dataset_name, year}.
@@ -327,21 +333,49 @@ class QcConfigCreator:
     def _create_test_section(self, test_name, variable_config, test_limits):
         """Given test_name, QcVariableConfig and test_limits, return qc_config section for that test."""
         if test_name == "spike_test":
-            return self.__create_spike_section(test_name, variable_config, test_limits)
+            return self.__create_spike_section(
+                test_name,
+                variable_config,
+                test_limits,
+            )
         elif test_name == "location_test":
             return self.__create_location_section(test_name, variable_config)
         elif test_name == "rate_of_change_test":
-            return self.__create_rate_of_change_section(test_name, variable_config, test_limits)
+            return self.__create_rate_of_change_section(
+                test_name,
+                variable_config,
+                test_limits,
+            )
         elif test_name == "flat_line_test":
-            return self.__create_flat_line_section(test_name, variable_config, test_limits)
+            return self.__create_flat_line_section(
+                test_name,
+                variable_config,
+                test_limits,
+            )
         else:
-            return self.__create_span_section(test_name, variable_config, test_limits)
+            return self.__create_span_section(
+                test_name,
+                variable_config,
+                test_limits,
+            )
 
     def __create_span_section(self, test_name, variable_config, stats):
-        suspect_min = fx_parser.eval_fx(variable_config["tests"][test_name]["suspect_min"], stats)
-        suspect_max = fx_parser.eval_fx(variable_config["tests"][test_name]["suspect_max"], stats)
-        fail_min = fx_parser.eval_fx(variable_config["tests"][test_name]["fail_min"], stats)
-        fail_max = fx_parser.eval_fx(variable_config["tests"][test_name]["fail_max"], stats)
+        suspect_min = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["suspect_min"],
+            stats,
+        )
+        suspect_max = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["suspect_max"],
+            stats,
+        )
+        fail_min = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["fail_min"],
+            stats,
+        )
+        fail_max = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["fail_max"],
+            stats,
+        )
 
         return {
             "suspect_span": [suspect_min, suspect_max],
@@ -349,8 +383,14 @@ class QcConfigCreator:
         }
 
     def __create_spike_section(self, test_name, variable_config, stats):
-        suspect_threshold = fx_parser.eval_fx(variable_config["tests"][test_name]["suspect_threshold"], stats)
-        fail_threshold = fx_parser.eval_fx(variable_config["tests"][test_name]["fail_threshold"], stats)
+        suspect_threshold = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["suspect_threshold"],
+            stats,
+        )
+        fail_threshold = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["fail_threshold"],
+            stats,
+        )
 
         return {
             "suspect_threshold": suspect_threshold,
@@ -358,9 +398,18 @@ class QcConfigCreator:
         }
 
     def __create_flat_line_section(self, test_name, variable_config, stats):
-        suspect_threshold = fx_parser.eval_fx(variable_config["tests"][test_name]["suspect_threshold"], stats)
-        fail_threshold = fx_parser.eval_fx(variable_config["tests"][test_name]["fail_threshold"], stats)
-        tolerance = fx_parser.eval_fx(variable_config["tests"][test_name]["tolerance"], stats)
+        suspect_threshold = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["suspect_threshold"],
+            stats,
+        )
+        fail_threshold = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["fail_threshold"],
+            stats,
+        )
+        tolerance = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["tolerance"],
+            stats,
+        )
 
         return {
             "suspect_threshold": suspect_threshold,
@@ -373,16 +422,30 @@ class QcConfigCreator:
             "bbox": variable_config["tests"][test_name]["bbox"],
         }
 
-    def __create_rate_of_change_section(self, test_name, variable_config, stats):
-        threshold = fx_parser.eval_fx(variable_config["tests"][test_name]["threshold"], stats)
+    def __create_rate_of_change_section(
+        self,
+        test_name,
+        variable_config,
+        stats,
+    ):
+        threshold = fx_parser.eval_fx(
+            variable_config["tests"][test_name]["threshold"],
+            stats,
+        )
         return {
             "threshold": threshold,
         }
 
     def _get_stats(self, variable_config):
         """Return dict of stats (min, max, mean, std) for given config."""
-        start_time = datetime.datetime.strptime(variable_config["start_time"], "%Y-%m-%d")
-        end_time = datetime.datetime.strptime(variable_config["end_time"], "%Y-%m-%d")
+        start_time = datetime.datetime.strptime(
+            variable_config["start_time"],
+            "%Y-%m-%d",
+        )
+        end_time = datetime.datetime.strptime(
+            variable_config["end_time"],
+            "%Y-%m-%d",
+        )
         time_range = slice(start_time, end_time)
         subset = self._get_subset(
             variable_config["variable"],
@@ -413,7 +476,13 @@ class QcConfigCreator:
         # if there is no data in the subset, increase bounding box in an iterative fashion
         # - both are interpolated to daily values
         L.debug(f"Subsetting {var} by depth={depth} and {bbox}...")
-        subset = self.__get_daily_interp_subset(var, time_slice, depth, lat_mask, lon_mask)
+        subset = self.__get_daily_interp_subset(
+            var,
+            time_slice,
+            depth,
+            lat_mask,
+            lon_mask,
+        )
 
         padded = 0
         while np.nansum(subset) == 0:
@@ -434,7 +503,13 @@ class QcConfigCreator:
             )
 
             padded += 1
-            subset = self.__get_daily_interp_subset(var, time_slice, depth, lat_mask, lon_mask)
+            subset = self.__get_daily_interp_subset(
+                var,
+                time_slice,
+                depth,
+                lat_mask,
+                lon_mask,
+            )
 
         L.info(f"Used bounding box: {bbox}")
         return subset
@@ -470,7 +545,14 @@ class QcConfigCreator:
 
         return new_bbox
 
-    def __get_daily_interp_subset(self, var, time_slice, depth, lat_mask, lon_mask):
+    def __get_daily_interp_subset(
+        self,
+        var,
+        time_slice,
+        depth,
+        lat_mask,
+        lon_mask,
+    ):
         ds_name, ds = self.var2dataset(var)
         var_in_file, _ = self._var2var_in_file(var)
 

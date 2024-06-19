@@ -13,10 +13,12 @@ from ioos_qc import utils
 
 
 class AuxillaryCheckTest(unittest.TestCase):
-
     # Range of times every 15 minutes from 2013-01-01 to 2013-01-02.
-    times = np.arange("2013-01-01 00:00:00", "2013-01-02 00:00:00",
-                      dtype="datetime64[15m]")
+    times = np.arange(
+        "2013-01-01 00:00:00",
+        "2013-01-02 00:00:00",
+        dtype="datetime64[15m]",
+    )
 
     def test_bad_time_sorting(self):
         # Simply reversing the order ought to fail the sort check.
@@ -25,8 +27,12 @@ class AuxillaryCheckTest(unittest.TestCase):
 
     def test_bad_time_repeat(self):
         """Check that repeated timestamps are picked up."""
-        repeated = np.concatenate([np.repeat(self.times[0], 3),
-                                   self.times[3:]])
+        repeated = np.concatenate(
+            [
+                np.repeat(self.times[0], 3),
+                self.times[3:],
+            ],
+        )
         assert not utils.check_timestamps(repeated)
 
     def test_bad_interval(self):
@@ -37,12 +43,11 @@ class AuxillaryCheckTest(unittest.TestCase):
 
 
 class TestReadXarrayConfig(unittest.TestCase):
-
     def setUp(self):
         self.fh, self.fp = tempfile.mkstemp(
             suffix=".nc",
             prefix="ioos_qc_tests_",
-            )
+        )
         self.config = {
             "suspect_span": [1, 11],
             "fail_span": [0, 12],
@@ -72,7 +77,6 @@ class TestReadXarrayConfig(unittest.TestCase):
 
 
 class TestGreatCircle(unittest.TestCase):
-
     def setUp(self):
         """Test 1 million great circle calculations."""
         points = 10000

@@ -8,6 +8,7 @@ Attributes
     tw (namedtuple): The TimeWindow namedtuple definition
 
 """
+
 import io
 import logging
 import warnings
@@ -137,12 +138,10 @@ class Call:
         ret += f" function={self.module}.{self.method}("
 
         if self.args:
-            ret += ", ".join([ x for x in self.args if x ])
+            ret += ", ".join([x for x in self.args if x])
 
         if self.kwargs:
-            ret += ", ".join([
-                f"{k}={v}" for k, v in self.kwargs.items()
-            ])
+            ret += ", ".join([f"{k}={v}" for k, v in self.kwargs.items()])
 
         ret += ")>"
         return ret
@@ -153,17 +152,17 @@ class Call:
         # Get our own copy of the kwargs object so we can change it
         testkwargs = deepcopy(passedkwargs)
         # Merges dicts
-        testkwargs = odict({ **self.kwargs, **testkwargs })
+        testkwargs = odict({**self.kwargs, **testkwargs})
 
         # Get the arguments that the test functions support
         sig = signature(self.func)
         valid_keywords = [
-            p.name for p in sig.parameters.values()
+            p.name
+            for p in sig.parameters.values()
             if p.kind == p.POSITIONAL_OR_KEYWORD
         ]
         testkwargs = {
-            k: v for k, v in testkwargs.items()
-            if k in valid_keywords
+            k: v for k, v in testkwargs.items() if k in valid_keywords
         }
         try:
             results.append(
@@ -201,13 +200,12 @@ def extract_calls(source) -> List[Call]:
         return [source]
     elif isinstance(source, (tuple, list)):
         # list of Call objects
-        calls = [ c for c in source if isinstance(c, Call) ]
+        calls = [c for c in source if isinstance(c, Call)]
         # list of objects with the 'calls' attribute
         [
-            calls.extend([
-                x for x in c.calls if isinstance(x, Call)
-            ])
-            for c in source if hasattr(c, "calls")
+            calls.extend([x for x in c.calls if isinstance(x, Call)])
+            for c in source
+            if hasattr(c, "calls")
         ]
         return calls
     elif isinstance(source, Config):
@@ -230,7 +228,12 @@ class Config:
     class only pairs various formats and versions of a config into a list of Call objects.
     """
 
-    def __init__(self, source, version=None, default_stream_key="_stream") -> None:
+    def __init__(
+        self,
+        source,
+        version=None,
+        default_stream_key="_stream",
+    ) -> None:
         """Args:
         ----
             source: The QC configuration representation in one of the following formats:
@@ -266,11 +269,17 @@ class Config:
                 self._calls += list(ContextConfig(self.config).calls)
             elif dict_depth(self.config) >= 4:
                 # This is a Config
-                self._calls += list(ContextConfig(odict(streams=self.config)).calls)
+                self._calls += list(
+                    ContextConfig(odict(streams=self.config)).calls,
+                )
             else:
                 # This is a QcConfig
-                self._calls += list(ContextConfig(odict(streams={default_stream_key: self.config})).calls)
-                #raise ValueError("Can not add context to a QC Config object. Create it manually.")
+                self._calls += list(
+                    ContextConfig(
+                        odict(streams={default_stream_key: self.config}),
+                    ).calls,
+                )
+                # raise ValueError("Can not add context to a QC Config object. Create it manually.")
 
     @property
     def contexts(self):
@@ -308,21 +317,23 @@ class Config:
     @property
     def aggregate_calls(self):
         return [
-            c for c in self._calls
+            c
+            for c in self._calls
             if hasattr(c.func, "aggregate") and c.func.aggregate is True
         ]
 
-    def has(self, stream_id : str, method: Union[callable, str]):
+    def has(self, stream_id: str, method: Union[callable, str]):
         if isinstance(method, str):
             for c in self._calls:
                 if c.stream_id == stream_id and c.method_path == method:
                     return c
         elif isinstance(method, callable):
             for c in self._calls:
-                if (c.stream_id == stream_id and
-                    c.method == method.__module__ and
-                    c.method == method.__name__
-                   ):
+                if (
+                    c.stream_id == stream_id
+                    and c.method == method.__module__
+                    and c.method == method.__name__
+                ):
                     return c
         return False
 
@@ -401,16 +412,23 @@ class ContextConfig:
                 self.region = self.config["region"]
             elif self.config["region"] and "features" in self.config["region"]:
                 # Feature based GeoJSON
-                self.region = GeometryCollection([
-                    shape(feature["geometry"]) for feature in self.config["region"]["features"]
-                ])
+                self.region = GeometryCollection(
+                    [
+                        shape(feature["geometry"])
+                        for feature in self.config["region"]["features"]
+                    ],
+                )
             elif self.config["region"] and "geometry" in self.config["region"]:
                 # Geometry based GeoJSON
-                self.region = GeometryCollection([
-                    shape(self.config["region"]["geometry"]),
-                ])
+                self.region = GeometryCollection(
+                    [
+                        shape(self.config["region"]["geometry"]),
+                    ],
+                )
             else:
-                L.warning("Ignoring region because it could not be parsed, is it valid GeoJSON?")
+                L.warning(
+                    "Ignoring region because it could not be parsed, is it valid GeoJSON?",
+                )
 
         # Window
         if "window" in self.config and isinstance(self.config["window"], tw):
@@ -434,18 +452,21 @@ class ContextConfig:
         run later by iterating over the configs.
         """
         for stream_id, sc in self.config["streams"].items():
-
             for package, modules in sc.items():
                 try:
                     testpackage = import_module(f"ioos_qc.{package}")
                 except ImportError:
-                    L.warning(f'No ioos_qc package "{package}" was found, skipping.')
+                    L.warning(
+                        f'No ioos_qc package "{package}" was found, skipping.',
+                    )
                     continue
 
                 for testname, kwargs in modules.items():
                     kwargs = kwargs or {}
                     if not hasattr(testpackage, testname):
-                        L.warning(f'No ioos_qc method "{package}.{testname}" was found, skipping')
+                        L.warning(
+                            f'No ioos_qc method "{package}.{testname}" was found, skipping',
+                        )
                         continue
                     else:
                         runfunc = getattr(testpackage, testname)
@@ -479,7 +500,7 @@ class ContextConfig:
 
         """
         extracted = extract_calls(source)
-        self._calls.extend([ e for e in extracted if e.context == self.context ])
+        self._calls.extend([e for e in extracted if e.context == self.context])
 
     def __str__(self) -> str:
         # sc = list(self.streams.keys())
@@ -523,6 +544,7 @@ class QcConfig(Config):
 
     def run(self, **passedkwargs):
         from ioos_qc.streams import NumpyStream
+
         # Cleanup kwarg names
         passedkwargs["time"] = passedkwargs.pop("tinp", None)
         passedkwargs["z"] = passedkwargs.pop("zinp", None)
@@ -544,10 +566,8 @@ class NcQcConfig(Config):
     def __init__(self, *args, **kwargs) -> None:
         msg = (
             "The NcQcConfig object has been replaced by ioos_qc.config.Config "
-                "and ioos_qc.streams.XarrayStream"
+            "and ioos_qc.streams.XarrayStream"
         )
         raise NotImplementedError(
-
-                msg,
-
+            msg,
         )
