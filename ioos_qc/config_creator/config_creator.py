@@ -145,14 +145,15 @@ class CreatorConfig(dict):
     :param dict: JSON schema for CreatorConfig
     """
 
-    def __init__(self, path_or_dict, schema=QC_CONFIG_CREATOR_SCHEMA):
+    def __init__(self, path_or_dict, schema=QC_CONFIG_CREATOR_SCHEMA) -> None:
         if isinstance(path_or_dict, (Path, str)):
             with open(path_or_dict) as f:
                 config = json.load(f)
         elif isinstance(path_or_dict, dict):
             config = path_or_dict
         else:
-            raise ValueError("Input is not valid file path or dict")
+            msg = "Input is not valid file path or dict"
+            raise ValueError(msg)
         validate(instance=config, schema=schema)
 
         datasets = {}
@@ -170,7 +171,7 @@ class CreatorConfig(dict):
                 }
         self.update(datasets)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(self, indent=4, sort_keys=True)
 
 
@@ -203,20 +204,21 @@ class QcVariableConfig(dict):
         ")",
     ]
 
-    def __init__(self, path_or_dict, schema=VARIABLE_CONFIG_SCHEMA):
+    def __init__(self, path_or_dict, schema=VARIABLE_CONFIG_SCHEMA) -> None:
         if isinstance(path_or_dict, (Path, str)):
             with open(path_or_dict) as f:
                 config = json.load(f)
         elif isinstance(path_or_dict, dict):
             config = path_or_dict
         else:
-            raise ValueError("Input is not valid file path or dict")
+            msg = "Input is not valid file path or dict"
+            raise ValueError(msg)
 
         L.debug("Validating schema...")
         validate(instance=config, schema=schema)
 
         # validate test specifications only contain allowed stats and operators
-        for test in config["tests"].keys():
+        for test in config["tests"]:
             for test_name, test_def in config["tests"][test].items():
                 if test_name == "bbox":
                     continue
@@ -224,8 +226,8 @@ class QcVariableConfig(dict):
 
         self.update(config)
 
-    def _validate_fx(self, input_fx, test_name):
-        """Throws exception if input_fx contains tokens not specifically allowed"""
+    def _validate_fx(self, input_fx, test_name) -> None:
+        """Throws exception if input_fx contains tokens not specifically allowed."""
         tokens = input_fx.split(" ")
         for token in tokens:
             try:
@@ -236,13 +238,13 @@ class QcVariableConfig(dict):
                    token not in self.allowed_groupings:
                     msg = (
                         f"{token} not allowed in min/max specification in config of {test_name}.\n"
-                        f"Allowable stats are: {[s for s in self.allowed_stats]}.\n"
-                        f"Allowable operators are: {[o for o in self.allowed_operators]}."
-                        f"Allowable groupings are: {[o for o in self.allowed_groupings]}."
+                        f"Allowable stats are: {list(self.allowed_stats)}.\n"
+                        f"Allowable operators are: {list(self.allowed_operators)}."
+                        f"Allowable groupings are: {list(self.allowed_groupings)}."
                     )
                     raise ValueError(msg)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(self, indent=4, sort_keys=True)
 
 
@@ -260,7 +262,7 @@ class QcConfigCreator:
 
     """
 
-    def __init__(self, creator_config):
+    def __init__(self, creator_config) -> None:
         self.config = creator_config
         self.datasets = self._load_datasets()
         self.dataset_years = self._determine_dataset_years()
@@ -280,7 +282,7 @@ class QcConfigCreator:
         stats = self._get_stats(variable_config)
         L.debug("Creating config...")
         test_configs = {
-            name: self._create_test_section(name, variable_config, stats) for name in variable_config["tests"].keys()
+            name: self._create_test_section(name, variable_config, stats) for name in variable_config["tests"]
         }
 
         return {
@@ -290,9 +292,9 @@ class QcConfigCreator:
         }
 
     def _load_datasets(self):
-        """Load datasets"""
+        """Load datasets."""
         L.debug(f"Loading {len(self.config)} datasets...")
-        return {name: xr.load_dataset(self.config[name]["file_path"]) for name in self.config.keys()}
+        return {name: xr.load_dataset(self.config[name]["file_path"]) for name in self.config}
 
     def _determine_dataset_years(self):
         """Determine year used in datasets, return as dict {dataset_name, year}.
@@ -310,13 +312,14 @@ class QcConfigCreator:
         return years
 
     def _var2var_in_file(self, var):
-        """Return variable name used in the dataset and dataset name"""
+        """Return variable name used in the dataset and dataset name."""
         for dataset_name, dataset in self.config.items():
-            if var in dataset["variables"].keys():
+            if var in dataset["variables"]:
                 return dataset["variables"][var], dataset_name
+        return None
 
     def var2dataset(self, var):
-        """Return dataset name and dataset for given variable (as named in qc_config, not in the file)"""
+        """Return dataset name and dataset for given variable (as named in qc_config, not in the file)."""
         _, dataset_name = self._var2var_in_file(var)
 
         return dataset_name, self.datasets[dataset_name]
@@ -377,7 +380,7 @@ class QcConfigCreator:
         }
 
     def _get_stats(self, variable_config):
-        """Return dict of stats (min, max, mean, std) for given config"""
+        """Return dict of stats (min, max, mean, std) for given config."""
         start_time = datetime.datetime.strptime(variable_config["start_time"], "%Y-%m-%d")
         end_time = datetime.datetime.strptime(variable_config["end_time"], "%Y-%m-%d")
         time_range = slice(start_time, end_time)
@@ -395,7 +398,7 @@ class QcConfigCreator:
         }
 
     def _get_subset(self, var, bbox, time_slice, depth=0, pad_delta=0.5):
-        """Get subset of data"""
+        """Get subset of data."""
         _, ds = self.var2dataset(var)
 
         lat_mask = np.logical_and(
@@ -439,7 +442,8 @@ class QcConfigCreator:
     def __apply_bbox_pad(self, bbox, pad):
         # Prevent infinite attempts of expanding bounding box for valid data
         if bbox == ["-180", "-90", "180", "90"]:
-            raise RuntimeError(f"No valid data found in maximum bounding box {bbox}")
+            msg = f"No valid data found in maximum bounding box {bbox}"
+            raise RuntimeError(msg)
 
         def apply_pad(val, lat_or_lon, min_or_max):
             if lat_or_lon == "lat":
@@ -491,7 +495,8 @@ class QcConfigCreator:
 
         """
         if (time_slice.stop - time_slice.start).days > 365:
-            raise NotImplementedError("Maximum of 365 days available for config_creator")
+            msg = "Maximum of 365 days available for config_creator"
+            raise NotImplementedError(msg)
 
         x = var.time.dt.dayofyear
         y = var.data
@@ -516,7 +521,8 @@ class QcConfigCreator:
         # - assume that NaNs are same shape through time (i.e. will not work with wetting-drying)
         y_no_nans = y[~np.isnan(y)].reshape(y.shape[0], -1)
         if y_no_nans.size == 0:
-            raise ValueError("CubicSpline require y to the finite.")
+            msg = "CubicSpline require y to the finite."
+            raise ValueError(msg)
         spline = CubicSpline(x, y_no_nans, bc_type="periodic")
 
         # Get days of year for independent variable
@@ -532,7 +538,7 @@ class QcConfigCreator:
 
         return spline(days)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(self.config, indent=4, sort_keys=True)
 
     def __rpr__(self):
@@ -540,9 +546,10 @@ class QcConfigCreator:
 
 
 def to_json(qc_config, out_file=None):
-    """Given qc_config return json"""
+    """Given qc_config return json."""
     if out_file:
         with open(out_file, "w") as outfile:
             json.dump(outfile, qc_config)
+            return None
     else:
         return json.dumps(qc_config)

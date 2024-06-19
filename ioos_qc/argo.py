@@ -17,7 +17,7 @@ L = logging.getLogger(__name__)
                    long_name="Pressure Increasing Test Quality Flag")
 def pressure_increasing_test(inp):
     """Returns an array of flag values where each input is flagged with SUSPECT if
-    it does not monotonically increase
+    it does not monotonically increase.
 
     Ref: ARGO QC Manual: 8. Pressure increasing test
 
@@ -91,7 +91,8 @@ def speed_test(lon: Sequence[N],
         tinp = mapdates(tinp)
 
     if lon.shape != lat.shape or lon.shape != tinp.shape:
-        raise ValueError(f"Lon ({lon.shape}) and lat ({lat.shape}) and tinp ({tinp.shape}) must be the same shape")
+        msg = f"Lon ({lon.shape}) and lat ({lat.shape}) and tinp ({tinp.shape}) must be the same shape"
+        raise ValueError(msg)
 
     # Save original shape
     original_shape = lon.shape

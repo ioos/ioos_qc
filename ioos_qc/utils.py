@@ -29,15 +29,13 @@ def add_flag_metadata(**kwargs):
 
 
 def openf(p, **kwargs):
-    """Helper to allow one-line-lambdas to read file contents
-    """
+    """Helper to allow one-line-lambdas to read file contents."""
     with open(p, **kwargs) as f:
         return f.read()
 
 
 def load_config_from_xarray(source):
-    """Load an xarray dataset as a config dict
-    """
+    """Load an xarray dataset as a config dict."""
     to_close = False
     if not isinstance(source, xr.Dataset):
         source = xr.open_dataset(source, decode_cf=False)
@@ -131,18 +129,21 @@ def load_config_as_dict(source : Union[str, dict, odict, Path, io.StringIO],
             except BaseException:
                 continue
 
-    raise ValueError("Config source is not valid!")
+    msg = "Config source is not valid!"
+    raise ValueError(msg)
 
 
 def isfixedlength(lst : Union[list, tuple],
                   length : int,
                   ) -> bool:
     if not isinstance(lst, (list, tuple)):
-        raise ValueError(f"Required: list/tuple, Got: {type(lst)}")
+        msg = f"Required: list/tuple, Got: {type(lst)}"
+        raise ValueError(msg)
 
     if len(lst) != length:
+        msg = f"Incorrect list/tuple length for {lst}. Required: {length}, Got: {len(lst)}"
         raise ValueError(
-            f"Incorrect list/tuple length for {lst}. Required: {length}, Got: {len(lst)}",
+            msg,
         )
 
     return True
@@ -178,7 +179,7 @@ def mapdates(dates):
 def check_timestamps(times : np.ndarray,
                      max_time_interval : N = None,
                      ) -> bool:
-    """Sanity checks for timestamp arrays
+    """Sanity checks for timestamp arrays.
 
     Checks that the times supplied are in monotonically increasing
     chronological order, and optionally that time intervals between
@@ -200,11 +201,7 @@ def check_timestamps(times : np.ndarray,
     # see if if there are any duplicate times.  Then check that none of the
     # diffs exceeds the sorted time.
     zero = np.array(0, dtype=time_diff.dtype)
-    if not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == zero) or (max_time_interval is not None and
-          np.any(sort_diff > max_time_interval)):
-        return False
-    else:
-        return True
+    return not (not np.array_equal(time_diff, sort_diff) or np.any(sort_diff == zero) or max_time_interval is not None and np.any(sort_diff > max_time_interval))
 
 
 def dict_update(d : Mapping, u : Mapping) -> Mapping:
@@ -222,8 +219,7 @@ def dict_update(d : Mapping, u : Mapping) -> Mapping:
 
 
 def dict_depth(d):
-    """Get the depth of a dict
-    """
+    """Get the depth of a dict."""
     # https://stackoverflow.com/a/23499101
     if isinstance(d, dict):
         return 1 + (max(map(dict_depth, d.values())) if d else 0)
@@ -238,14 +234,14 @@ def cf_safe_name(name : str) -> str:
             name = f"v_{name}"
         return re.sub(r"[^_a-zA-Z0-9]", "_", name)
 
-    raise ValueError(f'Could not convert "{name}" to a safe name')
+    msg = f'Could not convert "{name}" to a safe name'
+    raise ValueError(msg)
 
 
 class GeoNumpyDateEncoder(geojson.GeoJSONEncoder):
 
     def default(self, obj : Any) -> Any:
-        """If input object is an ndarray it will be converted into a list
-        """
+        """If input object is an ndarray it will be converted into a list."""
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.generic):

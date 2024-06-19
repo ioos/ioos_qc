@@ -13,7 +13,7 @@ def bokeh_plot(data, var_name, results, title, module, test_name):
 
 
 def bokeh_plot_var(time, data, var_name, results, title, module, test_name):
-    """Method to plot QC results using Bokeh"""
+    """Method to plot QC results using Bokeh."""
     if module not in results or test_name not in results[module]:
         L.warning(f"No results for test {module}.{test_name} found")
         return None
@@ -61,7 +61,7 @@ def bokeh_multi_plot(stream, results, title, **kwargs):
 def bokeh_multi_var(stream, results, title):
     for vname, qcobj in results.items():
         for modu, tests in qcobj.items():
-            for testname, testresults in tests.items():
+            for testname in tests:
                 plt = bokeh_plot_var(stream.time(), stream.data(vname), vname, qcobj, title, modu, testname)
                 yield plt
 

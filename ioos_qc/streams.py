@@ -22,22 +22,21 @@ L = logging.getLogger(__name__)
 class BaseStream:
     """Each stream should define how to return a list of datastreams along with their time and depth association.
     Each of these streams will passed through quality control configurations and returned back to it. Each stream
-    needs to also define what to do with the resulting results (how to store them.)
+    needs to also define what to do with the resulting results (how to store them.).
     """
 
-    def __init__(self, *args, **kwargs):
-        """df: the dataframe
-        """
+    def __init__(self, *args, **kwargs) -> None:
+        """df: the dataframe."""
 
-    def time(self):
+    def time(self) -> None:
         """Return the time array from the source dataset. This is useful when plotting QC results."""
 
-    def data(self, stream_id):
+    def data(self, stream_id) -> None:
         """Return the data array from the source dataset based on stream_id. This is useful when
         plotting QC results.
         """
 
-    def run(self, config : Config):
+    def run(self, config : Config) -> None:
         """Iterate over the configs, splitting the streams up by geographic and time window
         before applying the individual config using QcConfig.run(). Store results for future usage.
         """
@@ -45,13 +44,13 @@ class BaseStream:
 
 class PandasStream:
 
-    def __init__(self, df, time=None, z=None, lat=None, lon=None, geom=None):
+    def __init__(self, df, time=None, z=None, lat=None, lon=None, geom=None) -> None:
         """df: the dataframe
         time: the column to use for time
         z: the column to use for depth
         lat: the column to use for latitude, this or geom is required if using regional subsets
         lon: the column to use for longitude, this or geom is required if using regional subsets
-        geom: the column containing the geometry, this or lat and lon are required if using regional subsets
+        geom: the column containing the geometry, this or lat and lon are required if using regional subsets.
         """
         self.df = df
         self.time_column = time or "time"
@@ -157,13 +156,13 @@ class PandasStream:
 
 class NumpyStream:
 
-    def __init__(self, inp=None, time=None, z=None, lat=None, lon=None, geom=None):
+    def __init__(self, inp=None, time=None, z=None, lat=None, lon=None, geom=None) -> None:
         """inp: a numpy array or a dictionary of numpy arrays where the keys are the stream ids
         time: numpy array of date-like objects.
         z: numpy array of z
         lat: numpy array of latitude, this or geom is required if using regional subsets
         lon: numpy array of longitude, this or geom is required if using regional subsets
-        geom: numpy array of geometry, this or lat and lon are required if using regional subsets
+        geom: numpy array of geometry, this or lat and lon are required if using regional subsets.
         """
         self.inp = inp
         try:
@@ -266,7 +265,7 @@ class NumpyStream:
 
 class NetcdfStream:
 
-    def __init__(self, path_or_ncd, time=None, z=None, lat=None, lon=None, geom=None):
+    def __init__(self, path_or_ncd, time=None, z=None, lat=None, lon=None, geom=None) -> None:
         self.path_or_ncd = path_or_ncd
 
         self.time_var = time or "time"
@@ -303,7 +302,7 @@ class NetcdfStream:
         do_close, ds = self._open()
 
         stream_ids = []
-        for context, calls in config.contexts.items():
+        for calls in config.contexts.values():
             for call in calls:
                 if call.stream_id not in ds.variables:
                     L.warning(f"{call.stream_id} is not a variable in the netCDF dataset, skipping")
@@ -335,7 +334,7 @@ class NetcdfStream:
 
 class XarrayStream:
 
-    def __init__(self, path_or_ncd, time=None, z=None, lat=None, lon=None):
+    def __init__(self, path_or_ncd, time=None, z=None, lat=None, lon=None) -> None:
         self.path_or_ncd = path_or_ncd
 
         self.time_var = time or "time"
@@ -454,7 +453,7 @@ class XarrayStream:
                 data_input = subset_stream.values
                 run_result = call.run(
                     **subset_kwargs,
-                    **dict(inp=data_input),
+                    inp=data_input,
                 )
 
                 # Here we turn the labeled xarray indexes into boolean index arrays that numpy

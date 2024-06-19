@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""QC Config objects
+"""QC Config objects.
 
 Module to store the different QC modules in ioos_qc
 
@@ -53,7 +53,7 @@ class Context:
     def __hash__(self):
         return hash(self.__key__())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Context window={self.window} region={self.region}>"
 
 
@@ -125,7 +125,7 @@ class Call:
             return self.__key__() == other.__key__()
         return NotImplemented
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ret = f"<Call stream_id={self.stream_id}"
         if self.context.window.starting:
             ret += f" starting={self.window.starting}"
@@ -181,7 +181,7 @@ class Call:
 
 
 def extract_calls(source) -> List[Call]:
-    """Extracts call objects from a source object
+    """Extracts call objects from a source object.
 
     Args:
     ----
@@ -230,7 +230,7 @@ class Config:
     class only pairs various formats and versions of a config into a list of Call objects.
     """
 
-    def __init__(self, source, version=None, default_stream_key="_stream"):
+    def __init__(self, source, version=None, default_stream_key="_stream") -> None:
         """Args:
         ----
             source: The QC configuration representation in one of the following formats:
@@ -274,8 +274,7 @@ class Config:
 
     @property
     def contexts(self):
-        """Group the calls into context groups and return them
-        """
+        """Group the calls into context groups and return them."""
         contexts = {}
         for c in self._calls:
             if c.context in contexts:
@@ -286,8 +285,7 @@ class Config:
 
     @property
     def stream_ids(self):
-        """Return a list of unique stream_ids for the Config
-        """
+        """Return a list of unique stream_ids for the Config."""
         streams = []
         stream_map = {}
 
@@ -355,7 +353,7 @@ class Config:
 
 
 class ContextConfig:
-    """A collection of a Region, a TimeWindow and a list of Config objects
+    """A collection of a Region, a TimeWindow and a list of Config objects.
 
     Defines a set of quality checks to run against multiple input streams.
     This can include a region and a time window to subset any DataStreams by before running checks.
@@ -389,7 +387,7 @@ class ContextConfig:
 
     """
 
-    def __init__(self, source: ConfigTypes):
+    def __init__(self, source: ConfigTypes) -> None:
         self.config = load_config_as_dict(source)
 
         self._calls = []
@@ -483,7 +481,7 @@ class ContextConfig:
         extracted = extract_calls(source)
         self._calls.extend([ e for e in extracted if e.context == self.context ])
 
-    def __str__(self):
+    def __str__(self) -> str:
         # sc = list(self.streams.keys())
         return (
             f"<ContextConfig "
@@ -493,12 +491,12 @@ class ContextConfig:
             ">"
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
 class QcConfig(Config):
-    def __init__(self, source, default_stream_key="_stream"):
+    def __init__(self, source, default_stream_key="_stream") -> None:
         """A Config objects with no concept of a Stream ID. Typically used when running QC on a single
         stream. This just sets up a stream with the name passed in as the "default_stream_key"
         parameter.
@@ -543,10 +541,13 @@ class QcConfig(Config):
 
 
 class NcQcConfig(Config):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
+        msg = (
+            "The NcQcConfig object has been replaced by ioos_qc.config.Config "
+                "and ioos_qc.streams.XarrayStream"
+        )
         raise NotImplementedError(
 
-                "The NcQcConfig object has been replaced by ioos_qc.config.Config "
-                "and ioos_qc.streams.XarrayStream",
+                msg,
 
         )

@@ -18,7 +18,7 @@ class CallResult(NamedTuple):
     function: callable
     results: np.ndarray
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<CallResult package={self.package} test={self.test}>"
 
 
@@ -32,7 +32,7 @@ class ContextResult(NamedTuple):
     lat: np.ndarray = None
     lon: np.ndarray = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<ContextResult stream_id={self.stream_id}>"
 
 
@@ -49,7 +49,7 @@ class CollectedResult:
     lat: np.ndarray = None
     lon: np.ndarray = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
 
     def function_name(self) -> str:
@@ -65,6 +65,7 @@ def collect_results(results, how="list"):
         return collect_results_list(results)
     elif how in ["dict", dict]:
         return collect_results_dict(results)
+    return None
 
 
 def collect_results_list(results):

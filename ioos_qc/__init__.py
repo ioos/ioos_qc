@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""IOOS QARTOD and other Quality Control tests implemented in Python."""
 
 try:
     from ._version import __version__

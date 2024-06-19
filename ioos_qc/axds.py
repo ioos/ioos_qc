@@ -80,8 +80,9 @@ def valid_range_test(inp : Sequence[any],
                 valid_span = np.ma.masked_invalid(np.array(valid_span).astype(np.floating))
             except BaseException:
                 # Well, we tried.
+                msg = "Could not determine the type of input, try using the dtype parameter"
                 raise ValueError(
-                    "Could not determine the type of input, try using the dtype parameter")
+                    msg)
     else:
         inp = np.ma.masked_invalid(np.array(inp, dtype=dtype))
         valid_span = np.ma.masked_invalid(np.array(valid_span, dtype=dtype))

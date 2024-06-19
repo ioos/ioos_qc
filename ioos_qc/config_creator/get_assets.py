@@ -1,5 +1,5 @@
 #!python
-"""Download and process source data used for ConfigCreator"""
+"""Download and process source data used for ConfigCreator."""
 import logging
 import shutil
 from pathlib import Path
@@ -23,7 +23,7 @@ SOURCES = {
 }
 
 
-def ocean_atlas_download(output_dir, month, sources=SOURCES):
+def ocean_atlas_download(output_dir, month, sources=SOURCES) -> None:
     variable_map = {
         "temperature": "t",
         "salinity": "s",
@@ -43,7 +43,7 @@ def ocean_atlas_download(output_dir, month, sources=SOURCES):
             f.write(data)
 
 
-def ocean_atlas_merge_variables(output_dir, month):
+def ocean_atlas_merge_variables(output_dir, month) -> None:
     ocean_atlas_files = output_dir.glob(f"ocean_atlas_*_{month.month:02}.nc")
     ocean_atlas_files = list(ocean_atlas_files)
     ocean_atlas_files.sort()
@@ -60,12 +60,12 @@ def ocean_atlas_merge_variables(output_dir, month):
         nco.ncks(input=str(f), output=str(outfile), options=options)
 
 
-def ocean_atlas_variable_enhance(output_dir, month):
+def ocean_atlas_variable_enhance(output_dir, month) -> None:
     fname = output_dir / f"ocean_atlas_{month.month:02}.nc"
 
     # only keep variables needed
     nco = Nco()
-    vars_to_keep = ",".join(["s_an", "t_an", "o_an"])
+    vars_to_keep = "s_an,t_an,o_an"
     options = [
         "-h",
         f"-v {vars_to_keep}",
@@ -91,7 +91,7 @@ def ocean_atlas_variable_enhance(output_dir, month):
     nco.ncks(input=str(fname), output=str(fname), options=options)
 
 
-def ocean_atlas_merge_time(output_dir):
+def ocean_atlas_merge_time(output_dir) -> None:
     variable_merged_files = output_dir.glob("ocean_atlas_??.nc")
     variable_merged_files = [str(merged_file) for merged_file in list(variable_merged_files)]
     variable_merged_files.sort()
@@ -104,7 +104,7 @@ def ocean_atlas_merge_time(output_dir):
     nco.ncrcat(input=variable_merged_files, output=str(output_file), options=options)
 
 
-def ocean_atlas_enhance(output_dir):
+def ocean_atlas_enhance(output_dir) -> None:
     output_file = output_dir.parent / "ocean_atlas.nc"
     output_tmp_file = output_dir.parent / "ocean_atlas_tmp.nc"
 
@@ -126,7 +126,7 @@ def ocean_atlas_enhance(output_dir):
     nco.ncpdq(input=str(output_tmp_file), output=str(output_file), options=options)
 
 
-def get_ocean_atlas(output_dir):
+def get_ocean_atlas(output_dir) -> None:
     time_range = xr.cftime_range(start="2018", end="2018-12-31", freq="MS")
     for month in time_range:
         logger.info(f"downloading Ocean Atlas for {month}")
@@ -137,7 +137,7 @@ def get_ocean_atlas(output_dir):
     ocean_atlas_enhance(output_dir)
 
 
-def narr_download(output_dir, sources=SOURCES):
+def narr_download(output_dir, sources=SOURCES) -> None:
     variables = {
         "air": "air.sig995.mon.ltm.nc",
         "rhum": "rhum.sig995.mon.ltm.nc",
@@ -156,7 +156,7 @@ def narr_download(output_dir, sources=SOURCES):
             f.write(data)
 
 
-def narr_merge_variables(output_dir):
+def narr_merge_variables(output_dir) -> None:
     narr_files = output_dir.glob("narr_*.nc")
     narr_files = list(narr_files)
     narr_files.sort()
@@ -173,7 +173,7 @@ def narr_merge_variables(output_dir):
         nco.ncks(input=str(f), output=str(outfile), options=options)
 
 
-def narr_enhance(output_dir):
+def narr_enhance(output_dir) -> None:
     outfile = output_dir.parent / "narr.nc"
     outtmp = output_dir.parent / "narr_tmp.nc"
 
@@ -214,21 +214,21 @@ def narr_enhance(output_dir):
         time.units = new_units
 
 
-def get_narr(output_dir):
+def get_narr(output_dir) -> None:
     logger.info("downloading NARR")
     narr_download(output_dir)
     narr_merge_variables(output_dir)
     narr_enhance(output_dir)
 
 
-def remove_tmp_files(dirs_to_delete):
+def remove_tmp_files(dirs_to_delete) -> None:
     logger.info("removing tmp files")
     for dir in dirs_to_delete:
         logger.info(f"removing {dir}")
         shutil.rmtree(str(dir))
 
 
-def main(output_dir, remove_tmp_files=False):
+def main(output_dir, remove_tmp_files=False) -> None:
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 

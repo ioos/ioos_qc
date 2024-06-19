@@ -4,7 +4,7 @@ import json
 import logging
 from importlib import import_module
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import h5netcdf.legacyapi as nc4
 import numpy as np
@@ -27,20 +27,18 @@ def column_from_collected_result(cr):
 
 class BaseStore:
 
-    def save(self, *args, **kwargs):
-        """Serialize results to a store. This could save a file or publish messages.
-        """
+    def save(self, *args, **kwargs) -> None:
+        """Serialize results to a store. This could save a file or publish messages."""
 
     @property
     def stream_ids(self) -> List[str]:
-        """A list of stream_ids to save to the store
-        """
+        """A list of stream_ids to save to the store."""
 
 
 class PandasStore(BaseStore):
-    """Store results in a dataframe"""
+    """Store results in a dataframe."""
 
-    def __init__(self, results, axes: dict = None):
+    def __init__(self, results, axes: Optional[dict] = None) -> None:
         # OK, time to evaluate the actual tests now that we need the results
         self.results = list(results)
         self.collected_results = collect_results(self.results, how="list")
@@ -56,9 +54,8 @@ class PandasStore(BaseStore):
     def stream_ids(self) -> List[str]:
         return self._stream_ids
 
-    def compute_aggregate(self, name="rollup"):
-        """Internally compute the total aggregate and add it to the results
-        """
+    def compute_aggregate(self, name="rollup") -> None:
+        """Internally compute the total aggregate and add it to the results."""
         agg = CollectedResult(
             stream_id="",
             package="qartod",
@@ -71,8 +68,8 @@ class PandasStore(BaseStore):
     def save(self,
              write_data: bool = False,
              write_axes: bool = True,
-             include: list = None,
-             exclude: list = None) -> pd.DataFrame:
+             include: Optional[list] = None,
+             exclude: Optional[list] = None) -> pd.DataFrame:
 
         df = pd.DataFrame()
 
@@ -124,7 +121,7 @@ class PandasStore(BaseStore):
 
 class CFNetCDFStore(BaseStore):
 
-    def __init__(self, results, axes=None, **kwargs):
+    def __init__(self, results, axes=None, **kwargs) -> None:
         # OK, time to evaluate the actual tests now that we need the results
         self.results = list(results)
         self.collected_results = collect_results(self.results, how="list")
@@ -140,7 +137,9 @@ class CFNetCDFStore(BaseStore):
     def stream_ids(self) -> List[str]:
         return self._stream_ids
 
-    def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: dict = {}, write_data: bool = False, include: list = None, exclude: list = None, compute_aggregate: bool = False):
+    def save(self, path_or_ncd, dsg, config: Config, dsg_kwargs: Optional[dict] = None, write_data: bool = False, include: Optional[list] = None, exclude: Optional[list] = None, compute_aggregate: bool = False):
+        if dsg_kwargs is None:
+            dsg_kwargs = {}
         ps = PandasStore(self.results, self.axes)
         if compute_aggregate is True:
             ps.compute_aggregate(name="qc_rollup")
@@ -242,8 +241,7 @@ class CFNetCDFStore(BaseStore):
         df["profile"] = 0
         if "z" not in df:
             df["z"] = 0
-        ncd = dsg.from_dataframe(df, path_or_ncd, axes=self.axes, **dsg_kwargs)
-        return ncd
+        return dsg.from_dataframe(df, path_or_ncd, axes=self.axes, **dsg_kwargs)
 
 
 class NetcdfStore:
