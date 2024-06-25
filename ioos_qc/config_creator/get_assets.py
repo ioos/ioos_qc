@@ -102,9 +102,7 @@ def ocean_atlas_variable_enhance(output_dir, month) -> None:
 
 def ocean_atlas_merge_time(output_dir) -> None:
     variable_merged_files = output_dir.glob("ocean_atlas_??.nc")
-    variable_merged_files = [
-        str(merged_file) for merged_file in list(variable_merged_files)
-    ]
+    variable_merged_files = [str(merged_file) for merged_file in list(variable_merged_files)]
     variable_merged_files.sort()
     output_file = output_dir.parent / "ocean_atlas.nc"
 
