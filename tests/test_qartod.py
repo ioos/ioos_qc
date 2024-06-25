@@ -106,7 +106,7 @@ class QartodLocationTest(unittest.TestCase):
             qartod.location_test(lon=70, lat="foo")
 
         # Wrong type bbox
-        with pytest.raises(ValueError, match="Required: list/tuple, Got:"):
+        with pytest.raises(TypeError, match="Required: list/tuple, Got:"):
             qartod.location_test(lon=70, lat=70, bbox="hi")
 
         # Wrong size bbox
@@ -207,14 +207,14 @@ class QartodGrossRangeTest(unittest.TestCase):
 
     def test_gross_range_bad_input(self):
         match = "Required: list/tuple"
-        with pytest.raises(ValueError, match=match):
+        with pytest.raises(TypeError, match=match):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=10,
                 suspect_span=(1, 1),
             )
 
-        with pytest.raises(ValueError, match=match):
+        with pytest.raises(TypeError, match=match):
             qartod.gross_range_test(
                 inp=np.array([5]),
                 fail_span=(1, 1),
@@ -2050,9 +2050,7 @@ class QartodDensityInversionTest(unittest.TestCase):
         density = [1024, 1024, 1025]
         depth = [1, 2, 3]
 
-        match = (
-            "'less'|<"
-        )
+        match = "'less'|<"
         # Wrong type suspect_threshold
         with pytest.raises(TypeError, match=match):
             qartod.density_inversion_test(
