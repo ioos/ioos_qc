@@ -1,12 +1,19 @@
-line-length = 79
+line-length = 100
 
 lint.select = ["ALL"]
 
 lint.ignore = [
   "ANN",  # type annotation
+  "D107",  # Missing docstring in `__init__`
+  "D100",  # Missing docstring in public module
+  "D101",  # Missing docstring in public class
+  "D102",  # Missing docstring in public method
   "D203",  # 1 blank line required before class docstring
   "D205",  # 1 blank line required between summary line and description
   "D213",  # incompatible. Ignoring `multi-line-summary-second-line`
+  "FIX002",  # Line contains TODO, consider resolving the issue
+  "TD002",  # Missing author in TODO
+  "TD003",  # Missing issue link on the line following this TODO
   "TRY003",  # Avoid specifying long messages outside the exception class
 ]
 
