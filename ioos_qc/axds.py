@@ -67,11 +67,7 @@ def valid_range_test(
     # This is required because we don't want to restrict a user from using a pd.Series
     # directly with this function. If the data was coming from a Store, it would
     # always be a numpy array.
-    elif (
-        dtype is None
-        and hasattr(inp, "values")
-        and hasattr(inp.values, "dtype")
-    ):
+    elif dtype is None and hasattr(inp, "values") and hasattr(inp.values, "dtype"):
         dtype = inp.values.dtype
 
     # Save original shape

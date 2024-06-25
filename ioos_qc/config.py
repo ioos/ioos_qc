@@ -158,13 +158,9 @@ class Call:
         # Get the arguments that the test functions support
         sig = signature(self.func)
         valid_keywords = [
-            p.name
-            for p in sig.parameters.values()
-            if p.kind == p.POSITIONAL_OR_KEYWORD
+            p.name for p in sig.parameters.values() if p.kind == p.POSITIONAL_OR_KEYWORD
         ]
-        testkwargs = {
-            k: v for k, v in testkwargs.items() if k in valid_keywords
-        }
+        testkwargs = {k: v for k, v in testkwargs.items() if k in valid_keywords}
         try:
             results.append(
                 CallResult(
@@ -320,11 +316,7 @@ class Config:
 
     @property
     def aggregate_calls(self):
-        return [
-            c
-            for c in self._calls
-            if hasattr(c.func, "aggregate") and c.func.aggregate is True
-        ]
+        return [c for c in self._calls if hasattr(c.func, "aggregate") and c.func.aggregate is True]
 
     def has(self, stream_id: str, method: Union[callable, str]):
         if isinstance(method, str):
@@ -422,10 +414,7 @@ class ContextConfig:
             elif self.config["region"] and "features" in self.config["region"]:
                 # Feature based GeoJSON
                 self.region = GeometryCollection(
-                    [
-                        shape(feature["geometry"])
-                        for feature in self.config["region"]["features"]
-                    ],
+                    [shape(feature["geometry"]) for feature in self.config["region"]["features"]],
                 )
             elif self.config["region"] and "geometry" in self.config["region"]:
                 # Geometry based GeoJSON
