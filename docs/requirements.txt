@@ -7,3 +7,8 @@ pocean-core>=3
 pynco
 sphinx
 sphinx-autodoc-typehints
+pooch
+h5netcdf
+scipy
+nco
+numpy < 2.0.0
