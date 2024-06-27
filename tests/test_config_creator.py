@@ -53,9 +53,7 @@ class TestCreatorConfig(unittest.TestCase):
 
 class TestQcVariableConfig(unittest.TestCase):
     def test_init(self):
-        qc_variable_config_file = (
-            Path().parent / "tests/data/qc_variable_config.json"
-        )
+        qc_variable_config_file = Path().parent / "tests/data/qc_variable_config.json"
         config = QcVariableConfig(qc_variable_config_file)
 
         assert config["variable"] == "air"
@@ -149,9 +147,7 @@ class TestQartodConfigurator(unittest.TestCase):
         self.creator_config = CreatorConfig(creator_config_file)
         self.config_creator = QcConfigCreator(self.creator_config)
 
-        qc_variable_config_file = (
-            Path().parent / "tests/data/qc_variable_config.json"
-        )
+        qc_variable_config_file = Path().parent / "tests/data/qc_variable_config.json"
         self.variable_config = QcVariableConfig(qc_variable_config_file)
 
     def test_file_load(self):
@@ -272,22 +268,10 @@ class TestQartodConfigurator(unittest.TestCase):
             },
         }
         grt = config[var]["qartod"]["gross_range_test"]
-        assert (
-            grt["suspect_span"][0]
-            == ref["qartod"]["gross_range_test"]["suspect_span"][0]
-        )
-        assert (
-            grt["suspect_span"][1]
-            == ref["qartod"]["gross_range_test"]["suspect_span"][1]
-        )
-        assert (
-            grt["fail_span"][0]
-            == ref["qartod"]["gross_range_test"]["fail_span"][0]
-        )
-        assert (
-            grt["fail_span"][1]
-            == ref["qartod"]["gross_range_test"]["fail_span"][1]
-        )
+        assert grt["suspect_span"][0] == ref["qartod"]["gross_range_test"]["suspect_span"][0]
+        assert grt["suspect_span"][1] == ref["qartod"]["gross_range_test"]["suspect_span"][1]
+        assert grt["fail_span"][0] == ref["qartod"]["gross_range_test"]["fail_span"][0]
+        assert grt["fail_span"][1] == ref["qartod"]["gross_range_test"]["fail_span"][1]
 
     def test_no_data(self):
         # data not available for given box, so code expands box until it gets something
