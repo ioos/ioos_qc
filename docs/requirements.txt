@@ -11,4 +11,4 @@ pooch
 h5netcdf
 scipy
 nco
-numpy<2
+numpy>=1.14,<2
