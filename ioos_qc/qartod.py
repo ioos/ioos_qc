@@ -745,7 +745,7 @@ def flat_line_test(
         # find data ranges that are within threshold and flag them
         test_results = np.ma.filled(data_range < tolerance, fill_value=False)
         # data points before end of first window should pass
-        n_fill = count if count < len(inp) else len(inp)
+        n_fill = min(len(inp), count)
         test_results = np.insert(test_results, 0, np.full((n_fill,), False))
         flag_arr[test_results] = flag_value
 
