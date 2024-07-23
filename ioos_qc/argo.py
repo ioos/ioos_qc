@@ -24,11 +24,11 @@ def pressure_increasing_test(inp):
 
     Ref: ARGO QC Manual: 8. Pressure increasing test
 
-    Args:
+    Args
     ----
         inp: Pressure values as a numeric numpy array or a list of numbers.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -72,7 +72,7 @@ def speed_test(
 
     Ref: ARGO QC Manual: 5. Impossible speed test
 
-    Args:
+    Args
     ----
         lon: Longitudes as a numeric numpy array or a list of numbers.
         lat: Latitudes as a numeric numpy array or a list of numbers.
@@ -85,7 +85,7 @@ def speed_test(
         fail_threshold: A float value representing a speed, in meters per second.
            Speeds exceeding this will be flagged as FAIL.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 

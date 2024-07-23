@@ -211,7 +211,7 @@ def check_timestamps(
     proper order and optionally do not have large gaps prior to processing the
     data.
 
-    Args:
+    Args
     ----
         times: Input array of timestamps
         max_time_interval: The interval between values should not exceed this

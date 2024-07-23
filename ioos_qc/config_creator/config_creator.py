@@ -178,7 +178,7 @@ class CreatorConfig(dict):
 class QcVariableConfig(dict):
     """Used to generate a QcConfig for a specific variable.
 
-    Args:
+    Args
     ----
         path_or_dict: QcVariableConfig configuration, one of the following formats:
             python dict
@@ -253,11 +253,11 @@ class QcVariableConfig(dict):
 class QcConfigCreator:
     """Creates level-0 configuration to create QcQonfig.
 
-    Arguments:
+    Arguments
     ---------
         creator_config (QcCreatorConfig): Configuration for datasets and variables used to create qc_config.
 
-    Attributes:
+    Attributes
     ----------
         allowed_stats (list): Specific statistics allowed to be used to configure each test.
         allowed_operators (list): Operators allowed to used to configure each test.
@@ -272,11 +272,11 @@ class QcConfigCreator:
     def create_config(self, variable_config):
         """Create QARTOD QC config given QcVariableConfig.
 
-        Args:
+        Args
         ----
             variable_config (QcVariableConfig): Config for variable to be quality controlled
 
-        Returns:
+        Returns
         -------
             qc_config (dict): Config for ioos_qc
 

@@ -63,11 +63,11 @@ def qartod_compare(
 ) -> np.ma.MaskedArray:
     """Aggregates an array of flags by precedence into a single array.
 
-    Args:
+    Args
     ----
         vectors: An array of uniform length arrays representing individual flags
 
-    Returns:
+    Returns
     -------
         A masked array of aggregated flag data.
 
@@ -114,14 +114,14 @@ def location_test(
     also use a unit from the quantities library. Missing and masked data is
     flagged as UNKNOWN.
 
-    Args:
+    Args
     ----
         lon: Longitudes as a numeric numpy array or a list of numbers.
         lat: Latitudes as a numeric numpy array or a list of numbers.
         bbox: A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
         range_max: Maximum allowed range expressed in geodesic curve distance (meters).
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -192,13 +192,13 @@ def gross_range_test(
     range as FAIL data.  Optionally also flag data which falls outside of a user
     defined range as SUSPECT. Missing and masked data is flagged as UNKNOWN.
 
-    Args:
+    Args
     ----
         inp: Input data as a numeric numpy array or a list of numbers.
         fail_span: 2-tuple range which to flag outside data as FAIL.
         suspect_span: 2-tuple range which to flag outside data as SUSPECT. [optional]
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -241,7 +241,7 @@ def gross_range_test(
 class ClimatologyConfig:
     """Objects to hold the config for a Climatology test.
 
-    Args:
+    Args
     ----
         tspan: 2-tuple range.
                If period is defined, then this is a numeric range.
@@ -283,7 +283,7 @@ class ClimatologyConfig:
         return self._members
 
     def values(self, tind: pd.Timestamp, zind=None):
-        """Args:
+        """Args
         ----
             tind: Value to test for inclusion between time bounds
 
@@ -469,7 +469,7 @@ def climatology_test(
 
     Data for which no ClimatologyConfig member exists is marked as UNKNOWN.
 
-    Args:
+    Args
     ----
         config: A ClimatologyConfig object or a list of dicts containing tuples
             that can be used to create a ClimatologyConfig object. See ClimatologyConfig
@@ -481,7 +481,7 @@ def climatology_test(
           If anything else is passed in the format is assumed to be seconds since the unix epoch.
         zinp: Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -520,7 +520,7 @@ def spike_test(
     method: str = "average",
 ) -> np.ma.core.MaskedArray:
     """Check for spikes by checking neighboring data against thresholds.
-
+    
     Determine if there is a spike at data point n-1 by subtracting
     the midpoint of n and n-2 and taking the absolute value of this
     quantity, and checking if it exceeds a low or high threshold (default).
@@ -529,21 +529,20 @@ def spike_test(
     and values which exceed the high threshold are flagged FAIL.
     Missing and masked data is flagged as UNKNOWN.
 
-    Args:
+    Args
     ----
         inp: Input data as a numeric numpy array or a list of numbers.
         suspect_threshold: The SUSPECT threshold value, in observations units.
         fail_threshold: The SUSPECT threshold value, in observations units.
         method: ['average'(default),'differential'] optional input to assign the method used to detect spikes.
             * "average": Determine if there is a spike at data point n-1 by subtracting
-            the midpoint of n and n-2 and taking the absolute value of this
-            quantity, and checking if it exceeds a low or high threshold.
-            -
+                        the midpoint of n and n-2 and taking the absolute value of this
+                        quantity, and checking if it exceeds a low or high threshold.
             * "differential": Determine if there is a spike at data point n by calculating the difference
-            between n and n-1 and n+1 and n variation. To considered, (n - n-1)*(n+1 - n) should
-            be smaller than zero (in opposite direction).
+                              between n and n-1 and n+1 and n variation. To considered, (n - n-1)*(n+1 - n) should
+                              be smaller than zero (in opposite direction).
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -620,17 +619,17 @@ def rate_of_change_test(
     exceed. Threshold is expressed as a rate in observations units per second.
     Missing and masked data is flagged as UNKNOWN.
 
-    Args:
+    Args
     ----
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
               This includes numpy datetime64, python datetime objects and pandas Timestamp object.
-              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
+              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
               If anything else is passed in the format is assumed to be seconds since the unix epoch.
         threshold: A float value representing a rate of change over time,
                    in observation units per second.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -678,7 +677,7 @@ def flat_line_test(
     Missing and masked data is flagged as UNKNOWN.
     More information: https://github.com/ioos/ioos_qc/pull/11.
 
-    Args:
+    Args
     ----
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
@@ -694,7 +693,7 @@ def flat_line_test(
             point `n`, and calculate the range of values in the window. If that range is less than `tolerance`,
             then the point is flagged.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
@@ -778,7 +777,7 @@ def attenuated_signal_test(
 
     Missing and masked data is flagged as UNKNOWN.
 
-    Args:
+    Args
     ----
         inp: Input data as a numeric numpy array or a list of numbers.
         tinp: Time input data as a numpy array of dtype `datetime64`.
@@ -797,7 +796,7 @@ def attenuated_signal_test(
         check_type: Either 'std' (default) or 'range', depending on the type of check
             you wish to perform.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
         This array will always contain only a single unique value since all
@@ -882,7 +881,7 @@ def density_inversion_test(
 
     Ref: Manual for Real-Time Quality Control of in-situ Temperature and Salinity Data, Version 2.0, January 2016
 
-    Args:
+    Args
     ----
         inp: Potential density values as a numeric numpy array or a list of numbers.
         zinp: Corresponding depth/pressure values for each density.
@@ -891,7 +890,7 @@ def density_inversion_test(
         fail_threshold:  A float value representing a maximum potential density(or sigma0)
             variation to be tolerated, downward density variation exceeding this will be flagged as FAIL.
 
-    Returns:
+    Returns
     -------
         A masked array of flag values equal in size to that of the input.
 
