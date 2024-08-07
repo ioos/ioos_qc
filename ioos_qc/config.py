@@ -5,7 +5,8 @@ Module to store the different QC modules in ioos_qc
 
 Attributes
 ----------
-    tw (namedtuple): The TimeWindow namedtuple definition
+tw (namedtuple)
+    The TimeWindow namedtuple definition
 
 """
 
@@ -182,9 +183,10 @@ class Call:
 def extract_calls(source) -> List[Call]:
     """Extracts call objects from a source object.
 
-    Args
-    ----
-        source ([any]): The source of Call objects, this can be a:
+    Parameters
+    ----------
+    source ([any]):
+        The source of Call objects, this can be a:
             * Call object
             * list of Call objects
             * list of objects with the 'calls' attribute
@@ -193,7 +195,8 @@ def extract_calls(source) -> List[Call]:
 
     Returns
     -------
-        List[Call]: List of extracted Call objects
+    List[Call]
+        List of extracted Call objects
 
     """
     if isinstance(source, Call):
@@ -234,9 +237,10 @@ class Config:
         version=None,
         default_stream_key="_stream",
     ) -> None:
-        """Args
-        ----
-            source: The QC configuration representation in one of the following formats:
+        """Parameters
+        ----------
+        source:
+            The QC configuration representation in one of the following formats:
                 python dict or odict
                 JSON/YAML filepath (str or Path object)
                 JSON/YAML str
@@ -349,9 +353,10 @@ class Config:
         types of objects accepted as the source parameter. The changes the internal .calls
         attribute and returns None.
 
-        Args
-        ----
-            source ([any]): The source of Call objects, this can be a:
+        Parameters
+        ----------
+        source ([any])
+            The source of Call objects, this can be a:
                 * Call object
                 * list of Call objects
                 * list of objects with the 'calls' attribute
@@ -391,10 +396,14 @@ class ContextConfig:
 
     Attributes
     ----------
-        config (odict): dict representation of the parsed ContextConfig source
-        region (GeometryCollection): A `shapely` object representing the valid geographic region
-        window (namedtuple): A TimeWindow object representing the valid time period
-        streams (odict): dict representation of the parsed Config objects
+    config (odict)
+        dict representation of the parsed ContextConfig source
+    region (GeometryCollection)
+        A `shapely` object representing the valid geographic region
+    window (namedtuple)
+        A TimeWindow object representing the valid time period
+    streams (odict)
+        dict representation of the parsed Config objects
 
     """
 
@@ -489,9 +498,10 @@ class ContextConfig:
         types of objects accepted as the source parameter. The changes the internal .calls
         attribute and returns None.
 
-        Args
-        ----
-            source ([any]): The source of Call objects, this can be a:
+        Parameters
+        ----------
+        source ([any])
+            The source of Call objects, this can be a:
                 * Call object
                 * list of Call objects
                 * list of objects with the 'calls' attribute
@@ -522,9 +532,10 @@ class QcConfig(Config):
         stream. This just sets up a stream with the name passed in as the "default_stream_key"
         parameter.
 
-        Args
-        ----
-            source: The QC configuration representation in one of the following formats:
+        Parameters
+        ----------
+        source
+            The QC configuration representation in one of the following formats:
                 python dict or odict
                 JSON/YAML filepath (str or Path object)
                 JSON/YAML str
@@ -532,7 +543,8 @@ class QcConfig(Config):
                 netCDF4/xarray filepath
                 netCDF4/xarray Dataset
                 list of Call objects
-            default_stream_key: The internal name of the stream, defaults to "_stream"
+        default_stream_key
+            The internal name of the stream, defaults to "_stream"
 
         """
         warnings.warn(

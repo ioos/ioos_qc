@@ -24,12 +24,14 @@ def pressure_increasing_test(inp):
 
     Ref: ARGO QC Manual: 8. Pressure increasing test
 
-    Args
-    ----
-        inp: Pressure values as a numeric numpy array or a list of numbers.
+    Parameters
+    ----------
+    inp 
+        Pressure values as a numeric numpy array or a list of numbers.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -68,25 +70,31 @@ def speed_test(
     Missing and masked data is flagged as UNKNOWN.
 
     If this test fails, it typically means that either a position or time is bad data,
-     or that a platform is mislabeled.
+    or that a platform is mislabeled.
 
     Ref: ARGO QC Manual: 5. Impossible speed test
 
-    Args
-    ----
-        lon: Longitudes as a numeric numpy array or a list of numbers.
-        lat: Latitudes as a numeric numpy array or a list of numbers.
-        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
-              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
-              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
-              If anything else is passed in the format is assumed to be seconds since the unix epoch.
-        suspect_threshold: A float value representing a speed, in meters per second.
-           Speeds exceeding this will be flagged as SUSPECT.
-        fail_threshold: A float value representing a speed, in meters per second.
-           Speeds exceeding this will be flagged as FAIL.
+    Parameters
+    ----------
+    lon
+        Longitudes as a numeric numpy array or a list of numbers.
+    lat
+        Latitudes as a numeric numpy array or a list of numbers.
+    tinp
+        Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+        This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+        ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+        If anything else is passed in the format is assumed to be seconds since the unix epoch.
+    suspect_threshold
+        A float value representing a speed, in meters per second.
+        Speeds exceeding this will be flagged as SUSPECT.
+    fail_threshold
+        A float value representing a speed, in meters per second.
+        Speeds exceeding this will be flagged as FAIL.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
