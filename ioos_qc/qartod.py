@@ -63,12 +63,14 @@ def qartod_compare(
 ) -> np.ma.MaskedArray:
     """Aggregates an array of flags by precedence into a single array.
 
-    Args
-    ----
-        vectors: An array of uniform length arrays representing individual flags
+    Parameters
+    ----------
+    vectors
+        An array of uniform length arrays representing individual flags
 
     Returns
     -------
+    flag_arr
         A masked array of aggregated flag data.
 
     """
@@ -114,15 +116,20 @@ def location_test(
     also use a unit from the quantities library. Missing and masked data is
     flagged as UNKNOWN.
 
-    Args
-    ----
-        lon: Longitudes as a numeric numpy array or a list of numbers.
-        lat: Latitudes as a numeric numpy array or a list of numbers.
-        bbox: A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
-        range_max: Maximum allowed range expressed in geodesic curve distance (meters).
+    Parameters
+    ----------
+    lon
+        Longitudes as a numeric numpy array or a list of numbers.
+    lat
+        Latitudes as a numeric numpy array or a list of numbers.
+    bbox
+        A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
+    range_max
+        Maximum allowed range expressed in geodesic curve distance (meters).
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -192,14 +199,18 @@ def gross_range_test(
     range as FAIL data.  Optionally also flag data which falls outside of a user
     defined range as SUSPECT. Missing and masked data is flagged as UNKNOWN.
 
-    Args
-    ----
-        inp: Input data as a numeric numpy array or a list of numbers.
-        fail_span: 2-tuple range which to flag outside data as FAIL.
-        suspect_span: 2-tuple range which to flag outside data as SUSPECT. [optional]
+    Parameters
+    ----------
+    inp
+        Input data as a numeric numpy array or a list of numbers.
+    fail_span
+        2-tuple range which to flag outside data as FAIL.
+    suspect_span
+        2-tuple range which to flag outside data as SUSPECT. [optional]
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -241,25 +252,30 @@ def gross_range_test(
 class ClimatologyConfig:
     """Objects to hold the config for a Climatology test.
 
-    Args
-    ----
-        tspan: 2-tuple range.
-               If period is defined, then this is a numeric range.
-               If period is not defined, then its a date range.
-        fspan: (optional) 2-tuple range of valid values. This is passed in as the fail_span to the gross_range_test.
-        vspan: 2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
-        zspan: (optional) Vertical (depth) range, in meters positive down
-        period: (optional) The unit the tspan argument is in. Defaults to datetime object
-                but can also be any attribute supported by a pandas Timestamp object.
+    Parameters
+    ----------
+    tspan
+        2-tuple range.
+        If period is defined, then this is a numeric range.
+        If period is not defined, then its a date range.
+    fspan
+        (optional) 2-tuple range of valid values. This is passed in as the fail_span to the gross_range_test.
+    vspan
+        2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
+    zspan
+        (optional) Vertical (depth) range, in meters positive down
+    period
+        (optional) The unit the tspan argument is in. Defaults to datetime object
+        but can also be any attribute supported by a pandas Timestamp object.
 
-                See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html
+        See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html
 
-                Options:
-                * year
-                * week / weekofyear
-                * dayofyear
-                * dayofweek
-                * quarter
+        Options:
+            * year
+            * week / weekofyear
+            * dayofyear
+            * dayofweek
+            * quarter
 
     """
 
@@ -283,9 +299,10 @@ class ClimatologyConfig:
         return self._members
 
     def values(self, tind: pd.Timestamp, zind=None):
-        """Args
-        ----
-            tind: Value to test for inclusion between time bounds
+        """Parameters
+        ----------
+        tind
+            Value to test for inclusion between time bounds
 
         """
         span = (None, None)
@@ -469,20 +486,25 @@ def climatology_test(
 
     Data for which no ClimatologyConfig member exists is marked as UNKNOWN.
 
-    Args
-    ----
-        config: A ClimatologyConfig object or a list of dicts containing tuples
-            that can be used to create a ClimatologyConfig object. See ClimatologyConfig
-            docs for more info.
-        inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
-          This includes numpy datetime64, python datetime objects and pandas Timestamp object.
-          ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
-          If anything else is passed in the format is assumed to be seconds since the unix epoch.
-        zinp: Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
+    Parameters
+    ----------
+    config
+        A ClimatologyConfig object or a list of dicts containing tuples
+        that can be used to create a ClimatologyConfig object. See ClimatologyConfig
+        docs for more info.
+    inp
+        Input data as a numeric numpy array or a list of numbers.
+    tinp
+        Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+        This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+        ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+        If anything else is passed in the format is assumed to be seconds since the unix epoch.
+    zinp
+        Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -529,12 +551,16 @@ def spike_test(
     and values which exceed the high threshold are flagged FAIL.
     Missing and masked data is flagged as UNKNOWN.
 
-    Args
-    ----
-        inp: Input data as a numeric numpy array or a list of numbers.
-        suspect_threshold: The SUSPECT threshold value, in observations units.
-        fail_threshold: The SUSPECT threshold value, in observations units.
-        method: ['average'(default),'differential'] optional input to assign the method used to detect spikes.
+    Parameters
+    ----------
+    inp
+        Input data as a numeric numpy array or a list of numbers.
+    suspect_threshold
+        The SUSPECT threshold value, in observations units.
+    fail_threshold
+        The SUSPECT threshold value, in observations units.
+    method
+        ['average'(default),'differential'] optional input to assign the method used to detect spikes.
             * "average": Determine if there is a spike at data point n-1 by subtracting
                         the midpoint of n and n-2 and taking the absolute value of this
                         quantity, and checking if it exceeds a low or high threshold.
@@ -544,6 +570,7 @@ def spike_test(
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -619,18 +646,21 @@ def rate_of_change_test(
     exceed. Threshold is expressed as a rate in observations units per second.
     Missing and masked data is flagged as UNKNOWN.
 
-    Args
-    ----
-        inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
-              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
-              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
-              If anything else is passed in the format is assumed to be seconds since the unix epoch.
-        threshold: A float value representing a rate of change over time,
-                   in observation units per second.
+    Parameters
+    ----------
+    inp
+        Input data as a numeric numpy array or a list of numbers.
+    tinp
+        Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+        This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+        ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+        If anything else is passed in the format is assumed to be seconds since the unix epoch.
+    threshold
+        A float value representing a rate of change over time, in observation units per second.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -677,24 +707,28 @@ def flat_line_test(
     Missing and masked data is flagged as UNKNOWN.
     More information: https://github.com/ioos/ioos_qc/pull/11.
 
-    Args
-    ----
-        inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
-              This includes numpy datetime64, python datetime objects and pandas Timestamp object.
-              ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()]
-              If anything else is passed in the format is assumed to be seconds since the unix epoch.
-        suspect_threshold: The number of seconds within `tolerance` to
-            allow before being flagged as SUSPECT.
-        fail_threshold: The number of seconds within `tolerance` to
-            allow before being flagged as FAIL.
-        tolerance: The tolerance that should be exceeded between consecutive values.
-            To determine if the current point `n` should be flagged, we use a rolling window, with endpoint at
-            point `n`, and calculate the range of values in the window. If that range is less than `tolerance`,
-            then the point is flagged.
+    Parameters
+    ----------
+    inp
+        Input data as a numeric numpy array or a list of numbers.
+    tinp
+        Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+        This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+        ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+        If anything else is passed in the format is assumed to be seconds since the unix epoch.
+    suspect_threshold
+        The number of seconds within `tolerance` to allow before being flagged as SUSPECT.
+    fail_threshold
+        The number of seconds within `tolerance` to allow before being flagged as FAIL.
+    tolerance
+        The tolerance that should be exceeded between consecutive values.
+        To determine if the current point `n` should be flagged, we use a rolling window, with endpoint at
+        point `n`, and calculate the range of values in the window. If that range is less than `tolerance`,
+        then the point is flagged.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """
@@ -777,27 +811,35 @@ def attenuated_signal_test(
 
     Missing and masked data is flagged as UNKNOWN.
 
-    Args
-    ----
-        inp: Input data as a numeric numpy array or a list of numbers.
-        tinp: Time input data as a numpy array of dtype `datetime64`.
-        suspect_threshold: Any calculated value below this amount will be flagged as SUSPECT.
-            In observations units.
-        fail_threshold: Any calculated values below this amount will be flagged as FAIL.
-            In observations units.
-        test_period: Length of time to test over in seconds [optional].
-            Otherwise, will test against entire `inp`.
-        min_obs: Minimum number of observations in window required to calculate a result [optional].
-            Otherwise, test will start at beginning of time series.
-            Note: you can specify either `min_obs` or `min_period`, but not both.
-        min_period: Minimum number of seconds in test_period required to calculate a result [optional].
-            Otherwise, test will start at beginning of time series.
-            Note: you can specify either `min_obs` or `min_period`, but not both.
-        check_type: Either 'std' (default) or 'range', depending on the type of check
-            you wish to perform.
+    Parameters
+    ----------
+    inp
+        Input data as a numeric numpy array or a list of numbers.
+    tinp
+        Time input data as a numpy array of dtype `datetime64`.
+    suspect_threshold
+        Any calculated value below this amount will be flagged as SUSPECT. 
+        In observations units.
+    fail_threshold
+        Any calculated values below this amount will be flagged as FAIL. 
+        In observations units.
+    test_period
+        Length of time to test over in seconds [optional].
+        Otherwise, will test against entire `inp`.
+    min_obs
+        Minimum number of observations in window required to calculate a result [optional].
+        Otherwise, test will start at beginning of time series.
+        Note: you can specify either `min_obs` or `min_period`, but not both.
+    min_period
+        Minimum number of seconds in test_period required to calculate a result [optional].
+        Otherwise, test will start at beginning of time series.
+        Note: you can specify either `min_obs` or `min_period`, but not both.
+    check_type
+        Either 'std' (default) or 'range', depending on the type of check you wish to perform.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
         This array will always contain only a single unique value since all
         input data is flagged together.
@@ -881,17 +923,22 @@ def density_inversion_test(
 
     Ref: Manual for Real-Time Quality Control of in-situ Temperature and Salinity Data, Version 2.0, January 2016
 
-    Args
-    ----
-        inp: Potential density values as a numeric numpy array or a list of numbers.
-        zinp: Corresponding depth/pressure values for each density.
-        suspect_threshold: A float value representing a maximum potential density(or sigma0)
-            variation to be tolerated, downward density variation exceeding this will be flagged as SUSPECT.
-        fail_threshold:  A float value representing a maximum potential density(or sigma0)
-            variation to be tolerated, downward density variation exceeding this will be flagged as FAIL.
+    Parameters
+    ----------
+    inp
+        Potential density values as a numeric numpy array or a list of numbers.
+    zinp
+        Corresponding depth/pressure values for each density.
+    suspect_threshold
+        A float value representing a maximum potential density(or sigma0)
+        variation to be tolerated, downward density variation exceeding this will be flagged as SUSPECT.
+    fail_threshold
+        A float value representing a maximum potential density(or sigma0)
+        variation to be tolerated, downward density variation exceeding this will be flagged as FAIL.
 
     Returns
     -------
+    flag_arr
         A masked array of flag values equal in size to that of the input.
 
     """

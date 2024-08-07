@@ -39,22 +39,25 @@ def valid_range_test(
     treated as inclusive and the second span valid is treated as exclusive. To change this
     behavior you can use the parameters `start_inclusive` and `end_inclusive`.
 
-    Args
-    ----
-        inp (Sequence[any]): Data as a sequence of objects compatible with the fail_span objects
-        fail_span (Tuple[any, any]): 2-tuple range which to flag outside data as FAIL. Objects
-            should be of equal format to that of the inp parameter as they will be checked for
-            equality without type conversion.
-        dtype (np.dtype): Optional. If your data is not already numpy-typed you can specify its
-            dtype here.
-        start_inclusive (bool): Optional. If the starting span value should be inclusive (True) or
-            exclusive (False).
-        end_inclusive (bool): Optional. If the ending span value should be inclusive (True) or
-            exclusive (False).
+    Parameters
+    ----------
+    inp (Sequence[any])
+        Data as a sequence of objects compatible with the fail_span objects
+    fail_span (Tuple[any, any])
+        2-tuple range which to flag outside data as FAIL. Objects
+        should be of equal format to that of the inp parameter as they will be checked for
+        equality without type conversion.
+    dtype (np.dtype)
+        Optional. If your data is not already numpy-typed you can specify its dtype here.
+    start_inclusive (bool)
+        Optional. If the starting span value should be inclusive (True) or exclusive (False).
+    end_inclusive (bool)
+        Optional. If the ending span value should be inclusive (True) or exclusive (False).
 
     Returns
     -------
-        np.ma.core.MaskedArray: A masked array of flag values equal in size to that of the input.
+    np.ma.core.MaskedArray
+        A masked array of flag values equal in size to that of the input.
 
     """
     # Numpy array inputs
