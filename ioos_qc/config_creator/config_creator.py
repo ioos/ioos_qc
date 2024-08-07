@@ -304,10 +304,7 @@ class QcConfigCreator:
     def _load_datasets(self):
         """Load datasets."""
         L.debug(f"Loading {len(self.config)} datasets...")
-        return {
-            name: xr.load_dataset(self.config[name]["file_path"])
-            for name in self.config
-        }
+        return {name: xr.load_dataset(self.config[name]["file_path"]) for name in self.config}
 
     def _determine_dataset_years(self):
         """Determine year used in datasets, return as dict {dataset_name, year}.

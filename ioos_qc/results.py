@@ -50,7 +50,9 @@ class CollectedResult:
     lon: np.ndarray = None
 
     def __repr__(self) -> str:
-        return f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
+        return (
+            f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
+        )
 
     def function_name(self) -> str:
         return self.function.__name__
@@ -178,8 +180,6 @@ def collect_results_dict(results):
                 collected[r.stream_id][testpackage][testname] = np.copy(
                     flag_arr,
                 )
-            collected[r.stream_id][testpackage][testname][r.subset_indexes] = (
-                testresults
-            )
+            collected[r.stream_id][testpackage][testname][r.subset_indexes] = testresults
 
     return collected

@@ -174,12 +174,9 @@ def location_test(
     # Ignore warnings when comparing NaN values even though they are masked
     # https://github.com/numpy/numpy/blob/master/doc/release/1.8.0-notes.rst#runtime-warnings-when-comparing-nan-numbers
     with np.errstate(invalid="ignore"):
-        flag_arr[
-            (lon < bbox.minx)
-            | (lat < bbox.miny)
-            | (lon > bbox.maxx)
-            | (lat > bbox.maxy)
-        ] = QartodFlags.FAIL
+        flag_arr[(lon < bbox.minx) | (lat < bbox.miny) | (lon > bbox.maxx) | (lat > bbox.maxy)] = (
+            QartodFlags.FAIL
+        )
 
     return flag_arr.reshape(original_shape)
 
@@ -238,9 +235,7 @@ def gross_range_test(
             raise ValueError(msg)
         # Flag suspect outside of user span
         with np.errstate(invalid="ignore"):
-            flag_arr[(inp < uspan.minv) | (inp > uspan.maxv)] = (
-                QartodFlags.SUSPECT
-            )
+            flag_arr[(inp < uspan.minv) | (inp > uspan.maxv)] = QartodFlags.SUSPECT
 
     # Flag suspect outside of sensor span
     with np.errstate(invalid="ignore"):
@@ -421,11 +416,7 @@ class ClimatologyConfig:
                 # Only test non-masked values between the min and max.
                 # Ignore warnings about comparing masked values
                 with np.errstate(invalid="ignore"):
-                    z_idx = (
-                        (~zinp.mask)
-                        & (zinp >= m.zspan.minv)
-                        & (zinp <= m.zspan.maxv)
-                    )
+                    z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
             else:
                 # If there is no z data in the config, don't try to filter by depth!
                 # Set z_idx to all True to prevent filtering
@@ -451,12 +442,8 @@ class ClimatologyConfig:
 
             with np.errstate(invalid="ignore"):
                 flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
-                flag_arr[(values_idx & ~fail_idx & suspect_idx)] = (
-                    QartodFlags.SUSPECT
-                )
-                flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = (
-                    QartodFlags.GOOD
-                )
+                flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
+                flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
 
         return flag_arr
 
@@ -752,9 +739,7 @@ def flat_line_test(
     tinp = mapdates(tinp).flatten()
 
     # The thresholds are in seconds so we round make sure the interval is also in seconds
-    time_interval = (
-        np.median(np.diff(tinp)).astype("timedelta64[s]").astype(float)
-    )
+    time_interval = np.median(np.diff(tinp)).astype("timedelta64[s]").astype(float)
 
     def rolling_window(a, window):
         """https://rigtorp.se/2011/01/01/rolling-statistics-numpy.html."""
@@ -880,9 +865,7 @@ def attenuated_signal_test(
         if min_obs is not None:
             min_periods = min_obs
         elif min_period is not None:
-            time_interval = (
-                np.median(np.diff(tinp)).astype("timedelta64[s]").astype(float)
-            )
+            time_interval = np.median(np.diff(tinp)).astype("timedelta64[s]").astype(float)
             min_periods = (min_period / time_interval).astype(int)
         else:
             min_periods = None

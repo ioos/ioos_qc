@@ -132,9 +132,7 @@ class PandasStore(BaseStore):
 
             # Exclusion list, skip everything defined
             if exclude is not None and (
-                cr.function in exclude
-                or cr.stream_id in exclude
-                or cr.test in cr.test in include
+                cr.function in exclude or cr.stream_id in exclude or cr.test in cr.test in include
             ):
                 continue
 
@@ -223,9 +221,7 @@ class CFNetCDFStore(BaseStore):
 
             # Get flags from module attribute called FLAGS
             flags = inspect.getmodule(cr.function).FLAGS
-            varflagnames = [
-                d for d in flags.__dict__ if not d.startswith("__")
-            ]
+            varflagnames = [d for d in flags.__dict__ if not d.startswith("__")]
             varflagvalues = [getattr(flags, d) for d in varflagnames]
 
             # Set QC variable attributes
@@ -247,11 +243,7 @@ class CFNetCDFStore(BaseStore):
                 if len(config.contexts) == 1:
                     calls = config.calls_by_stream_id(cr.stream_id)
 
-                    calls = [
-                        c
-                        for c in calls
-                        if c.module == cr.package and c.method == cr.test
-                    ]
+                    calls = [c for c in calls if c.module == cr.package and c.method == cr.test]
                     if not calls:
                         # No stream_id found!
                         continue
@@ -372,12 +364,8 @@ class NetcdfStore:
 
                         # Get flags from module attribute called FLAGS
                         flags = testpackage.FLAGS
-                        varflagnames = [
-                            d for d in flags.__dict__ if not d.startswith("__")
-                        ]
-                        varflagvalues = [
-                            getattr(flags, d) for d in varflagnames
-                        ]
+                        varflagnames = [d for d in flags.__dict__ if not d.startswith("__")]
+                        varflagvalues = [getattr(flags, d) for d in varflagnames]
 
                         if qcvarname not in ncd.variables:
                             v = ncd.createVariable(
@@ -412,11 +400,7 @@ class NetcdfStore:
                         v.setncattr("ioos_qc_target", vname)
                         # If there is only one context we can write variable specific configs
                         if len(config.contexts) == 1:
-                            varconfig = (
-                                config.contexts[0]
-                                .streams[vname]
-                                .config[modu][testname]
-                            )
+                            varconfig = config.contexts[0].streams[vname].config[modu][testname]
                             varconfig = json.dumps(
                                 varconfig,
                                 cls=GeoNumpyDateEncoder,

@@ -256,10 +256,7 @@ class PerformanceTest(unittest.TestCase):
             tinp=self.times,
             zinp=self.zinp,
         )
-        all_tests = [
-            results["qartod"][test_name]
-            for test_name in list(results["qartod"])
-        ]
+        all_tests = [results["qartod"][test_name] for test_name in list(results["qartod"])]
 
         def run_fn():
             qartod.qartod_compare(all_tests)

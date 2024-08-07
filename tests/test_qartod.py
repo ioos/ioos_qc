@@ -1290,9 +1290,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
             dtype=np.datetime64,
         )
         self.times_epoch_secs = [t.astype(int) for t in self.times]
-        self.threshold = (
-            5 / 15 / 60
-        )  # 5 units per 15 minutes --> 5/15/60 units per second
+        self.threshold = 5 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
 
     def test_rate_of_change(self):
         times = self.times
@@ -1654,10 +1652,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # good signal, all pass
         signal = np.array([1, 2, 3, 4])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([1, 1, 1, 1])
         self._run_test(
@@ -1672,10 +1667,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # Only suspect
         signal = np.array([1, 2, 3, 4])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([3, 3, 3, 3])
         self._run_test(
@@ -1690,10 +1682,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # Not changing should fail
         signal = np.array([1, 1, 1, 1])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([4, 4, 4, 4])
         self._run_test(
@@ -1708,10 +1697,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # std deviation less than fail threshold
         signal = np.array([10, 20, 30, 40])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([4, 4, 4, 4])
         self._run_test(
@@ -1727,10 +1713,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # range less than fail threshold
         signal = np.array([10, 20, 30, 40])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([4, 4, 4, 4])
         self._run_test(
@@ -1745,10 +1728,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # range less than suspect threshold
         signal = np.array([10, 20, 30, 40])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([3, 3, 3, 3])
         self._run_test(
@@ -1762,10 +1742,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
 
         signal = np.array([3, 4, 5, 8.1, 9, 8.5, 8.7, 8.4, 8.2, 8.35, 2, 1])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
         self._run_test(
@@ -1781,10 +1758,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # test time windowed range
         signal = [1, 2, 3, 100, 1000]
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(len(signal))
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(len(signal))],
         )
         time_window = 2 * 86400  # 2 days
 
@@ -1828,10 +1802,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
     def test_attenuated_signal_missing(self):
         signal = np.array([None, 2, 3, 4])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([9, 1, 1, 1])
         self._run_test(
@@ -1845,10 +1816,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
 
         signal = np.array([None, None, None, None])
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(signal.size)
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
         )
         expected = np.array([9, 9, 9, 9])
         self._run_test(
@@ -1863,10 +1831,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # range less than 30
         signal = [10, None, None, 40]
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(len(signal))
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(len(signal))],
         )
         expected = np.array([4, 9, 9, 4])
         self._run_test(
@@ -1882,10 +1847,7 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         # test time windowed range with missing values
         signal = [1, None, 10, 100, 1000]
         times = np.array(
-            [
-                np.datetime64("2019-01-01") + np.timedelta64(i, "D")
-                for i in range(len(signal))
-            ],
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(len(signal))],
         )
         time_window = 2 * 86400  # 2 days
         min_obs = 2  # 2 days (since 1 obs per day)
