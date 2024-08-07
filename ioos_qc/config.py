@@ -182,7 +182,7 @@ class Call:
 def extract_calls(source) -> List[Call]:
     """Extracts call objects from a source object.
 
-    Args:
+    Args
     ----
         source ([any]): The source of Call objects, this can be a:
             * Call object
@@ -191,7 +191,7 @@ def extract_calls(source) -> List[Call]:
             * NewConfig object
             * Object with the 'calls' attribute
 
-    Returns:
+    Returns
     -------
         List[Call]: List of extracted Call objects
 
@@ -234,7 +234,7 @@ class Config:
         version=None,
         default_stream_key="_stream",
     ) -> None:
-        """Args:
+        """Args
         ----
             source: The QC configuration representation in one of the following formats:
                 python dict or odict
@@ -349,7 +349,7 @@ class Config:
         types of objects accepted as the source parameter. The changes the internal .calls
         attribute and returns None.
 
-        Args:
+        Args
         ----
             source ([any]): The source of Call objects, this can be a:
                 * Call object
@@ -489,7 +489,7 @@ class ContextConfig:
         types of objects accepted as the source parameter. The changes the internal .calls
         attribute and returns None.
 
-        Args:
+        Args
         ----
             source ([any]): The source of Call objects, this can be a:
                 * Call object
@@ -522,7 +522,7 @@ class QcConfig(Config):
         stream. This just sets up a stream with the name passed in as the "default_stream_key"
         parameter.
 
-        Args:
+        Args
         ----
             source: The QC configuration representation in one of the following formats:
                 python dict or odict

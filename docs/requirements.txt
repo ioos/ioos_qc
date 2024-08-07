@@ -7,3 +7,4 @@ pocean-core>=3
 pynco
 sphinx
 sphinx-autodoc-typehints
+pooch
