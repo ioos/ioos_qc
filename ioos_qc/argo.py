@@ -26,7 +26,7 @@ def pressure_increasing_test(inp):
 
     Parameters
     ----------
-    inp 
+    inp
         Pressure values as a numeric numpy array or a list of numbers.
 
     Returns

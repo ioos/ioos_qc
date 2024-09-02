@@ -315,7 +315,7 @@ class NumpyStream:
 
 
 class NetcdfStream:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         path_or_ncd,
         time=None,
@@ -393,7 +393,7 @@ class NetcdfStream:
 
 
 class XarrayStream:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         path_or_ncd,
         time=None,

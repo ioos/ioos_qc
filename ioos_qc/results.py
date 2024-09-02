@@ -65,7 +65,7 @@ class CollectedResult:
 def collect_results(results, how="list"):
     if how in ["list", list]:
         return collect_results_list(results)
-    elif how in ["dict", dict]:
+    if how in ["dict", dict]:
         return collect_results_dict(results)
     return None
 

@@ -197,7 +197,7 @@ def extract_calls(source) -> List[Call]:
     """
     if isinstance(source, Call):
         return [source]
-    elif isinstance(source, (tuple, list)):
+    if isinstance(source, (tuple, list)):
         # list of Call objects
         calls = [c for c in source if isinstance(c, Call)]
         # list of objects with the 'calls' attribute
@@ -207,10 +207,10 @@ def extract_calls(source) -> List[Call]:
             if hasattr(c, "calls")
         ]
         return calls
-    elif isinstance(source, Config):
+    if isinstance(source, Config):
         # Config object
         return source.calls
-    elif hasattr(source, "calls"):
+    if hasattr(source, "calls"):
         # Object with the 'calls' attribute
         return source.calls
     return []
@@ -466,8 +466,7 @@ class ContextConfig:
                             f'No ioos_qc method "{package}.{testname}" was found, skipping',
                         )
                         continue
-                    else:
-                        runfunc = getattr(testpackage, testname)
+                    runfunc = getattr(testpackage, testname)
 
                     self._calls.append(
                         Call(
