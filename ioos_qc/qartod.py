@@ -529,7 +529,7 @@ def spike_test(
     method: str = "average",
 ) -> np.ma.core.MaskedArray:
     """Check for spikes by checking neighboring data against thresholds.
-    
+
     Determine if there is a spike at data point n-1 by subtracting
     the midpoint of n and n-2 and taking the absolute value of this
     quantity, and checking if it exceeds a low or high threshold (default).
@@ -803,10 +803,10 @@ def attenuated_signal_test(
     tinp
         Time input data as a numpy array of dtype `datetime64`.
     suspect_threshold
-        Any calculated value below this amount will be flagged as SUSPECT. 
+        Any calculated value below this amount will be flagged as SUSPECT.
         In observations units.
     fail_threshold
-        Any calculated values below this amount will be flagged as FAIL. 
+        Any calculated values below this amount will be flagged as FAIL.
         In observations units.
     test_period
         Length of time to test over in seconds [optional].

@@ -255,12 +255,12 @@ class QcVariableConfig(dict):
 class QcConfigCreator:
     """Creates level-0 configuration to create QcQonfig.
 
-    Arguments
+    Arguments:
     ---------
     creator_config (QcCreatorConfig)
         Configuration for datasets and variables used to create qc_config.
 
-    Attributes
+    Attributes:
     ----------
     allowed_stats (list)
         Specific statistics allowed to be used to configure each test.
@@ -342,26 +342,25 @@ class QcConfigCreator:
                 variable_config,
                 test_limits,
             )
-        elif test_name == "location_test":
+        if test_name == "location_test":
             return self.__create_location_section(test_name, variable_config)
-        elif test_name == "rate_of_change_test":
+        if test_name == "rate_of_change_test":
             return self.__create_rate_of_change_section(
                 test_name,
                 variable_config,
                 test_limits,
             )
-        elif test_name == "flat_line_test":
+        if test_name == "flat_line_test":
             return self.__create_flat_line_section(
                 test_name,
                 variable_config,
                 test_limits,
             )
-        else:
-            return self.__create_span_section(
-                test_name,
-                variable_config,
-                test_limits,
-            )
+        return self.__create_span_section(
+            test_name,
+            variable_config,
+            test_limits,
+        )
 
     def __create_span_section(self, test_name, variable_config, stats):
         suspect_min = fx_parser.eval_fx(
@@ -528,16 +527,14 @@ class QcConfigCreator:
             if lat_or_lon == "lat":
                 if min_or_max == "min":
                     return max(-90, val - pad)
-                else:
-                    return min(90, val + pad)
-            elif val <= 0 and min_or_max == "min":
+                return min(90, val + pad)
+            if val <= 0 and min_or_max == "min":
                 return max(-180, val - pad)
-            elif val <= 0 and min_or_max == "max":
+            if val <= 0 and min_or_max == "max":
                 return min(180, val + pad)
-            elif val > 0 and min_or_max == "min":
+            if val > 0 and min_or_max == "min":
                 return max(-180, val - pad)
-            else:
-                return min(180, val + pad)
+            return min(180, val + pad)
 
         new_bbox = []
         new_bbox.append(apply_pad(bbox[0], "lon", "min"))
