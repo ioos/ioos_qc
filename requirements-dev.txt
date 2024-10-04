@@ -1,9 +1,6 @@
 bokeh
 dask
 erddapy
-flake8
-isort
 nco
 numba
 pytest
-pytest-flake8>=1.0.4  # https://github.com/tholo/pytest-flake8/pull/59
