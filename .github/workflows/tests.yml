@@ -14,12 +14,15 @@ jobs:
         os: [ubuntu-latest]
         numba: [true, false]
       fail-fast: false
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Setup Micromamba ${{ matrix.python-version }}
-      uses: mamba-org/setup-micromamba@v1
+      uses: mamba-org/setup-micromamba@v2
       with:
         environment-name: TEST
         init-shell: bash
@@ -30,18 +33,15 @@ jobs:
           --channel conda-forge
 
     - name: Install ioos_qc
-      shell: bash -l {0}
       run: |
         python -m pip install -e . --no-deps --force-reinstall
 
     - name: numba
       # numba is listed in requirements.txt so we need to remove it below.
       if: ${{ ! matrix.numba }}
-      shell: bash -l {0}
       run: |
         micromamba remove numba
 
     - name: Tests
-      shell: bash -l {0}
       run: |
         python -m pytest --disable-warnings
