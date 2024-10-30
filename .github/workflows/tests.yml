@@ -1,4 +1,4 @@
-name: Default-Tests
+name: Full Tests
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
-        os: [ubuntu-latest]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
         numba: [true, false]
       fail-fast: false
     defaults:
@@ -44,4 +44,4 @@ jobs:
 
     - name: Tests
       run: |
-        python -m pytest --disable-warnings
+        python -m pytest --disable-warnings --pyargs ioos_qc

@@ -12,6 +12,9 @@ on:
 jobs:
   build-docs:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
     - name: checkout
@@ -31,12 +34,10 @@ jobs:
           --channel conda-forge
 
     - name: Install ioos_qc
-      shell: bash -l {0}
       run: |
         python -m pip install -e . --no-deps --force-reinstall
 
     - name: Build documentation
-      shell: bash -l {0}
       run: >
         set -e
         pushd docs
