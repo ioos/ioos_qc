@@ -44,4 +44,4 @@ jobs:
 
     - name: Tests
       run: |
-        python -m pytest --disable-warnings --pyargs ioos_qc
+        python -m pytest --disable-warnings
