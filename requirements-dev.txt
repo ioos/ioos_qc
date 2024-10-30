@@ -2,5 +2,4 @@ bokeh
 dask
 erddapy
 nco
-numba
 pytest

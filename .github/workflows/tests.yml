@@ -13,6 +13,10 @@ jobs:
         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
         os: [ windows-latest, ubuntu-latest, macos-latest ]
         numba: [true, false]
+        # Numba is not out on Python 3.13 yet.
+        exclude:
+          - python-version: "3.13"
+            numba: true
       fail-fast: false
     defaults:
       run:
@@ -37,10 +41,9 @@ jobs:
         python -m pip install -e . --no-deps --force-reinstall
 
     - name: numba
-      # numba is listed in requirements.txt so we need to remove it below.
-      if: ${{ ! matrix.numba }}
+      if: ${{ matrix.numba }}
       run: |
-        micromamba remove numba
+        micromamba install numba
 
     - name: Tests
       run: |
