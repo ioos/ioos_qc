@@ -835,7 +835,7 @@ def attenuated_signal_test(
     # These are split for performance reasons
     if check_type == "std":
         window_func = lambda x: x.std()  # noqa
-        check_func = np.std
+        check_func = np.ma.std
     elif check_type == "range":
 
         def window_func(w):
@@ -845,7 +845,7 @@ def attenuated_signal_test(
             except (ImportError, TypeError, NumbaTypeError):
                 return w.apply(np.ptp, raw=True)
 
-        check_func = np.ptp
+        check_func = np.ma.ptp
     else:
         msg = f'Check type "{check_type}" is not one of ["std", "range"]'
         raise ValueError(msg)
