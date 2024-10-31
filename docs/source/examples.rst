@@ -12,4 +12,6 @@ You can download the source for these notebooks `here <https://github.com/ioos/i
 
 * :doc:`Run Attenuated Signal test on Salinity data to detect biofouling in an instrument </examples/QartodTestExample_SalinityAttenuation>`
 
+* :doc:`Run QARTOD on an underwater glider dataset </examples/QartodTestExample_Glider>`
+
 * **TODO: Add links to new notebooks under usage/**
