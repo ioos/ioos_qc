@@ -4,8 +4,9 @@
 import logging
 import warnings
 from collections import namedtuple
+from collections.abc import Sequence
 from numbers import Real as N
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd

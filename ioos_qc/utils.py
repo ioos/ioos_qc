@@ -225,8 +225,7 @@ def check_timestamps(
     return not (
         not np.array_equal(time_diff, sort_diff)
         or np.any(sort_diff == zero)
-        or max_time_interval is not None
-        and np.any(sort_diff > max_time_interval)
+        or (max_time_interval is not None and np.any(sort_diff > max_time_interval))
     )
 
 
