@@ -3,8 +3,8 @@
 
 import logging
 import warnings
+from collections.abc import Sequence
 from numbers import Real as N
-from typing import Sequence
 
 import numpy as np
 
