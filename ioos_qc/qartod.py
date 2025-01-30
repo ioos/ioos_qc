@@ -612,8 +612,19 @@ def spike_test(
     flag_arr[0] = QartodFlags.UNKNOWN
     flag_arr[-1] = QartodFlags.UNKNOWN
 
-    # If the value is masked or nan set the flag to MISSING
-    flag_arr[diff.mask] = QartodFlags.MISSING
+    # Check if the original data was masked
+    for i in range(inp.size):
+
+       # Check if inp is masked (original data missing)
+        if inp.mask[i]:
+            flag_arr[i] = QartodFlags.MISSING
+        
+       # Check if diff is masked but not in inp (this indicates that original data is not missing, 
+       # but the data point got masked in diff lines 575-580 due to trying to calculate a value 
+       # using a valid value and a missing value; and because of that, we are not able to apply QARTOD
+       # thus the UNKNOWN flag)
+        elif (diff.mask[i] and not inp.mask[i]):
+            flag_arr[i] = QartodFlags.UNKNOWN
 
     return flag_arr.reshape(original_shape)
 
