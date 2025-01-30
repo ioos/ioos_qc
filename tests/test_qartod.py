@@ -1018,7 +1018,7 @@ class QartodSpikeTest(unittest.TestCase):
 
         # First and last elements should always be good data, unless someone
         # has set a threshold to zero.
-        expected = [2, 4, 4, 4, 1, 3, 1, 9, 9, 9, 4, 4, 9, 9]
+        expected = [2, 4, 4, 4, 1, 3, 1, 2, 9, 2, 4, 4, 2, 9]
 
         inputs = [
             arr,
@@ -1126,46 +1126,8 @@ class QartodSpikeTest(unittest.TestCase):
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
         suspect_threshold = 0.5
         fail_threshold = 1
-        average_method_expected = [
-            2,
-            3,
-            1,
-            1,
-            4,
-            3,
-            1,
-            3,
-            1,
-            1,
-            3,
-            1,
-            4,
-            4,
-            9,
-            9,
-            9,
-            2,
-        ]
-        diff_method_expected = [
-            2,
-            1,
-            1,
-            1,
-            4,
-            1,
-            1,
-            3,
-            1,
-            1,
-            3,
-            1,
-            1,
-            4,
-            9,
-            9,
-            9,
-            2,
-        ]
+        average_method_expected = [2, 3, 1, 1, 4, 3, 1, 3, 1, 1, 3, 1, 4, 4, 2, 9, 2, 2]
+        diff_method_expected = [2, 1, 1, 1, 4, 1, 1, 3, 1, 1, 3, 1, 1, 4, 2, 9, 2, 2]
 
         # Test average method
         npt.assert_array_equal(
@@ -1222,46 +1184,8 @@ class QartodSpikeTest(unittest.TestCase):
 
     def test_spike_test_inputs(self):
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
-        expected_suspect_only = [
-            2,
-            3,
-            1,
-            1,
-            3,
-            3,
-            1,
-            3,
-            1,
-            1,
-            3,
-            1,
-            3,
-            3,
-            9,
-            9,
-            9,
-            2,
-        ]
-        expected_fail_only = [
-            2,
-            1,
-            1,
-            1,
-            4,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            4,
-            4,
-            9,
-            9,
-            9,
-            2,
-        ]
+        expected_suspect_only = [2, 3, 1, 1, 3, 3, 1, 3, 1, 1, 3, 1, 3, 3, 2, 9, 2, 2]
+        expected_fail_only = [2, 1, 1, 1, 4, 1, 1, 1, 1, 1, 1, 1, 4, 4, 2, 9, 2, 2]
         suspect_threshold = 0.5
         fail_threshold = 1
 
