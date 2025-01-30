@@ -157,9 +157,7 @@ class Call:
 
         # Get the arguments that the test functions support
         sig = signature(self.func)
-        valid_keywords = [
-            p.name for p in sig.parameters.values() if p.kind == p.POSITIONAL_OR_KEYWORD
-        ]
+        valid_keywords = [p.name for p in sig.parameters.values() if p.kind == p.POSITIONAL_OR_KEYWORD]
         testkwargs = {k: v for k, v in testkwargs.items() if k in valid_keywords}
         try:
             results.append(
@@ -201,11 +199,7 @@ def extract_calls(source) -> List[Call]:
         # list of Call objects
         calls = [c for c in source if isinstance(c, Call)]
         # list of objects with the 'calls' attribute
-        [
-            calls.extend([x for x in c.calls if isinstance(x, Call)])
-            for c in source
-            if hasattr(c, "calls")
-        ]
+        [calls.extend([x for x in c.calls if isinstance(x, Call)]) for c in source if hasattr(c, "calls")]
         return calls
     if isinstance(source, Config):
         # Config object
@@ -325,11 +319,7 @@ class Config:
                     return c
         elif isinstance(method, callable):
             for c in self._calls:
-                if (
-                    c.stream_id == stream_id
-                    and c.method == method.__module__
-                    and c.method == method.__name__
-                ):
+                if c.stream_id == stream_id and c.method == method.__module__ and c.method == method.__name__:
                     return c
         return False
 

@@ -50,9 +50,7 @@ class CollectedResult:
     lon: np.ndarray = None
 
     def __repr__(self) -> str:
-        return (
-            f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
-        )
+        return f"<CollectedResult stream_id={self.stream_id} package={self.package} test={self.test}>"
 
     def function_name(self) -> str:
         return self.function.__name__

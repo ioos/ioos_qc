@@ -157,7 +157,7 @@ def isfixedlength(
         raise TypeError(msg)
 
     if len(lst) != length:
-        msg = f"Incorrect list/tuple length for {lst}. Required: {length}, " "Got: {len(lst)}"
+        msg = f"Incorrect list/tuple length for {lst}. Required: {length}, Got: {len(lst)}"
         raise ValueError(
             msg,
         )

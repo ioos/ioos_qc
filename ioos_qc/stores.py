@@ -75,48 +75,28 @@ class PandasStore(BaseStore):
 
         for cr in self.collected_results:
             # Add time axis
-            if (
-                write_axes is True
-                and self.axes["t"] not in df
-                and cr.tinp is not None
-                and cr.tinp.size != 0
-            ):
+            if write_axes is True and self.axes["t"] not in df and cr.tinp is not None and cr.tinp.size != 0:
                 L.info(
                     f"Adding column {self.axes['t']} from stream {cr.stream_id}",
                 )
                 df[self.axes["t"]] = cr.tinp
 
             # Add z axis
-            if (
-                write_axes is True
-                and self.axes["z"] not in df
-                and cr.zinp is not None
-                and cr.zinp.size != 0
-            ):
+            if write_axes is True and self.axes["z"] not in df and cr.zinp is not None and cr.zinp.size != 0:
                 L.info(
                     f"Adding column {self.axes['z']} from stream {cr.stream_id}",
                 )
                 df[self.axes["z"]] = cr.zinp
 
             # Add x axis
-            if (
-                write_axes is True
-                and self.axes["x"] not in df
-                and cr.lon is not None
-                and cr.lon.size != 0
-            ):
+            if write_axes is True and self.axes["x"] not in df and cr.lon is not None and cr.lon.size != 0:
                 L.info(
                     f"Adding column {self.axes['x']} from stream {cr.stream_id}",
                 )
                 df[self.axes["x"]] = cr.lon
 
             # Add x axis
-            if (
-                write_axes is True
-                and self.axes["y"] not in df
-                and cr.lat is not None
-                and cr.lat.size != 0
-            ):
+            if write_axes is True and self.axes["y"] not in df and cr.lat is not None and cr.lat.size != 0:
                 L.info(
                     f"Adding column {self.axes['y']} from stream {cr.stream_id}",
                 )
@@ -124,9 +104,7 @@ class PandasStore(BaseStore):
 
             # Inclusion list, skip everything not defined
             if include is not None and (
-                cr.function not in include
-                and cr.stream_id not in include
-                and cr.test not in include
+                cr.function not in include and cr.stream_id not in include and cr.test not in include
             ):
                 continue
 

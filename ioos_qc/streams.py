@@ -482,16 +482,10 @@ class XarrayStream:
                     # Already subset with the stream, best case.
                     # Good netCDF file.
                     subset_kwargs["tinp"] = subset_stream.coords[self.time_var].to_numpy()
-                elif (
-                    self.time_var in ds.variables
-                    and ds[self.time_var].dims == ds[call.stream_id].dims
-                ):
+                elif self.time_var in ds.variables and ds[self.time_var].dims == ds[call.stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
                     subset_kwargs["tinp"] = ds[self.time_var].sel(**label_indexes).to_numpy()
-                elif (
-                    self.time_var in ds.variables
-                    and ds[self.time_var].size == ds[call.stream_id].size
-                ):
+                elif self.time_var in ds.variables and ds[self.time_var].size == ds[call.stream_id].size:
                     # Not specifically connected, but hey,
                     # the user asked for it.
                     subset_kwargs["tinp"] = ds[self.time_var].sel(**label_indexes).to_numpy()
@@ -512,16 +506,10 @@ class XarrayStream:
                     # Already subset with the stream, best case.
                     # Good netCDF file.
                     subset_kwargs["lat"] = subset_stream.coords[self.lat_var].to_numpy()
-                elif (
-                    self.lat_var in ds.variables
-                    and ds[self.lat_var].dims == ds[call.stream_id].dims
-                ):
+                elif self.lat_var in ds.variables and ds[self.lat_var].dims == ds[call.stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
                     subset_kwargs["lat"] = ds[self.lat_var].sel(**label_indexes).to_numpy()
-                elif (
-                    self.lat_var in ds.variables
-                    and ds[self.lat_var].size == ds[call.stream_id].size
-                ):
+                elif self.lat_var in ds.variables and ds[self.lat_var].size == ds[call.stream_id].size:
                     # Not specifically connected, but hey,
                     # the user asked for it.
                     subset_kwargs["lat"] = ds[self.lat_var].sel(**label_indexes).to_numpy()
@@ -530,16 +518,10 @@ class XarrayStream:
                     # Already subset with the stream, best case.
                     # Good netCDF file.
                     subset_kwargs["lon"] = subset_stream.coords[self.lon_var].to_numpy()
-                elif (
-                    self.lon_var in ds.variables
-                    and ds[self.lon_var].dims == ds[call.stream_id].dims
-                ):
+                elif self.lon_var in ds.variables and ds[self.lon_var].dims == ds[call.stream_id].dims:
                     # Same dimensions as the stream, so use the same subset
                     subset_kwargs["lon"] = ds[self.lon_var].sel(**label_indexes).to_numpy()
-                elif (
-                    self.lon_var in ds.variables
-                    and ds[self.lon_var].size == ds[call.stream_id].size
-                ):
+                elif self.lon_var in ds.variables and ds[self.lon_var].size == ds[call.stream_id].size:
                     # Not specifically connected, but hey,
                     # the user asked for it.
                     subset_kwargs["lon"] = ds[self.lon_var].sel(**label_indexes).to_numpy()
