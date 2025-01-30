@@ -111,10 +111,7 @@ def BNF():
     )
     atom = (
         addop[...]
-        + (
-            (fn_call | pi | e | fnumber | ident).setParseAction(push_first)
-            | Group(lpar + expr + rpar)
-        )
+        + ((fn_call | pi | e | fnumber | ident).setParseAction(push_first) | Group(lpar + expr + rpar))
     ).setParseAction(push_unary_minus)
 
     # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left

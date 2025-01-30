@@ -291,12 +291,11 @@ class QcConfigCreator:
         stats = self._get_stats(variable_config)
         L.debug("Creating config...")
         test_configs = {
-            name: self._create_test_section(name, variable_config, stats)
-            for name in variable_config["tests"]
+            name: self._create_test_section(name, variable_config, stats) for name in variable_config["tests"]
         }
 
         return {
-            f'{variable_config["variable"]}': {
+            f"{variable_config['variable']}": {
                 "qartod": test_configs,
             },
         }
