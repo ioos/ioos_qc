@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>IOOS QC: QARTOD and other Quality Control tests implemented in Python &#8212; ioos_qc 2.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=b21de401"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="ioos-qc-qartod-and-other-quality-control-tests-implemented-in-python">
+<h1>IOOS QC: QARTOD and other Quality Control tests implemented in Python<a class="headerlink" href="#ioos-qc-qartod-and-other-quality-control-tests-implemented-in-python" title="Link to this heading">¶</a></h1>
+<a class="reference external image-reference" href="https://github.com/ioos/ioos_qc/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/ioos/ioos_qc/actions/workflows/tests.yml/badge.svg" />
+</a>
+<p>Collection of utilities, scripts and tests to assist in automated
+quality assurance and quality control for oceanographic datasets and
+observing systems.</p>
+<p><a class="reference external" href="https://github.com/ioos/ioos_qc">Code</a>  |  <a class="reference external" href="https://github.com/ioos/ioos_qc/issues">Issues</a>  |  <a class="reference external" href="/">Documentation</a> | <a class="reference internal" href="examples.html"><span class="doc">Examples</span></a></p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#basic-usage">Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#motivation">Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#concepts">Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#configurations">Configurations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#contextconfig">ContextConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#config">Config</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#streams">Streams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#results">Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#numpystream">NumpyStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#pandasstream">PandasStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#xarraystream">XarrayStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#netcdfstream">NetcdfStream</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#stores">Stores</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#pandasstore">PandasStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#cfnetcdfstore">CFNetCDFStore</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#configgeneration">ConfigGeneration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#creatorconfig">CreatorConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#qcconfigcreator">QcConfigCreator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#qcvariableconfig">QcVariableConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#create-config-for-qcconfig">Create config for QcConfig</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Notebook Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">IOOS QC Releases and Migration Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#october-2022">2.1.0 (October 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#august-2021">2.0.1 (August 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#july-2021">2.0.0 (July 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#march-2020">1.0.0 (March 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#sept-9-2019">0.2.1 (Sept 9, 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#id8">0.2.0 (Sept 9, 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#feb-18-2019">0.1.1 (Feb 18, 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#feb-8-2019">0.1.0 (Feb 8, 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases.html#migrating-from-0-0-3-to-0-1-0">Migrating from 0.0.3 to 0.1.0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases.html#sept-8-2016">0.0.3 (Sept 8, 2016)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development and Testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development.html#environment-setup">Environment setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#docs">Docs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#releasing">Releasing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="other.html">Other QARTOD Implementations</a></li>
+</ul>
+</div>
+</section>
+<section id="api-documentation">
+<h1>API documentation<a class="headerlink" href="#api-documentation" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">ioos_qc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/ioos_qc.html">ioos_qc package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.config_creator.html">ioos_qc.config_creator package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.argo">ioos_qc.argo module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.argo.pressure_increasing_test"><code class="docutils literal notranslate"><span class="pre">pressure_increasing_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.argo.speed_test"><code class="docutils literal notranslate"><span class="pre">speed_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.axds">ioos_qc.axds module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.axds.span"><code class="docutils literal notranslate"><span class="pre">span</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.axds.valid_range_test"><code class="docutils literal notranslate"><span class="pre">valid_range_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#ioos-qc-config-module">ioos_qc.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.gliders">ioos_qc.gliders module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.gliders.pressure_check"><code class="docutils literal notranslate"><span class="pre">pressure_check()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.plotting">ioos_qc.plotting module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.plotting.bokeh_multi_plot"><code class="docutils literal notranslate"><span class="pre">bokeh_multi_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.plotting.bokeh_multi_var"><code class="docutils literal notranslate"><span class="pre">bokeh_multi_var()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.plotting.bokeh_plot"><code class="docutils literal notranslate"><span class="pre">bokeh_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.plotting.bokeh_plot_collected_result"><code class="docutils literal notranslate"><span class="pre">bokeh_plot_collected_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.plotting.bokeh_plot_collected_results"><code class="docutils literal notranslate"><span class="pre">bokeh_plot_collected_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.plotting.bokeh_plot_var"><code class="docutils literal notranslate"><span class="pre">bokeh_plot_var()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.qartod">ioos_qc.qartod module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.ClimatologyConfig"><code class="docutils literal notranslate"><span class="pre">ClimatologyConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.FLAGS"><code class="docutils literal notranslate"><span class="pre">FLAGS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.QartodFlags"><code class="docutils literal notranslate"><span class="pre">QartodFlags</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.attenuated_signal_test"><code class="docutils literal notranslate"><span class="pre">attenuated_signal_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.climatology_test"><code class="docutils literal notranslate"><span class="pre">climatology_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.density_inversion_test"><code class="docutils literal notranslate"><span class="pre">density_inversion_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.flat_line_test"><code class="docutils literal notranslate"><span class="pre">flat_line_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.gross_range_test"><code class="docutils literal notranslate"><span class="pre">gross_range_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.location_test"><code class="docutils literal notranslate"><span class="pre">location_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.qartod_compare"><code class="docutils literal notranslate"><span class="pre">qartod_compare()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.rate_of_change_test"><code class="docutils literal notranslate"><span class="pre">rate_of_change_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.span"><code class="docutils literal notranslate"><span class="pre">span</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.qartod.spike_test"><code class="docutils literal notranslate"><span class="pre">spike_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.results">ioos_qc.results module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.CallResult"><code class="docutils literal notranslate"><span class="pre">CallResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.CollectedResult"><code class="docutils literal notranslate"><span class="pre">CollectedResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.ContextResult"><code class="docutils literal notranslate"><span class="pre">ContextResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.collect_results"><code class="docutils literal notranslate"><span class="pre">collect_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.collect_results_dict"><code class="docutils literal notranslate"><span class="pre">collect_results_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.collect_results_list"><code class="docutils literal notranslate"><span class="pre">collect_results_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.stores">ioos_qc.stores module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.stores.BaseStore"><code class="docutils literal notranslate"><span class="pre">BaseStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.stores.CFNetCDFStore"><code class="docutils literal notranslate"><span class="pre">CFNetCDFStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.stores.NetcdfStore"><code class="docutils literal notranslate"><span class="pre">NetcdfStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.stores.PandasStore"><code class="docutils literal notranslate"><span class="pre">PandasStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.stores.column_from_collected_result"><code class="docutils literal notranslate"><span class="pre">column_from_collected_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.streams">ioos_qc.streams module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.streams.BaseStream"><code class="docutils literal notranslate"><span class="pre">BaseStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.streams.NetcdfStream"><code class="docutils literal notranslate"><span class="pre">NetcdfStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.streams.NumpyStream"><code class="docutils literal notranslate"><span class="pre">NumpyStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.streams.PandasStream"><code class="docutils literal notranslate"><span class="pre">PandasStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.streams.XarrayStream"><code class="docutils literal notranslate"><span class="pre">XarrayStream</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.utils">ioos_qc.utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.GeoNumpyDateEncoder"><code class="docutils literal notranslate"><span class="pre">GeoNumpyDateEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.add_flag_metadata"><code class="docutils literal notranslate"><span class="pre">add_flag_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.cf_safe_name"><code class="docutils literal notranslate"><span class="pre">cf_safe_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.check_timestamps"><code class="docutils literal notranslate"><span class="pre">check_timestamps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.dict_depth"><code class="docutils literal notranslate"><span class="pre">dict_depth()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.dict_update"><code class="docutils literal notranslate"><span class="pre">dict_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.great_circle_distance"><code class="docutils literal notranslate"><span class="pre">great_circle_distance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.isfixedlength"><code class="docutils literal notranslate"><span class="pre">isfixedlength()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.isnan"><code class="docutils literal notranslate"><span class="pre">isnan()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.load_config_as_dict"><code class="docutils literal notranslate"><span class="pre">load_config_as_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.load_config_from_xarray"><code class="docutils literal notranslate"><span class="pre">load_config_from_xarray()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.mapdates"><code class="docutils literal notranslate"><span class="pre">mapdates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/ioos_qc.html#ioos_qc.utils.openf"><code class="docutils literal notranslate"><span class="pre">openf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+<section id="acknowledgments">
+<h1>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Link to this heading">¶</a></h1>
+<p>Elements of the development was support by <a class="reference external" href="https://pmel.noaa.gov/">NOAA’s Pacific Marine Environmental Laboratory</a>, and the NOAA Information Technology Incubator.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">ioos_qc</a></h1>
+
+
+
+<p class="blurb">IOOS QARTOD and other Quality Control tests implemented in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=ioos&repo=ioos_qc&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Notebook Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">IOOS QC Releases and Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development and Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other.html">Other QARTOD Implementations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">ioos_qc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="installation.html" title="next chapter">Installation</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022-2025, IOOS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

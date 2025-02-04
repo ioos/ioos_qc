@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ioos_qc.config_creator.config_creator &#8212; ioos_qc 2.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=b21de401"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for ioos_qc.config_creator.config_creator</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">calendar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jsonschema</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">CubicSpline</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config_creator</span><span class="w"> </span><span class="kn">import</span> <span class="n">fx_parser</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">QC_CONFIG_CREATOR_SCHEMA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;QcConfigCreator Schema&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema to validate configuration for QcCreatorConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;datasets&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;definitions&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;variable&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Variable map (variable name in QcConfig -&gt; variable name in dataset&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">},</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;dataset&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Dataset description&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Name of dataset&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Path to file used to create configuration.&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Variables in file used to create configuration.&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;3d&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Include if 3d dataset with value being the name of the 3rd dimension&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;file_path&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;variables&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Array of datasets used for QcCreatorConfig&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/dataset&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">VARIABLE_CONFIG_SCHEMA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;QcVariableConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema to validate configuration for QcVariableConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;variable&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bbox&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;start_time&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;end_time&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;tests&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;definitions&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Test (gross_range_test, etc.) definition&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;suspect_min&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;suspect_max&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;fail_min&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;fail_max&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;suspect_min&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Function or value to define suspect min&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;suspect_max&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Function or value to define suspect max&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;fail_min&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Function or value to define fail min&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;fail_max&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Function or value to define fail max&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;variable&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Variable name. The same name used as a key in &#39;variable&#39; object in CreatorConfig&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;bbox&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Bounding box of region in deployment (xmin, ymin, xmax, ymax)&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;start_time&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Start time of deployment (YYYY-MM-DD)&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;end_time&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Exclusive end time of deployment (YYYY-MM-DD)&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;tests&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/test&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="CreatorConfig">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.CreatorConfig">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CreatorConfig</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Defines the dataset(s) configuration used by QcConfigCreator.</span>
+
+<span class="sd">    :param path_or_dict: QcConfigCreator configuration, one of the following formats:</span>
+<span class="sd">        python dict</span>
+<span class="sd">        JSON filepath (str or Path object)</span>
+<span class="sd">    :param dict: JSON schema for CreatorConfig</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_dict</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">QC_CONFIG_CREATOR_SCHEMA</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_dict</span><span class="p">,</span> <span class="p">(</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_or_dict</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">path_or_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Input is not valid file path or dict&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">instance</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">)</span>
+
+        <span class="n">datasets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;3d&quot;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
+                <span class="n">datasets</span><span class="p">[</span><span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;file_path&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;3d&quot;</span><span class="p">:</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;3d&quot;</span><span class="p">],</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">datasets</span><span class="p">[</span><span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;file_path&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">],</span>
+                <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QcVariableConfig">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QcVariableConfig</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to generate a QcConfig for a specific variable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_or_dict</span>
+<span class="sd">        QcVariableConfig configuration, one of the following formats:</span>
+<span class="sd">            python dict</span>
+<span class="sd">            JSON filepath (str or Path object)</span>
+<span class="sd">    schema</span>
+<span class="sd">        JSON schema for QcVariable</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">allowed_stats</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;min&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;max&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">allowed_operators</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;+&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;*&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;/&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">allowed_groupings</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;(&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;)&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_dict</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">VARIABLE_CONFIG_SCHEMA</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_dict</span><span class="p">,</span> <span class="p">(</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_or_dict</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">path_or_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Input is not valid file path or dict&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">L</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Validating schema...&quot;</span><span class="p">)</span>
+        <span class="n">validate</span><span class="p">(</span><span class="n">instance</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">)</span>
+
+        <span class="c1"># validate test specifications only contain allowed stats and operators</span>
+        <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">test_name</span><span class="p">,</span> <span class="n">test_def</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">test_name</span> <span class="o">==</span> <span class="s2">&quot;bbox&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_validate_fx</span><span class="p">(</span><span class="n">test_def</span><span class="p">,</span> <span class="n">test_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QcVariableConfig._validate_fx">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig._validate_fx">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_fx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_fx</span><span class="p">,</span> <span class="n">test_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Throws exception if input_fx contains tokens not specifically allowed.&quot;&quot;&quot;</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">input_fx</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_stats</span>
+                    <span class="ow">and</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_operators</span>
+                    <span class="ow">and</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_groupings</span>
+                <span class="p">):</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> not allowed in min/max specification in config of </span><span class="si">{</span><span class="n">test_name</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Allowable stats are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allowed_stats</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Allowable operators are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allowed_operators</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Allowable groupings are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allowed_groupings</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QcConfigCreator">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QcConfigCreator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates level-0 configuration to create QcQonfig.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    ---------</span>
+<span class="sd">    creator_config (QcCreatorConfig)</span>
+<span class="sd">        Configuration for datasets and variables used to create qc_config.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">    ----------</span>
+<span class="sd">    allowed_stats (list)</span>
+<span class="sd">        Specific statistics allowed to be used to configure each test.</span>
+<span class="sd">    allowed_operators (list)</span>
+<span class="sd">        Operators allowed to used to configure each test.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">creator_config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">creator_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_datasets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_years</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_dataset_years</span><span class="p">()</span>
+
+<div class="viewcode-block" id="QcConfigCreator.create_config">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator.create_config">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create QARTOD QC config given QcVariableConfig.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variable_config (QcVariableConfig)</span>
+<span class="sd">            Config for variable to be quality controlled</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        qc_config (dict)</span>
+<span class="sd">            Config for ioos_qc</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_stats</span><span class="p">(</span><span class="n">variable_config</span><span class="p">)</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating config...&quot;</span><span class="p">)</span>
+        <span class="n">test_configs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_test_section</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">,</span> <span class="n">stats</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">variable_config</span><span class="p">[</span><span class="s1">&#39;variable&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;qartod&quot;</span><span class="p">:</span> <span class="n">test_configs</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="QcConfigCreator._load_datasets">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._load_datasets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load datasets.&quot;&quot;&quot;</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span><span class="si">}</span><span class="s2"> datasets...&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">xr</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;file_path&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="QcConfigCreator._determine_dataset_years">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._determine_dataset_years">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_determine_dataset_years</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine year used in datasets, return as dict {dataset_name, year}.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - Each dataset is from a unique climatology or source,</span>
+<span class="sd">            so the monthly files have different years.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">years</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">years</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;time.year&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">return</span> <span class="n">years</span></div>
+
+
+<div class="viewcode-block" id="QcConfigCreator._var2var_in_file">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._var2var_in_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_var2var_in_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return variable name used in the dataset and dataset name.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">dataset</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">][</span><span class="n">var</span><span class="p">],</span> <span class="n">dataset_name</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="QcConfigCreator.var2dataset">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator.var2dataset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">var2dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return dataset name and dataset for given variable (as named in qc_config, not in the file).&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var2var_in_file</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="QcConfigCreator._create_test_section">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._create_test_section">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_test_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">,</span> <span class="n">test_limits</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Given test_name, QcVariableConfig and test_limits, return qc_config section for that test.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">test_name</span> <span class="o">==</span> <span class="s2">&quot;spike_test&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_spike_section</span><span class="p">(</span>
+                <span class="n">test_name</span><span class="p">,</span>
+                <span class="n">variable_config</span><span class="p">,</span>
+                <span class="n">test_limits</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">test_name</span> <span class="o">==</span> <span class="s2">&quot;location_test&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_location_section</span><span class="p">(</span><span class="n">test_name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">test_name</span> <span class="o">==</span> <span class="s2">&quot;rate_of_change_test&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_rate_of_change_section</span><span class="p">(</span>
+                <span class="n">test_name</span><span class="p">,</span>
+                <span class="n">variable_config</span><span class="p">,</span>
+                <span class="n">test_limits</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">test_name</span> <span class="o">==</span> <span class="s2">&quot;flat_line_test&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_flat_line_section</span><span class="p">(</span>
+                <span class="n">test_name</span><span class="p">,</span>
+                <span class="n">variable_config</span><span class="p">,</span>
+                <span class="n">test_limits</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_span_section</span><span class="p">(</span>
+            <span class="n">test_name</span><span class="p">,</span>
+            <span class="n">variable_config</span><span class="p">,</span>
+            <span class="n">test_limits</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_span_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+        <span class="n">suspect_min</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;suspect_min&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">suspect_max</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;suspect_max&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">fail_min</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;fail_min&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">fail_max</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;fail_max&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;suspect_span&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">suspect_min</span><span class="p">,</span> <span class="n">suspect_max</span><span class="p">],</span>
+            <span class="s2">&quot;fail_span&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">fail_min</span><span class="p">,</span> <span class="n">fail_max</span><span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_spike_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+        <span class="n">suspect_threshold</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;suspect_threshold&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">fail_threshold</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;fail_threshold&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;suspect_threshold&quot;</span><span class="p">:</span> <span class="n">suspect_threshold</span><span class="p">,</span>
+            <span class="s2">&quot;fail_threshold&quot;</span><span class="p">:</span> <span class="n">fail_threshold</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_flat_line_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">,</span> <span class="n">stats</span><span class="p">):</span>
+        <span class="n">suspect_threshold</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;suspect_threshold&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">fail_threshold</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;fail_threshold&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">tolerance</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;tolerance&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;suspect_threshold&quot;</span><span class="p">:</span> <span class="n">suspect_threshold</span><span class="p">,</span>
+            <span class="s2">&quot;fail_threshold&quot;</span><span class="p">:</span> <span class="n">fail_threshold</span><span class="p">,</span>
+            <span class="s2">&quot;tolerance&quot;</span><span class="p">:</span> <span class="n">tolerance</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_location_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_name</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;bbox&quot;</span><span class="p">:</span> <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;bbox&quot;</span><span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_rate_of_change_section</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">test_name</span><span class="p">,</span>
+        <span class="n">variable_config</span><span class="p">,</span>
+        <span class="n">stats</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">fx_parser</span><span class="o">.</span><span class="n">eval_fx</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">][</span><span class="n">test_name</span><span class="p">][</span><span class="s2">&quot;threshold&quot;</span><span class="p">],</span>
+            <span class="n">stats</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="n">threshold</span><span class="p">,</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="QcConfigCreator._get_stats">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._get_stats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return dict of stats (min, max, mean, std) for given config.&quot;&quot;&quot;</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;end_time&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">time_range</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">)</span>
+        <span class="n">subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_subset</span><span class="p">(</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;variable&quot;</span><span class="p">],</span>
+            <span class="n">variable_config</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">],</span>
+            <span class="n">time_range</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">subset</span><span class="p">),</span>
+            <span class="s2">&quot;max&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">subset</span><span class="p">),</span>
+            <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">subset</span><span class="p">),</span>
+            <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">subset</span><span class="p">),</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="QcConfigCreator._get_subset">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._get_subset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_subset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">time_slice</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_delta</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get subset of data.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var2dataset</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+        <span class="n">lat_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">lon_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># if there is no data in the subset, increase bounding box in an iterative fashion</span>
+        <span class="c1"># - both are interpolated to daily values</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subsetting </span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2"> by depth=</span><span class="si">{</span><span class="n">depth</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">bbox</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="n">subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_daily_interp_subset</span><span class="p">(</span>
+            <span class="n">var</span><span class="p">,</span>
+            <span class="n">time_slice</span><span class="p">,</span>
+            <span class="n">depth</span><span class="p">,</span>
+            <span class="n">lat_mask</span><span class="p">,</span>
+            <span class="n">lon_mask</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">padded</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">old_bbox</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__apply_bbox_pad</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">pad_delta</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">old_bbox</span> <span class="o">==</span> <span class="n">bbox</span><span class="p">:</span>
+                <span class="n">L</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No data found for </span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2"> at depth=</span><span class="si">{</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="n">lat_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lat&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">lon_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="p">)</span>
+
+            <span class="n">padded</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">subset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_daily_interp_subset</span><span class="p">(</span>
+                <span class="n">var</span><span class="p">,</span>
+                <span class="n">time_slice</span><span class="p">,</span>
+                <span class="n">depth</span><span class="p">,</span>
+                <span class="n">lat_mask</span><span class="p">,</span>
+                <span class="n">lon_mask</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">L</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Used bounding box: </span><span class="si">{</span><span class="n">bbox</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subset</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__apply_bbox_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">pad</span><span class="p">):</span>
+        <span class="c1"># Prevent infinite attempts of expanding bounding box for valid data</span>
+        <span class="k">if</span> <span class="n">bbox</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;-180&quot;</span><span class="p">,</span> <span class="s2">&quot;-90&quot;</span><span class="p">,</span> <span class="s2">&quot;180&quot;</span><span class="p">,</span> <span class="s2">&quot;90&quot;</span><span class="p">]:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;No valid data found in maximum bounding box </span><span class="si">{</span><span class="n">bbox</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">apply_pad</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">lat_or_lon</span><span class="p">,</span> <span class="n">min_or_max</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">lat_or_lon</span> <span class="o">==</span> <span class="s2">&quot;lat&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">min_or_max</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="n">val</span> <span class="o">-</span> <span class="n">pad</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="n">val</span> <span class="o">+</span> <span class="n">pad</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">min_or_max</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="n">val</span> <span class="o">-</span> <span class="n">pad</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">min_or_max</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="mi">180</span><span class="p">,</span> <span class="n">val</span> <span class="o">+</span> <span class="n">pad</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">min_or_max</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="n">val</span> <span class="o">-</span> <span class="n">pad</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="mi">180</span><span class="p">,</span> <span class="n">val</span> <span class="o">+</span> <span class="n">pad</span><span class="p">)</span>
+
+        <span class="n">new_bbox</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">new_bbox</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apply_pad</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">))</span>
+        <span class="n">new_bbox</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apply_pad</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">))</span>
+        <span class="n">new_bbox</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apply_pad</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">))</span>
+        <span class="n">new_bbox</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">apply_pad</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">))</span>
+
+        <span class="n">L</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expanded bounding box to </span><span class="si">{</span><span class="n">bbox</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_bbox</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_daily_interp_subset</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">var</span><span class="p">,</span>
+        <span class="n">time_slice</span><span class="p">,</span>
+        <span class="n">depth</span><span class="p">,</span>
+        <span class="n">lat_mask</span><span class="p">,</span>
+        <span class="n">lon_mask</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">ds_name</span><span class="p">,</span> <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var2dataset</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="n">var_in_file</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var2var_in_file</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;3d&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="n">ds_name</span><span class="p">]:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var_in_file</span><span class="p">][:,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">lat_mask</span><span class="p">,</span> <span class="n">lon_mask</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># 2d</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var_in_file</span><span class="p">][:,</span> <span class="n">lat_mask</span><span class="p">,</span> <span class="n">lon_mask</span><span class="p">]</span>
+
+        <span class="c1"># try cubic interpolation to daily values</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__daily_cubic_interp</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">time_slice</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># Raises exception is subset in bbox is all NaNs</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__daily_cubic_interp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">time_slice</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Given DataArray and time_slice, interpolate to daily values and return NumPy array.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        - Uses day of year for interpolation</span>
+<span class="sd">        - Adds data for day 1 and 366 to ensure periodicity if required to ensure periodicity</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">time_slice</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">time_slice</span><span class="o">.</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">&gt;</span> <span class="mi">365</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Maximum of 365 days available for config_creator&quot;</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">dayofyear</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span> <span class="ow">and</span> <span class="mi">366</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">366</span><span class="p">])</span>
+            <span class="c1"># add new average value at beginning and end to ensure periodicity</span>
+            <span class="n">end_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">end_value</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">end_value</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="mi">1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">])</span>
+            <span class="c1"># add new beginning value that is equal to end value to ensure periodicity</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">y</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># 366 must not be in x, but 1 is</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="mi">366</span><span class="p">])</span>
+            <span class="c1"># add new end value that is equal to beginning value to ensure periodicity</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]])</span>
+
+        <span class="c1"># Create interpolator</span>
+        <span class="c1"># Need to handle NaNs in data before applying interpolator</span>
+        <span class="c1"># - mask out NaNs</span>
+        <span class="c1"># - reshape masked y to (ntimes, ...) where ntimes is y.shape[0]</span>
+        <span class="c1"># - assume that NaNs are same shape through time (i.e. will not work with wetting-drying)</span>
+        <span class="n">y_no_nans</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y_no_nans</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;CubicSpline require y to the finite.&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">spline</span> <span class="o">=</span> <span class="n">CubicSpline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_no_nans</span><span class="p">,</span> <span class="n">bc_type</span><span class="o">=</span><span class="s2">&quot;periodic&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Get days of year for independent variable</span>
+        <span class="c1"># - special handling for when time-slice crosses new year</span>
+        <span class="n">doy_start</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">time_slice</span><span class="o">.</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">dayofyear</span>
+        <span class="n">doy_end</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">time_slice</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span><span class="o">.</span><span class="n">dayofyear</span>
+        <span class="k">if</span> <span class="n">doy_start</span> <span class="o">&gt;</span> <span class="n">doy_end</span><span class="p">:</span>  <span class="c1"># days cross new year</span>
+            <span class="n">days</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">doy_start</span><span class="p">,</span> <span class="mi">367</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">doy_end</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">calendar</span><span class="o">.</span><span class="n">isleap</span><span class="p">(</span><span class="n">time_slice</span><span class="o">.</span><span class="n">start</span><span class="o">.</span><span class="n">year</span><span class="p">):</span>
+                <span class="n">days</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">366</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">days</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">doy_start</span><span class="p">,</span> <span class="n">doy_end</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">spline</span><span class="p">(</span><span class="n">days</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__rpr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span></div>
+
+
+
+<div class="viewcode-block" id="to_json">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.to_json">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_json</span><span class="p">(</span><span class="n">qc_config</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given qc_config return json.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">out_file</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">qc_config</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">qc_config</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ioos_qc</a></h1>
+
+
+
+<p class="blurb">IOOS QARTOD and other Quality Control tests implemented in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=ioos&repo=ioos_qc&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Notebook Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releases.html">IOOS QC Releases and Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development and Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../other.html">Other QARTOD Implementations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">ioos_qc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022-2025, IOOS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

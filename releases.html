@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>IOOS QC Releases and Migration Guide &#8212; ioos_qc 2.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=b21de401"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development and Testing" href="development.html" />
+    <link rel="prev" title="Notebook Examples" href="examples.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="ioos-qc-releases-and-migration-guide">
+<h1>IOOS QC Releases and Migration Guide<a class="headerlink" href="#ioos-qc-releases-and-migration-guide" title="Link to this heading">¶</a></h1>
+<section id="october-2022">
+<h2>2.1.0 (October 2022)<a class="headerlink" href="#october-2022" title="Link to this heading">¶</a></h2>
+<p>Changes from <strong>2.0.1</strong>:</p>
+<p>Special thanks to &#64;ocefpaf for pushing web compatibility forward!</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Core</dt><dd><ul>
+<li><p>Added ability to run <code class="code docutils literal notranslate"><span class="pre">ioos_qc</span></code> in various python web integration technologies (WASM, <code class="code docutils literal notranslate"><span class="pre">pyscript</span></code>). See <a class="reference external" href="https://github.com/ioos/ioos_qc/pulls?q=is%3Apr+is%3Aclosed+author%3Aocefpaf">PR log</a> for details</p></li>
+<li><p>Updated project to use <code class="code docutils literal notranslate"><span class="pre">setuptools_scm</span></code></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/70">Moved CI from Travis to GHA</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/89">Cleaned up pandas deprecations</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/88">Added work around</a> for <a class="reference external" href="https://github.com/scipy/scipy/issues/17241">CubicSpline scipy bug</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Docs</dt><dd><ul>
+<li><p>Improved content and process in <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/73">#73</a> and <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/87">#87</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/90">Fixed the netCDF example notebook</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="august-2021">
+<h2>2.0.1 (August 2021)<a class="headerlink" href="#august-2021" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Core</dt><dd><ul>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/50">Added spike test methods</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/62">Fixed masked array bug in spike test</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="july-2021">
+<h2>2.0.0 (July 2021)<a class="headerlink" href="#july-2021" title="Link to this heading">¶</a></h2>
+<p>As of this release, backwards compatibility with <code class="docutils literal notranslate"><span class="pre">1.0.0</span></code> has been broken for the <code class="docutils literal notranslate"><span class="pre">QcConfig</span></code> and <code class="docutils literal notranslate"><span class="pre">NcQcConfig</span></code> (they no longer exist). Look at the documentation for the new <code class="docutils literal notranslate"><span class="pre">Config</span></code> objects. The basic test interface and functionality did not change with this release and if you were not using any of the internal complex objects you should be safe to upgrade. Of course please test your own implementations first.</p>
+<p>Special thanks to &#64;jessicaaustin, &#64;JessyBarette, &#64;yosoyjay, and &#64;eldobbins for reviewing code, improving documentation, and submitting issues and pull requests.</p>
+<p>Changes from <strong>1.0.0</strong>:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Core</dt><dd><ul>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/39">Added the concepts</a> of <code class="docutils literal notranslate"><span class="pre">Config</span></code>, <code class="docutils literal notranslate"><span class="pre">Streams</span></code>, and <code class="docutils literal notranslate"><span class="pre">Stores</span></code>, see usage documentation for details.</p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/39/commits/be7d1daf02791fc7a9443b80ac9f4a91f0578e63">Added ability</a> to generate Config objects based on climatologies</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Tests</dt><dd><ul>
+<li><p>Added a <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/42">Density Inversion</a> test</p></li>
+<li><p>Attenuated signal test <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/32">was reworked</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/34">Bug fix</a> in spike test</p></li>
+<li><p>Added the <code class="docutils literal notranslate"><span class="pre">argo</span></code> module including speed and pressure tests</p></li>
+<li><p>Improved documentation and notebook examples</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="march-2020">
+<h2>1.0.0 (March 2020)<a class="headerlink" href="#march-2020" title="Link to this heading">¶</a></h2>
+<p>As of this release, all of the existing tests in the QARTOD API should be stable.</p>
+<p>Special thanks to Andrew Reed, Seth Foote, Elizabeth Dobbins, Jesse Lopez, and Charles Seaton for reviewing code,
+improving documentation, and submitting issues and pull requests.</p>
+<p>Changes from <strong>0.2.1</strong>:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="code docutils literal notranslate"><span class="pre">NcQcConfig</span></code> updates</dt><dd><ul>
+<li><p>Improve documentation and tests</p></li>
+<li><dl class="simple">
+<dt>Update <code class="code docutils literal notranslate"><span class="pre">save_to_netcdf</span></code> method to make it compliant with latest CF and IOOS metadata profiles</dt><dd><ul>
+<li><p>See <a class="reference external" href="https://github.com/cf-convention/cf-conventions/issues/216">cf-conventions #216</a> and <a class="reference external" href="https://github.com/ioos/ioos_qc/issues/14">ioos_qc #14</a>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Add option for <code class="code docutils literal notranslate"><span class="pre">NcQcConfig</span></code> to generate aggregate flag (see <a class="reference external" href="https://github.com/ioos/ioos_qc/issues/15">#15</a>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Attenuated signal test rewrite</dt><dd><ul>
+<li><p>See <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/12">#12</a> and <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/29">#29</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Climatology test updates</dt><dd><ul>
+<li><p>Use relative time for ranges (<a class="reference external" href="https://github.com/ioos/ioos_qc/issues/19">#19</a>)</p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/28">span bugfixes</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ioos/ioos_qc/pull/22">periods bugfix</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Fix <code class="code docutils literal notranslate"><span class="pre">datetime64[ns]</span></code> bugs (<a class="reference external" href="https://github.com/ioos/ioos_qc/issues/16">#16</a>)</p></li>
+<li><p>Added performance test suite</p></li>
+<li><p>Support for python 3.8</p></li>
+<li><p>Removed python 3.5 support</p></li>
+<li><p>Improved documentation and notebook examples</p></li>
+</ul>
+<p>If you were previously using <a class="reference external" href="https://github.com/ioos/qartod">https://github.com/ioos/qartod</a> , see the <em>Migrating</em> section below.</p>
+</section>
+<section id="sept-9-2019">
+<h2>0.2.1 (Sept 9, 2019)<a class="headerlink" href="#sept-9-2019" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Bugfix: flat line test handles short <code class="code docutils literal notranslate"><span class="pre">inp</span></code></p></li>
+</ul>
+</section>
+<section id="id8">
+<h2>0.2.0 (Sept 9, 2019)<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Flat line test rewrite</dt><dd><ul>
+<li><p>Includes: a bug fix to handle a flat line starting at the beginning of the timeseries, massive speed improvements, and a slight change to the algorithm to find flat lines</p></li>
+<li><p>See (<a class="reference external" href="https://github.com/ioos/ioos_qc/pull/11">PR #11</a>) for more information</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Add Jupyter notebook examples to the docs</p></li>
+</ul>
+</section>
+<section id="feb-18-2019">
+<h2>0.1.1 (Feb 18, 2019)<a class="headerlink" href="#feb-18-2019" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Remove <code class="code docutils literal notranslate"><span class="pre">dask</span></code> as a requirement (<a class="reference external" href="https://github.com/ioos/ioos_qc/pull/5">#5</a>)</p></li>
+</ul>
+</section>
+<section id="feb-8-2019">
+<h2>0.1.0 (Feb 8, 2019)<a class="headerlink" href="#feb-8-2019" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Complete test overhaul</dt><dd><ul>
+<li><p>Rewrite of tests to improve readability and maintainability</p></li>
+<li><p>Introduce <code class="code docutils literal notranslate"><span class="pre">QcConfig</span></code> concept</p></li>
+<li><p>Tests use time interval parameters instead of counts (<a class="reference external" href="https://github.com/ioos/ioos_qc/pull/2">#2</a>)</p></li>
+<li><p>Split out <code class="code docutils literal notranslate"><span class="pre">threshold</span></code> parameters into explicit <code class="code docutils literal notranslate"><span class="pre">suspect</span></code> and <code class="code docutils literal notranslate"><span class="pre">fail</span></code> parameters (<a class="reference external" href="https://github.com/ioos/ioos_qc/pull/4">#4</a>)</p></li>
+<li><p>Bug fixes</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Remove support for python 2</p></li>
+<li><p>Upgrade numpy to 1.14</p></li>
+<li><p>Build, test, and documentation improvements</p></li>
+</ul>
+<section id="migrating-from-0-0-3-to-0-1-0">
+<h3>Migrating from 0.0.3 to 0.1.0<a class="headerlink" href="#migrating-from-0-0-3-to-0-1-0" title="Link to this heading">¶</a></h3>
+<p>Both versions implement the same QARTOD tests using essentially the same algorithms, however the test implementations are much different.</p>
+<p>We recommend going test by test and comparing the documentation: <a class="reference external" href="https://ioos.github.io/qartod/code/qc.html">0.0.3</a> versus <a class="reference external" href="https://ioos.github.io/ioos_qc/api/ioos_qc.html#module-ioos_qc.qartod">latest</a>.</p>
+<p>Specific changes to be aware of include:</p>
+<ul class="simple">
+<li><p>Removing support for python 2 and requiring <code class="code docutils literal notranslate"><span class="pre">numpy&gt;=1.14</span></code>.</p></li>
+<li><p>Module rename: <code class="code docutils literal notranslate"><span class="pre">ioos_qartod.qc_tests.qc.*</span></code> to <code class="code docutils literal notranslate"><span class="pre">ioos_qc.qartod.*</span></code></p></li>
+<li><dl class="simple">
+<dt>Test renames</dt><dd><ul>
+<li><p><code class="code docutils literal notranslate"><span class="pre">attenuated_signal_check</span> <span class="pre">--&gt;</span> <span class="pre">attenuated_signal_test</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">climatology_check</span> <span class="pre">--&gt;</span> <span class="pre">climatology_test</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">flat_line_check</span> <span class="pre">--&gt;</span> <span class="pre">flat_line_test</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">location_set_check</span> <span class="pre">--&gt;</span> <span class="pre">location_test</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">range_check</span> <span class="pre">--&gt;</span> <span class="pre">gross_range_test</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">rate_of_change_check</span> <span class="pre">--&gt;</span> <span class="pre">rate_of_change_test</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">spike_check</span> <span class="pre">--&gt;</span> <span class="pre">spike_test</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Tests use time interval parameters instead of counts (See <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/2">#2</a>)</dt><dd><ul>
+<li><p>This makes the test agnostic about sampling frequency, and thus more generic and human-readable</p></li>
+<li><p>For example, you can specify a rate of change threshold of <code class="code docutils literal notranslate"><span class="pre">0.5</span> <span class="pre">units/second</span></code> instead of <code class="code docutils literal notranslate"><span class="pre">0.5</span> <span class="pre">units/count</span></code></p></li>
+<li><p>Test example: old <a class="reference external" href="https://ioos.github.io/qartod/code/qc.html#ioos_qartod.qc_tests.qc.flat_line_check">flat_line_check</a> versus new <a class="reference external" href="https://ioos.github.io/ioos_qc/api/ioos_qc.html#ioos_qc.qartod.flat_line_test">flat_line_test</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Text use explicit <code class="code docutils literal notranslate"><span class="pre">suspect_threshold</span></code> and <code class="code docutils literal notranslate"><span class="pre">fail_threshold</span></code> parameters instead of a single <code class="code docutils literal notranslate"><span class="pre">threshold</span></code> parameters (See <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/4">#3</a>)</dt><dd><ul>
+<li><p>This improves readability, especially for users not familiar with the code</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Introduction of <code class="code docutils literal notranslate"><span class="pre">QcConfig</span></code> object</dt><dd><ul>
+<li><p>While you can still call test methods directly, we highly recommend using the <code class="code docutils literal notranslate"><span class="pre">QcConfig</span></code> object instead</p></li>
+<li><p>This object encapsulates multiple test configurations, including test parameters, into a single object that can be serialized as JSON for extra portability</p></li>
+<li><p>See the <a class="reference internal" href="examples/Qartod_Single_Test_Example.html"><span class="doc">Quickstart notebook example</span></a> and <a class="reference internal" href="usage.html"><span class="doc">QcConfig Usage page</span></a> for more info and examples</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="sept-8-2016">
+<h2>0.0.3 (Sept 8, 2016)<a class="headerlink" href="#sept-8-2016" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference external" href="https://github.com/ioos/qartod">https://github.com/ioos/qartod</a> and <a class="reference external" href="https://ioos.github.io/qartod/">https://ioos.github.io/qartod/</a></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">ioos_qc</a></h1>
+
+
+
+<p class="blurb">IOOS QARTOD and other Quality Control tests implemented in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=ioos&repo=ioos_qc&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Notebook Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">IOOS QC Releases and Migration Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#october-2022">2.1.0 (October 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#august-2021">2.0.1 (August 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#july-2021">2.0.0 (July 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#march-2020">1.0.0 (March 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sept-9-2019">0.2.1 (Sept 9, 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">0.2.0 (Sept 9, 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feb-18-2019">0.1.1 (Feb 18, 2019)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#feb-8-2019">0.1.0 (Feb 8, 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#migrating-from-0-0-3-to-0-1-0">Migrating from 0.0.3 to 0.1.0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sept-8-2016">0.0.3 (Sept 8, 2016)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development and Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other.html">Other QARTOD Implementations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">ioos_qc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="examples.html" title="previous chapter">Notebook Examples</a></li>
+      <li>Next: <a href="development.html" title="next chapter">Development and Testing</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022-2025, IOOS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

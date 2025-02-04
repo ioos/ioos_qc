@@ -1,0 +1,566 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# QARTOD - NetCDF Examples\n",
+    "\n",
+    "This notebook provides examples of running QARTOD on a netCDF file. For background, see [XarrayStream](https://ioos.github.io/ioos_qc/usage.html#xarraystream) and [CFNetCDFStore](https://ioos.github.io/ioos_qc/usage.html#cfnetcdfstore) in the docs.\n",
+    "\n",
+    "There are multiple ways that you can integrate `ioos_qc` into your netcdf-based workflow. \n",
+    "\n",
+    "**Option A:** Store test configurations externally, pass your configuration and netcdf file to `ioos_qc`, and manually update netcdf variables with results of the test\n",
+    "  * In this case, you extract variables from the netcdf file, use `ioos_qc` methods to run tests, and then manually update the netcdf file with results\n",
+    "  * This provides the most control, but doesn't take advantage of shared code in the `ioos_qc` library\n",
+    "  * It's up to you to ensure your resulting netcdf is self-describing and CF-compliant\n",
+    "\n",
+    "**Option B:** Store test configurations externally, then pass your configuration and netcdf file to `ioos_qc`, and let it run tests and update the file with results\n",
+    "  * This takes advantage of `ioos_qc` code to store results and configuration in the netCDF file, and ensure a self-describing, CF-compliant file\n",
+    "  * Managing your test configurations outside the file is better when dealing with a large number of datasets/configurations\n",
+    "\n",
+    "**Option C:** Store test configurations in your netcdf file, then pass that file to `ioos_qc` and let it run tests and update the file with results\n",
+    "  * You only need to add test configurations to the file one time, and after that you could run tests over and over again on the same file\n",
+    "  * This option is the most portable, since the data, configuration, and results are all in one place\n",
+    "  * The downside is, test configuration management is difficult since it's stored in the file instead of some common external location\n",
+    "  \n",
+    "  "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "\n",
+    "## Setup"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from bokeh.plotting import output_notebook\n",
+    "\n",
+    "output_notebook()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def plot_ncresults(ncdata, var_name, results, title, test_name):\n",
+    "    \"\"\"Helper method to plot QC results using Bokeh.\"\"\"\n",
+    "    qc_test = next(r for r in results if r.stream_id == var_name and r.test == test_name)\n",
+    "    time = np.array(qc_test.tinp)\n",
+    "    obs = np.array(qc_test.data)\n",
+    "    results = qc_test.results\n",
+    "\n",
+    "    qc_pass = np.ma.masked_where(results != 1, obs)\n",
+    "    num_pass = (results == 1).sum()\n",
+    "    qc_suspect = np.ma.masked_where(results != 3, obs)\n",
+    "    num_suspect = (results == 3).sum()\n",
+    "    qc_fail = np.ma.masked_where(results != 4, obs)\n",
+    "    num_fail = (results == 4).sum()\n",
+    "    qc_notrun = np.ma.masked_where(results != 2, obs)\n",
+    "\n",
+    "    p1 = figure(\n",
+    "        x_axis_type=\"datetime\",\n",
+    "        title=f\"{test_name} : {title} : p/s/f= {num_pass}/{num_suspect}/{num_fail}\",\n",
+    "    )\n",
+    "    p1.grid.grid_line_alpha = 0.3\n",
+    "    p1.xaxis.axis_label = \"Time\"\n",
+    "    p1.yaxis.axis_label = \"Observation Value\"\n",
+    "\n",
+    "    p1.line(time, obs, legend_label=\"obs\", color=\"#A6CEE3\")\n",
+    "    p1.circle(\n",
+    "        time,\n",
+    "        qc_notrun,\n",
+    "        size=2,\n",
+    "        legend_label=\"qc not run\",\n",
+    "        color=\"gray\",\n",
+    "        alpha=0.2,\n",
+    "    )\n",
+    "    p1.circle(time, qc_pass, size=4, legend_label=\"qc pass\", color=\"green\", alpha=0.5)\n",
+    "    p1.circle(\n",
+    "        time,\n",
+    "        qc_suspect,\n",
+    "        size=4,\n",
+    "        legend_label=\"qc suspect\",\n",
+    "        color=\"orange\",\n",
+    "        alpha=0.7,\n",
+    "    )\n",
+    "    p1.circle(time, qc_fail, size=6, legend_label=\"qc fail\", color=\"red\", alpha=1.0)\n",
+    "\n",
+    "    show(gridplot([[p1]], width=800, height=400))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import shutil\n",
+    "import tempfile"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Load the netCDF dataset\n",
+    "\n",
+    "\n",
+    "The example netCDF dataset is a pCO2 sensor from the Ocean Observatories Initiative (OOI) Coastal Endurance Inshore Surface Mooring instrument frame at 7 meters depth located on the Oregon Shelf break.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import xarray as xr\n",
+    "from erddapy.core.url import urlopen\n",
+    "from netCDF4 import Dataset\n",
+    "\n",
+    "\n",
+    "def open_from_https(url):\n",
+    "    data = urlopen(fname)\n",
+    "    nc = Dataset(\"pco2_netcdf_example\", memory=data.read())\n",
+    "    return xr.open_dataset(xr.backends.NetCDF4DataStore(nc))\n",
+    "\n",
+    "\n",
+    "url = \"https://github.com/ioos/ioos_qc/raw/master/docs/source/examples\"\n",
+    "fname = f\"{url}/pco2_netcdf_example.nc#mode=bytes\"\n",
+    "\n",
+    "pco2 = open_from_https(fname)\n",
+    "pco2"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Plot the raw data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "from bokeh.layouts import gridplot\n",
+    "from bokeh.plotting import figure, show\n",
+    "\n",
+    "data = pco2[\"pco2_seawater\"]\n",
+    "t = np.array(pco2[\"time\"])\n",
+    "x = np.array(data)\n",
+    "\n",
+    "p1 = figure(x_axis_type=\"datetime\", title=\"pco2_seawater\")\n",
+    "p1.grid.grid_line_alpha = 0.3\n",
+    "p1.xaxis.axis_label = \"Time\"\n",
+    "p1.yaxis.axis_label = data.units\n",
+    "p1.line(t, x)\n",
+    "\n",
+    "show(gridplot([[p1]], width=800, height=400))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# QC Configuration\n",
+    "\n",
+    "Here we define the generic config object for multiple QARTOD tests, plus the aggregate/rollup flag.\n",
+    "\n",
+    "The key \"pco2_seawater\" indicates which variable in the netcdf file this config should run against."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from ioos_qc.config import Config\n",
+    "\n",
+    "config = {\n",
+    "    \"pco2_seawater\": {\n",
+    "        \"qartod\": {\n",
+    "            \"gross_range_test\": {\"suspect_span\": [200, 2400], \"fail_span\": [0, 3000]},\n",
+    "            \"spike_test\": {\"suspect_threshold\": 500, \"fail_threshold\": 1000},\n",
+    "            \"location_test\": {\"bbox\": [-124.5, 44, -123.5, 45]},\n",
+    "            \"flat_line_test\": {\n",
+    "                \"tolerance\": 1,\n",
+    "                \"suspect_threshold\": 3600,\n",
+    "                \"fail_threshold\": 86400,\n",
+    "            },\n",
+    "            \"aggregate\": {},\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "\n",
+    "\n",
+    "config = \"\"\"\n",
+    "  contexts:\n",
+    "    - streams:\n",
+    "        pco2_seawater:\n",
+    "          qartod:\n",
+    "              gross_range_test:\n",
+    "                suspect_span: [200, 2400]\n",
+    "                fail_span: [0, 3000]\n",
+    "              spike_test:\n",
+    "                suspect_threshold: 500\n",
+    "                fail_threshold: 1000\n",
+    "              location_test:\n",
+    "                bbox: [-124.5, 44, -123.5, 45]\n",
+    "              flat_line_test:\n",
+    "                tolerance: 1\n",
+    "                suspect_threshold: 3600\n",
+    "                fail_threshold: 86400\n",
+    "\"\"\"\n",
+    "\n",
+    "c = Config(config)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Option A: Manually run tests and store results\n",
+    "\n",
+    "Store test configurations externally, pass your configuration and netcdf file to `ioos_qc`, and manually update netcdf variables with results of the test.\n",
+    "\n",
+    "\n",
+    "Note: For tests that need tinp, zinp, etc, use args to define the t, x, y, z dimensions.\n",
+    "In this case, we need latitude and longitude for the location test."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from ioos_qc.qartod import aggregate\n",
+    "from ioos_qc.results import CollectedResult, collect_results\n",
+    "from ioos_qc.streams import XarrayStream\n",
+    "\n",
+    "qc = XarrayStream(pco2, lon=\"lon\", lat=\"lat\")\n",
+    "\n",
+    "# Store as a list to run QC now\n",
+    "runner = list(qc.run(c))\n",
+    "\n",
+    "results = collect_results(runner, how=\"list\")\n",
+    "\n",
+    "agg = CollectedResult(\n",
+    "    stream_id=\"\",\n",
+    "    package=\"qartod\",\n",
+    "    test=\"qc_rollup\",\n",
+    "    function=aggregate,\n",
+    "    results=aggregate(results),\n",
+    "    tinp=qc.time(),\n",
+    "    data=data,\n",
+    ")\n",
+    "results.append(agg)\n",
+    "results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_ncresults(pco2, \"pco2_seawater\", results, \"pCO2 seawater\", \"gross_range_test\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_ncresults(pco2, \"pco2_seawater\", results, \"pCO2 seawater\", \"spike_test\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_ncresults(pco2, \"pco2_seawater\", results, \"pCO2 seawater\", \"flat_line_test\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_ncresults(pco2, \"pco2_seawater\", results, \"pCO2 seawater\", \"location_test\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# To see overall results, use the aggregate test\n",
+    "plot_ncresults(pco2, \"\", results, \"pCO2 seawater\", \"qc_rollup\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Store results manually\n",
+    "# This is just a simple example and stores the aggregate test flag as a variable.\n",
+    "# You can expand upon this, or use the ioos_qc library to store the results for you (see subsequent examples)\n",
+    "# and use xarray's to_xxx methods to serialize results to whichever format you prefer\n",
+    "\n",
+    "agg_da = xr.DataArray(agg.results, {}, (\"time\",))\n",
+    "output_xds = pco2.assign(\n",
+    "    qartod_aggregate=agg_da,\n",
+    ")\n",
+    "\n",
+    "output_xds.qartod_aggregate"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Option B\n",
+    "\n",
+    "Store test configurations externally, then pass your configuration and netcdf file to `ioos_qc`, and let it run tests and update the file with results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Using the CFNetCDFStore Store we can serialize our results back to a CF compliant netCDF file easily\n",
+    "from pocean.dsg import OrthogonalMultidimensionalTimeseries\n",
+    "\n",
+    "from ioos_qc.stores import CFNetCDFStore\n",
+    "\n",
+    "# We use the `results` from Option A so we don't repeat ourselves.\n",
+    "store = CFNetCDFStore(runner)\n",
+    "\n",
+    "outfile_b = os.path.join(tempfile.gettempdir(), \"out_b.nc\")\n",
+    "if os.path.exists(outfile_b):\n",
+    "    os.remove(outfile_b)\n",
+    "\n",
+    "qc_all = store.save(\n",
+    "    # The netCDF file to export OR append to\n",
+    "    outfile_b,\n",
+    "    # The DSG class to save the results as\n",
+    "    OrthogonalMultidimensionalTimeseries,\n",
+    "    # The QC config that was run\n",
+    "    c,\n",
+    "    # Should we write the data or just metadata? Defaults to false\n",
+    "    write_data=True,\n",
+    "    # Compute a total aggregate?\n",
+    "    compute_aggregate=True,\n",
+    "    # Any kwargs to pass to the DSG class\n",
+    "    dsg_kwargs=dict(\n",
+    "        reduce_dims=True,  # Remove dimensions of size 1\n",
+    "        unlimited=False,  # Don't make the record dimension unlimited\n",
+    "        unique_dims=True,  # Support loading into xarray\n",
+    "    ),\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Explore results: qc test variables are named [variable_name]_qartod_[test_name]\n",
+    "out_b = xr.open_dataset(outfile_b)\n",
+    "out_b"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Gross range test\n",
+    "# Note how the config used is stored in the ioos_qc_* variables\n",
+    "out_b[\"pco2_seawater_qartod_gross_range_test\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Aggregate/rollup flag\n",
+    "out_b[\"qartod_qc_rollup\"]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Option C\n",
+    "\n",
+    "Store test configurations in your netcdf file, then pass that file to `ioos_qc` and let it run tests and update the file with results.\n",
+    "\n",
+    "In the example above, we used the library to store results and config in the netcdf file itself. At this point, we can load that same file and run tests again, without having to re-define config. This is very powerful!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create a copy of the output from B\n",
+    "infile_c = os.path.join(tempfile.gettempdir(), \"in_c.nc\")\n",
+    "shutil.copy(outfile_b, infile_c)\n",
+    "\n",
+    "# Load this file into the Config object\n",
+    "input_c = xr.open_dataset(infile_c)\n",
+    "qc_config_c = Config(input_c)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# The QC functions that will be run are extracted from the netCDF attributes\n",
+    "qc_config_c.calls"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# We can use that Config just like any other config object.\n",
+    "# Here we will re-run the netCDF file with the config extracted from the same netCDF file\n",
+    "\n",
+    "# Setup input stream from file\n",
+    "xrs_c = XarrayStream(input_c, lon=\"lon\", lat=\"lat\")\n",
+    "\n",
+    "# Setup config run\n",
+    "runner_c = list(xrs_c.run(qc_config_c))\n",
+    "\n",
+    "# Collect QC run results\n",
+    "results = collect_results(runner_c, how=\"list\")\n",
+    "\n",
+    "# Compute Aggregate\n",
+    "agg = CollectedResult(\n",
+    "    stream_id=\"\",\n",
+    "    package=\"qartod\",\n",
+    "    test=\"qc_rollup\",\n",
+    "    function=aggregate,\n",
+    "    results=aggregate(results),\n",
+    "    tinp=xrs_c.time(),\n",
+    "    data=data,\n",
+    ")\n",
+    "results.append(agg)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "store = CFNetCDFStore(runner)\n",
+    "\n",
+    "outfile_c = os.path.join(tempfile.gettempdir(), \"out_c.nc\")\n",
+    "if os.path.exists(outfile_c):\n",
+    "    os.remove(outfile_c)\n",
+    "\n",
+    "qc_all = store.save(\n",
+    "    # The netCDF file to export OR append to\n",
+    "    outfile_c,\n",
+    "    # The DSG class to save the results as\n",
+    "    OrthogonalMultidimensionalTimeseries,\n",
+    "    # The QC config that was run\n",
+    "    c,\n",
+    "    # Should we write the data or just metadata? Defaults to false\n",
+    "    write_data=True,\n",
+    "    # Compute a total aggregate?\n",
+    "    compute_aggregate=True,\n",
+    "    # Any kwargs to pass to the DSG class\n",
+    "    dsg_kwargs=dict(\n",
+    "        reduce_dims=True,  # Remove dimensions of size 1\n",
+    "        unlimited=False,  # Don't make the record dimension unlimited\n",
+    "        unique_dims=True,  # Support loading into xarray\n",
+    "    ),\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Explore results: qc test variables are named [variable_name]_qartod_[test_name]\n",
+    "out_c = xr.open_dataset(outfile_c)\n",
+    "out_c"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Aggregate/rollup flag\n",
+    "out_c[\"qartod_qc_rollup\"]"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.4"
+  },
+  "nbsphinx": {
+   "orphan": true
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

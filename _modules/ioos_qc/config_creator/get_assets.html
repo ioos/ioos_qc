@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ioos_qc.config_creator.get_assets &#8212; ioos_qc 2.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=b21de401"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for ioos_qc.config_creator.get_assets</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!python</span>
+<span class="sd">&quot;&quot;&quot;Download and process source data used for ConfigCreator.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib</span><span class="w"> </span><span class="kn">import</span> <span class="n">request</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5netcdf.legacyapi</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nco</span><span class="w"> </span><span class="kn">import</span> <span class="n">Nco</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;ConfigCreator:get_assets.py&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<span class="n">SOURCES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;OCEAN_ATLAS&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;ts_url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://data.nodc.noaa.gov/thredds/fileServer/ncei/woa/</span><span class="si">{0}</span><span class="s2">/A5B7/1.00/woa18_A5B7_</span><span class="si">{1}{2:02d}</span><span class="s2">_01.nc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;other_url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://data.nodc.noaa.gov/thredds/fileServer/ncei/woa/</span><span class="si">{0}</span><span class="s2">/all/1.00/woa18_all_</span><span class="si">{1}{2:02d}</span><span class="s2">_01.nc&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;NARR&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis.derived/surface/</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="ocean_atlas_download">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_download">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ocean_atlas_download</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="n">SOURCES</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">variable_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;salinity&quot;</span><span class="p">:</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;oxygen&quot;</span><span class="p">:</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">name_in_file</span> <span class="ow">in</span> <span class="n">variable_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span> <span class="s2">&quot;salinity&quot;</span><span class="p">]:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="s2">&quot;OCEAN_ATLAS&quot;</span><span class="p">][</span><span class="s2">&quot;ts_url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">name_in_file</span><span class="p">,</span>
+                <span class="n">month</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="s2">&quot;OCEAN_ATLAS&quot;</span><span class="p">][</span><span class="s2">&quot;other_url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">name_in_file</span><span class="p">,</span>
+                <span class="n">month</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ocean_atlas_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">month</span><span class="o">.</span><span class="n">month</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">.nc&quot;</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">fname</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ocean_atlas_merge_variables">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_merge_variables">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ocean_atlas_merge_variables</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">month</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">ocean_atlas_files</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ocean_atlas_*_</span><span class="si">{</span><span class="n">month</span><span class="o">.</span><span class="n">month</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">.nc&quot;</span><span class="p">)</span>
+    <span class="n">ocean_atlas_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ocean_atlas_files</span><span class="p">)</span>
+    <span class="n">ocean_atlas_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;ocean_atlas_</span><span class="si">{</span><span class="n">month</span><span class="o">.</span><span class="n">month</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">.nc&quot;</span>
+
+    <span class="n">nco</span> <span class="o">=</span> <span class="n">Nco</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-A&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-L 5&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">ocean_atlas_files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">outfile</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">ocean_atlas_files</span><span class="p">[</span><span class="mi">1</span><span class="p">::]:</span>
+        <span class="n">nco</span><span class="o">.</span><span class="n">ncks</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ocean_atlas_variable_enhance">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_variable_enhance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ocean_atlas_variable_enhance</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">month</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;ocean_atlas_</span><span class="si">{</span><span class="n">month</span><span class="o">.</span><span class="n">month</span><span class="si">:</span><span class="s2">02</span><span class="si">}</span><span class="s2">.nc&quot;</span>
+
+    <span class="c1"># only keep variables needed</span>
+    <span class="n">nco</span> <span class="o">=</span> <span class="n">Nco</span><span class="p">()</span>
+    <span class="n">vars_to_keep</span> <span class="o">=</span> <span class="s2">&quot;s_an,t_an,o_an&quot;</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-h&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;-v </span><span class="si">{</span><span class="n">vars_to_keep</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncks</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">fname</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">fname</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="c1"># original time in months from 1900-01-01.</span>
+    <span class="c1"># - force to days since 1970-01-01 for first of each month</span>
+    <span class="c1"># - makes it easy to use with xarray</span>
+    <span class="n">new_time_units</span> <span class="o">=</span> <span class="s2">&quot;days since 1970-01-01&quot;</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">date2num</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="n">new_time_units</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncds</span><span class="p">:</span>
+        <span class="n">tvar</span> <span class="o">=</span> <span class="n">ncds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+        <span class="n">tvar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">num</span>
+        <span class="n">tvar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">new_time_units</span>
+        <span class="n">tvar</span><span class="o">.</span><span class="n">calendar</span> <span class="o">=</span> <span class="s2">&quot;standard&quot;</span>
+
+    <span class="c1"># make time a record</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--mk_rec_dmn time&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncks</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">fname</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">fname</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ocean_atlas_merge_time">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_merge_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ocean_atlas_merge_time</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">variable_merged_files</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;ocean_atlas_??.nc&quot;</span><span class="p">)</span>
+    <span class="n">variable_merged_files</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">merged_file</span><span class="p">)</span> <span class="k">for</span> <span class="n">merged_file</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">variable_merged_files</span><span class="p">)]</span>
+    <span class="n">variable_merged_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;ocean_atlas.nc&quot;</span>
+
+    <span class="n">nco</span> <span class="o">=</span> <span class="n">Nco</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-A&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncrcat</span><span class="p">(</span>
+        <span class="nb">input</span><span class="o">=</span><span class="n">variable_merged_files</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">output_file</span><span class="p">),</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ocean_atlas_enhance">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_enhance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ocean_atlas_enhance</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;ocean_atlas.nc&quot;</span>
+    <span class="n">output_tmp_file</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;ocean_atlas_tmp.nc&quot;</span>
+
+    <span class="c1"># change value that fits in a packed short var</span>
+    <span class="n">nco</span> <span class="o">=</span> <span class="n">Nco</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-a _FillValue,,o,f,-127&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncatted</span><span class="p">(</span>
+        <span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">output_file</span><span class="p">),</span>
+        <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">output_tmp_file</span><span class="p">),</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># pack to use bytes</span>
+    <span class="c1"># - requires output file defined with -o option</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-M flt_byt&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">&quot;-o </span><span class="si">{</span><span class="n">output_file</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncpdq</span><span class="p">(</span>
+        <span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">output_tmp_file</span><span class="p">),</span>
+        <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">output_file</span><span class="p">),</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_ocean_atlas">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.get_ocean_atlas">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ocean_atlas</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">time_range</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">cftime_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s2">&quot;2018&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;2018-12-31&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;MS&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="n">time_range</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;downloading Ocean Atlas for </span><span class="si">{</span><span class="n">month</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ocean_atlas_download</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">month</span><span class="p">)</span>
+        <span class="n">ocean_atlas_merge_variables</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">month</span><span class="p">)</span>
+        <span class="n">ocean_atlas_variable_enhance</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">month</span><span class="p">)</span>
+    <span class="n">ocean_atlas_merge_time</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">ocean_atlas_enhance</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="narr_download">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.narr_download">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">narr_download</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="n">SOURCES</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;air&quot;</span><span class="p">:</span> <span class="s2">&quot;air.sig995.mon.ltm.nc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rhum&quot;</span><span class="p">:</span> <span class="s2">&quot;rhum.sig995.mon.ltm.nc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;slp&quot;</span><span class="p">:</span> <span class="s2">&quot;slp.mon.ltm.nc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;uwind&quot;</span><span class="p">:</span> <span class="s2">&quot;uwnd.sig995.mon.ltm.nc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;vwind&quot;</span><span class="p">:</span> <span class="s2">&quot;vwnd.sig995.mon.ltm.nc&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable_file</span> <span class="ow">in</span> <span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="s2">&quot;NARR&quot;</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable_file</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;narr_</span><span class="si">{</span><span class="n">variable_name</span><span class="si">}</span><span class="s2">.nc&quot;</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">fname</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="narr_merge_variables">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.narr_merge_variables">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">narr_merge_variables</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">narr_files</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;narr_*.nc&quot;</span><span class="p">)</span>
+    <span class="n">narr_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">narr_files</span><span class="p">)</span>
+    <span class="n">narr_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;narr.nc&quot;</span>
+
+    <span class="n">nco</span> <span class="o">=</span> <span class="n">Nco</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-A&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-L 5&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">narr_files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">outfile</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">narr_files</span><span class="p">[</span><span class="mi">1</span><span class="p">::]:</span>
+        <span class="n">nco</span><span class="o">.</span><span class="n">ncks</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="narr_enhance">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.narr_enhance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">narr_enhance</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;narr.nc&quot;</span>
+    <span class="n">outtmp</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;narr_tmp.nc&quot;</span>
+
+    <span class="c1"># remove unnecessary vars</span>
+    <span class="n">nco</span> <span class="o">=</span> <span class="n">Nco</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-C&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-x&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-v climatology_bounds,valid_yr_count&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncks</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="c1"># change lon from [0, 360) to [-180, 180)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--msa&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-d lon,181.,360.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-d lon,0.,180.0&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncks</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outtmp</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;-O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-s &#39;where(lon &gt; 180) lon=lon-360&#39;&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">nco</span><span class="o">.</span><span class="n">ncap2</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outtmp</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="c1"># times don&#39;t work with xarray, so the year is changed to the middle of climatology</span>
+    <span class="c1"># climatology: 1981-01-01 - 2010-12-31</span>
+    <span class="c1"># midyear is 1996</span>
+    <span class="n">time_range</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">cftime_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s2">&quot;1996&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;1996-12-31&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;MS&quot;</span><span class="p">)</span>
+    <span class="n">new_units</span> <span class="o">=</span> <span class="s2">&quot;days since 1970-01-01 00:00:00&quot;</span>
+    <span class="n">new_times</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">date2num</span><span class="p">(</span><span class="n">time_range</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">new_units</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">nc</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncd</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">ncd</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+        <span class="n">time</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">new_times</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">new_units</span></div>
+
+
+
+<div class="viewcode-block" id="get_narr">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.get_narr">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_narr</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;downloading NARR&quot;</span><span class="p">)</span>
+    <span class="n">narr_download</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">narr_merge_variables</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">narr_enhance</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="remove_tmp_files">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.remove_tmp_files">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_tmp_files</span><span class="p">(</span><span class="n">dirs_to_delete</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;removing tmp files&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">dirs_to_delete</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;removing </span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">dir</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../api/ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">remove_tmp_files</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Downloading and saving data for QcConfigCreator to </span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading Ocean Atlas&quot;</span><span class="p">)</span>
+    <span class="n">ocean_atlas_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;ocean_atlas&quot;</span>
+    <span class="n">ocean_atlas_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">get_ocean_atlas</span><span class="p">(</span><span class="n">ocean_atlas_dir</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading NARR&quot;</span><span class="p">)</span>
+    <span class="n">narr_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;narr&quot;</span>
+    <span class="n">narr_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">get_narr</span><span class="p">(</span><span class="n">narr_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">remove_tmp_files</span><span class="p">:</span>
+        <span class="n">remove_tmp_files</span><span class="p">([</span><span class="n">ocean_atlas_dir</span><span class="p">,</span> <span class="n">narr_dir</span><span class="p">])</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="s2">&quot;Download source data for ConfigCreator&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--outdir&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;resources&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output path for downloaded data&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--delete&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Remove temporary files&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">delete</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ioos_qc</a></h1>
+
+
+
+<p class="blurb">IOOS QARTOD and other Quality Control tests implemented in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=ioos&repo=ioos_qc&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Notebook Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releases.html">IOOS QC Releases and Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development and Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../other.html">Other QARTOD Implementations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">ioos_qc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022-2025, IOOS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

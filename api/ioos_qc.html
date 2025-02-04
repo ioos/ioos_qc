@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ioos_qc package &#8212; ioos_qc 2.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=b21de401"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ioos_qc.config_creator package" href="ioos_qc.config_creator.html" />
+    <link rel="prev" title="ioos_qc" href="modules.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-ioos_qc">
+<span id="ioos-qc-package"></span><h1>ioos_qc package<a class="headerlink" href="#module-ioos_qc" title="Link to this heading">¶</a></h1>
+<p>IOOS QARTOD and other Quality Control tests implemented in Python.</p>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ioos_qc.config_creator.html">ioos_qc.config_creator package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.CreatorConfig"><code class="docutils literal notranslate"><span class="pre">CreatorConfig</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._create_test_section"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._create_test_section()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._determine_dataset_years"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._determine_dataset_years()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._get_stats"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._get_stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._get_subset"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._get_subset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._load_datasets"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._load_datasets()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator._var2var_in_file"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._var2var_in_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator.create_config"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator.create_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcConfigCreator.var2dataset"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator.var2dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig._validate_fx"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig._validate_fx()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig.allowed_groupings"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig.allowed_groupings</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig.allowed_operators"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig.allowed_operators</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.QcVariableConfig.allowed_stats"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig.allowed_stats</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#module-ioos_qc.config_creator.config_creator">ioos_qc.config_creator.config_creator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.CreatorConfig"><code class="docutils literal notranslate"><span class="pre">CreatorConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator._create_test_section"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._create_test_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator._determine_dataset_years"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._determine_dataset_years()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator._get_stats"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._get_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator._get_subset"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._get_subset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator._load_datasets"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._load_datasets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator._var2var_in_file"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator._var2var_in_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator.create_config"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator.create_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcConfigCreator.var2dataset"><code class="docutils literal notranslate"><span class="pre">QcConfigCreator.var2dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcVariableConfig"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcVariableConfig._validate_fx"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig._validate_fx()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcVariableConfig.allowed_groupings"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig.allowed_groupings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcVariableConfig.allowed_operators"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig.allowed_operators</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.QcVariableConfig.allowed_stats"><code class="docutils literal notranslate"><span class="pre">QcVariableConfig.allowed_stats</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.config_creator.to_json"><code class="docutils literal notranslate"><span class="pre">to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#module-ioos_qc.config_creator.fx_parser">ioos_qc.config_creator.fx_parser module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.fx_parser.BNF"><code class="docutils literal notranslate"><span class="pre">BNF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.fx_parser.eval_fx"><code class="docutils literal notranslate"><span class="pre">eval_fx()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.fx_parser.evaluate_stack"><code class="docutils literal notranslate"><span class="pre">evaluate_stack()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.fx_parser.push_first"><code class="docutils literal notranslate"><span class="pre">push_first()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.fx_parser.push_unary_minus"><code class="docutils literal notranslate"><span class="pre">push_unary_minus()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#module-ioos_qc.config_creator.get_assets">ioos_qc.config_creator.get_assets module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.get_narr"><code class="docutils literal notranslate"><span class="pre">get_narr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.get_ocean_atlas"><code class="docutils literal notranslate"><span class="pre">get_ocean_atlas()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.narr_download"><code class="docutils literal notranslate"><span class="pre">narr_download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.narr_enhance"><code class="docutils literal notranslate"><span class="pre">narr_enhance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.narr_merge_variables"><code class="docutils literal notranslate"><span class="pre">narr_merge_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_download"><code class="docutils literal notranslate"><span class="pre">ocean_atlas_download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_enhance"><code class="docutils literal notranslate"><span class="pre">ocean_atlas_enhance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_merge_time"><code class="docutils literal notranslate"><span class="pre">ocean_atlas_merge_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_merge_variables"><code class="docutils literal notranslate"><span class="pre">ocean_atlas_merge_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.ocean_atlas_variable_enhance"><code class="docutils literal notranslate"><span class="pre">ocean_atlas_variable_enhance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ioos_qc.config_creator.html#ioos_qc.config_creator.get_assets.remove_tmp_files"><code class="docutils literal notranslate"><span class="pre">remove_tmp_files()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ioos_qc.config_creator.html#module-ioos_qc.config_creator.make_config">ioos_qc.config_creator.make_config module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-ioos_qc.argo">
+<span id="ioos-qc-argo-module"></span><h2>ioos_qc.argo module<a class="headerlink" href="#module-ioos_qc.argo" title="Link to this heading">¶</a></h2>
+<p>Tests based on the ARGO QC manual.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.argo.pressure_increasing_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.argo.</span></span><span class="sig-name descname"><span class="pre">pressure_increasing_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/argo.html#pressure_increasing_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.argo.pressure_increasing_test" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an array of flag values where each input is flagged with SUSPECT if
+it does not monotonically increase.</p>
+<p>Ref: ARGO QC Manual: 8. Pressure increasing test</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inp</strong> – Pressure values as a numeric numpy array or a list of numbers.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.argo.speed_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.argo.</span></span><span class="sig-name descname"><span class="pre">speed_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suspect_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_threshold</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/argo.html#speed_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.argo.speed_test" title="Link to this definition">¶</a></dt>
+<dd><p>Checks that the calculated speed between two points is within reasonable bounds.</p>
+<dl class="simple">
+<dt>This test calculates a speed between subsequent points by</dt><dd><ul class="simple">
+<li><p>using latitude and longitude to calculate the distance between points</p></li>
+<li><p>calculating the time difference between those points</p></li>
+<li><p>checking if distance/time_diff exceeds the given threshold(s)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Missing and masked data is flagged as UNKNOWN.</p>
+<p>If this test fails, it typically means that either a position or time is bad data,
+or that a platform is mislabeled.</p>
+<p>Ref: ARGO QC Manual: 5. Impossible speed test</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lon</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Longitudes as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>lat</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Latitudes as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>tinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+If anything else is passed in the format is assumed to be seconds since the unix epoch.</p></li>
+<li><p><strong>suspect_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – A float value representing a speed, in meters per second.
+Speeds exceeding this will be flagged as SUSPECT.</p></li>
+<li><p><strong>fail_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – A float value representing a speed, in meters per second.
+Speeds exceeding this will be flagged as FAIL.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ioos_qc.axds">
+<span id="ioos-qc-axds-module"></span><h2>ioos_qc.axds module<a class="headerlink" href="#module-ioos_qc.axds" title="Link to this heading">¶</a></h2>
+<p>Tests based on the IOOS QARTOD manuals.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.axds.span">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.axds.</span></span><span class="sig-name descname"><span class="pre">span</span></span><a class="headerlink" href="#ioos_qc.axds.span" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Span</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.axds.valid_range_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.axds.</span></span><span class="sig-name descname"><span class="pre">valid_range_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_inclusive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_inclusive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/axds.html#valid_range_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.axds.valid_range_test" title="Link to this definition">¶</a></dt>
+<dd><p>Checks that values are within a min/max range. This is not unlike a <cite>qartod.gross_range_test</cite>
+with fail and suspect bounds being equal, except that here we specify the inclusive range that
+should pass instead of the exclusive bounds which should fail. This also supports datetime-like
+objects where as the <cite>qartod.gross_range_test</cite> method only supports numerics.</p>
+<p>Given a 2-tuple of minimum/maximum values, flag data outside of the given
+range as FAIL data. Missing and masked data is flagged as UNKNOWN. The first span value is
+treated as inclusive and the second span valid is treated as exclusive. To change this
+behavior you can use the parameters <cite>start_inclusive</cite> and <cite>end_inclusive</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>(</strong><strong>Sequence</strong><strong>[</strong><strong>any</strong><strong>]</strong><strong>)</strong> (<em>inp</em>) – Data as a sequence of objects compatible with the fail_span objects</p></li>
+<li><p><strong>(</strong><strong>Tuple</strong><strong>[</strong><strong>any</strong> (<em>fail_span</em>) – 2-tuple range which to flag outside data as FAIL. Objects
+should be of equal format to that of the inp parameter as they will be checked for
+equality without type conversion.</p></li>
+<li><p><strong>any</strong><strong>]</strong><strong>)</strong> – 2-tuple range which to flag outside data as FAIL. Objects
+should be of equal format to that of the inp parameter as they will be checked for
+equality without type conversion.</p></li>
+<li><p><strong>(</strong><strong>np.dtype</strong><strong>)</strong> (<em>dtype</em>) – Optional. If your data is not already numpy-typed you can specify its dtype here.</p></li>
+<li><p><strong>(</strong><strong>bool</strong><strong>)</strong> (<em>end_inclusive</em>) – Optional. If the starting span value should be inclusive (True) or exclusive (False).</p></li>
+<li><p><strong>(</strong><strong>bool</strong><strong>)</strong> – Optional. If the ending span value should be inclusive (True) or exclusive (False).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ma.core.MaskedArray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="ioos-qc-config-module">
+<h2>ioos_qc.config module<a class="headerlink" href="#ioos-qc-config-module" title="Link to this heading">¶</a></h2>
+<p>QC Config objects.</p>
+<p>Module to store the different QC modules in ioos_qc</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">tw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">namedtuple</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>The TimeWindow namedtuple definition</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">Call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Call"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">args</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">attrs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">call</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">partial</span></code></em></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Call.config"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">context</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_aggregate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">method_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">module</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">region</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">passedkwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Call.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">stream_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">window</span></span></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_stream_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_stream'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to load any ioos_qc configuration setup into a list of callable objects
+that will run quality checks. The resulting list of quality checks parsed from a config
+file can be appended and edited until they are ready to be run. On run the checks are
+consolidated into an efficient structure for indexing the dataset (stream) it is run against
+so things like subsetting by time and space only happen once for each test in the same Context.</p>
+<p>How the individual checks are collected is up to each individual Stream implementation, this
+class only pairs various formats and versions of a config into a list of Call objects.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Config.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds a source of calls to this Config. See extract_calls for information on the
+types of objects accepted as the source parameter. The changes the internal .calls
+attribute and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(</strong><strong>[</strong><strong>any</strong><strong>]</strong><strong>)</strong> (<em>source</em>) – <dl class="simple">
+<dt>The source of Call objects, this can be a:</dt><dd><ul class="simple">
+<li><p>Call object</p></li>
+<li><p>list of Call objects</p></li>
+<li><p>list of objects with the ‘calls’ attribute</p></li>
+<li><p>Config object</p></li>
+<li><p>Object with the ‘calls’ attribute</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggregate_calls</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calls</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">calls_by_stream_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Config.calls_by_stream_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Call</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">contexts</span></span></dt>
+<dd><p>Group the calls into context groups and return them.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">has</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Config.has"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stream_ids</span></span></dt>
+<dd><p>Return a list of unique stream_ids for the Config.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#Context"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">attrs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">region</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">GeometryCollection</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeWindow</span></code></em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">ContextConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#ContextConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A collection of a Region, a TimeWindow and a list of Config objects.</p>
+<p>Defines a set of quality checks to run against multiple input streams.
+This can include a region and a time window to subset any DataStreams by before running checks.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">region</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">None</span>
+<span class="nt">window</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">starting</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2020-01-01T00:00:00Z</span>
+<span class="w">    </span><span class="nt">ending</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2020-04-01T00:00:00Z</span>
+<span class="nt">streams</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">variable1</span><span class="p">:</span><span class="w">    </span><span class="c1"># stream_id</span>
+<span class="w">        </span><span class="nt">qartod</span><span class="p">:</span><span class="w">   </span><span class="c1"># Config</span>
+<span class="w">            </span><span class="nt">location_test</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">bbox</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-80</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">40</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-70</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">60</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">variable2</span><span class="p">:</span><span class="w">    </span><span class="c1"># stream_id</span>
+<span class="w">        </span><span class="nt">qartod</span><span class="p">:</span><span class="w">   </span><span class="c1"># Config</span>
+<span class="w">            </span><span class="nt">gross_range_test</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">suspect_span</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">11</span><span class="p p-Indicator">]</span>
+<span class="w">                </span><span class="nt">fail_span</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">12</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Helper methods exist to run this check against a different inputs:</dt><dd><ul class="simple">
+<li><p>pandas.DataFrame, dask.DataFrame, netCDF4.Dataset, xarray.Dataset, ERDDAP URL</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">odict</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>dict representation of the parsed ContextConfig source</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GeometryCollection</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>A <cite>shapely</cite> object representing the valid geographic region</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">namedtuple</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>A TimeWindow object representing the valid time period</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">streams</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">odict</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>dict representation of the parsed Config objects</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#ContextConfig.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds a source of calls to this ContextConfig. See extract_calls for information on the
+types of objects accepted as the source parameter. The changes the internal .calls
+attribute and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(</strong><strong>[</strong><strong>any</strong><strong>]</strong><strong>)</strong> (<em>source</em>) – <dl class="simple">
+<dt>The source of Call objects, this can be a:</dt><dd><ul class="simple">
+<li><p>Call object</p></li>
+<li><p>list of Call objects</p></li>
+<li><p>list of objects with the ‘calls’ attribute</p></li>
+<li><p>Config object</p></li>
+<li><p>Object with the ‘calls’ attribute</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calls</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">context</span></span></dt>
+<dd><p>Calls
+This parses through available checks and selects the actual test functions
+to run, but doesn’t actually run anything. It just sets up the object to be
+run later by iterating over the configs.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">NcQcConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#NcQcConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">QcConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_stream_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_stream'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#QcConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">passedkwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#QcConfig.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">extract_calls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/config.html#extract_calls"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Extracts call objects from a source object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(</strong><strong>[</strong><strong>any</strong><strong>]</strong><strong>)</strong> (<em>source</em>) – <dl class="simple">
+<dt>The source of Call objects, this can be a:</dt><dd><ul class="simple">
+<li><p>Call object</p></li>
+<li><p>list of Call objects</p></li>
+<li><p>list of objects with the ‘calls’ attribute</p></li>
+<li><p>NewConfig object</p></li>
+<li><p>Object with the ‘calls’ attribute</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of extracted Call objects</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Call]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.config.</span></span><span class="sig-name descname"><span class="pre">tw</span></span></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">TimeWindow</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-ioos_qc.gliders">
+<span id="ioos-qc-gliders-module"></span><h2>ioos_qc.gliders module<a class="headerlink" href="#module-ioos_qc.gliders" title="Link to this heading">¶</a></h2>
+<p>Deprecated module. Consider using ARGO instead.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.gliders.pressure_check">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.gliders.</span></span><span class="sig-name descname"><span class="pre">pressure_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/gliders.html#pressure_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.gliders.pressure_check" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-ioos_qc.plotting">
+<span id="ioos-qc-plotting-module"></span><h2>ioos_qc.plotting module<a class="headerlink" href="#module-ioos_qc.plotting" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.plotting.bokeh_multi_plot">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.plotting.</span></span><span class="sig-name descname"><span class="pre">bokeh_multi_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/plotting.html#bokeh_multi_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.plotting.bokeh_multi_plot" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.plotting.bokeh_multi_var">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.plotting.</span></span><span class="sig-name descname"><span class="pre">bokeh_multi_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/plotting.html#bokeh_multi_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.plotting.bokeh_multi_var" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.plotting.bokeh_plot">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.plotting.</span></span><span class="sig-name descname"><span class="pre">bokeh_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/plotting.html#bokeh_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.plotting.bokeh_plot" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.plotting.bokeh_plot_collected_result">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.plotting.</span></span><span class="sig-name descname"><span class="pre">bokeh_plot_collected_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/plotting.html#bokeh_plot_collected_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.plotting.bokeh_plot_collected_result" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.plotting.bokeh_plot_collected_results">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.plotting.</span></span><span class="sig-name descname"><span class="pre">bokeh_plot_collected_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/plotting.html#bokeh_plot_collected_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.plotting.bokeh_plot_collected_results" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.plotting.bokeh_plot_var">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.plotting.</span></span><span class="sig-name descname"><span class="pre">bokeh_plot_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/plotting.html#bokeh_plot_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.plotting.bokeh_plot_var" title="Link to this definition">¶</a></dt>
+<dd><p>Method to plot QC results using Bokeh.</p>
+</dd></dl>
+
+</section>
+<section id="module-ioos_qc.qartod">
+<span id="ioos-qc-qartod-module"></span><h2>ioos_qc.qartod module<a class="headerlink" href="#module-ioos_qc.qartod" title="Link to this heading">¶</a></h2>
+<p>Tests based on the IOOS QARTOD manuals.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">ClimatologyConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">members</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#ClimatologyConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Objects to hold the config for a Climatology test.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tspan</strong> – 2-tuple range.
+If period is defined, then this is a numeric range.
+If period is not defined, then its a date range.</p></li>
+<li><p><strong>fspan</strong> – (optional) 2-tuple range of valid values. This is passed in as the fail_span to the gross_range_test.</p></li>
+<li><p><strong>vspan</strong> – 2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.</p></li>
+<li><p><strong>zspan</strong> – (optional) Vertical (depth) range, in meters positive down</p></li>
+<li><p><strong>period</strong> – <p>(optional) The unit the tspan argument is in. Defaults to datetime object
+but can also be any attribute supported by a pandas Timestamp object.</p>
+<p>See: <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html">https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html</a></p>
+<dl class="simple">
+<dt>Options:</dt><dd><ul>
+<li><p>year</p></li>
+<li><p>week / weekofyear</p></li>
+<li><p>dayofyear</p></li>
+<li><p>dayofweek</p></li>
+<li><p>quarter</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tspan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vspan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fspan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zspan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#ClimatologyConfig.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig.add" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig.check">
+<span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zinp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#ClimatologyConfig.check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig.check" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig.convert">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">convert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#ClimatologyConfig.convert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig.convert" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig.mem">
+<span class="sig-name descname"><span class="pre">mem</span></span><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig.mem" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">window</span></code></p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig.members">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">members</span></span><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig.members" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.qartod.ClimatologyConfig.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#ClimatologyConfig.values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.ClimatologyConfig.values" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tind</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timestamp</span></code></span>) – Value to test for inclusion between time bounds</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.FLAGS">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">FLAGS</span></span><a class="headerlink" href="#ioos_qc.qartod.FLAGS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#ioos_qc.qartod.QartodFlags" title="ioos_qc.qartod.QartodFlags"><code class="xref py py-class docutils literal notranslate"><span class="pre">QartodFlags</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.qartod.QartodFlags">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">QartodFlags</span></span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#QartodFlags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.QartodFlags" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Primary flags for QARTOD.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.QartodFlags.FAIL">
+<span class="sig-name descname"><span class="pre">FAIL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#ioos_qc.qartod.QartodFlags.FAIL" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.QartodFlags.GOOD">
+<span class="sig-name descname"><span class="pre">GOOD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#ioos_qc.qartod.QartodFlags.GOOD" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.QartodFlags.MISSING">
+<span class="sig-name descname"><span class="pre">MISSING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></em><a class="headerlink" href="#ioos_qc.qartod.QartodFlags.MISSING" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.QartodFlags.SUSPECT">
+<span class="sig-name descname"><span class="pre">SUSPECT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#ioos_qc.qartod.QartodFlags.SUSPECT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.QartodFlags.UNKNOWN">
+<span class="sig-name descname"><span class="pre">UNKNOWN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#ioos_qc.qartod.QartodFlags.UNKNOWN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.aggregate">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.aggregate" title="Link to this definition">¶</a></dt>
+<dd><p>Runs qartod_compare against all other qartod tests in results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaskedArray</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.attenuated_signal_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">attenuated_signal_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suspect_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_obs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'std'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#attenuated_signal_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.attenuated_signal_test" title="Link to this definition">¶</a></dt>
+<dd><p>Check for near-flat-line conditions using a range or standard deviation.</p>
+<p>Missing and masked data is flagged as UNKNOWN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Input data as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>tinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Time input data as a numpy array of dtype <cite>datetime64</cite>.</p></li>
+<li><p><strong>suspect_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code></span>) – Any calculated value below this amount will be flagged as SUSPECT.
+In observations units.</p></li>
+<li><p><strong>fail_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code></span>) – Any calculated values below this amount will be flagged as FAIL.
+In observations units.</p></li>
+<li><p><strong>test_period</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Length of time to test over in seconds [optional].
+Otherwise, will test against entire <cite>inp</cite>.</p></li>
+<li><p><strong>min_obs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Minimum number of observations in window required to calculate a result [optional].
+Otherwise, test will start at beginning of time series.
+Note: you can specify either <cite>min_obs</cite> or <cite>min_period</cite>, but not both.</p></li>
+<li><p><strong>min_period</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Minimum number of seconds in test_period required to calculate a result [optional].
+Otherwise, test will start at beginning of time series.
+Note: you can specify either <cite>min_obs</cite> or <cite>min_period</cite>, but not both.</p></li>
+<li><p><strong>check_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Either ‘std’ (default) or ‘range’, depending on the type of check you wish to perform.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.
+This array will always contain only a single unique value since all
+input data is flagged together.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.climatology_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">climatology_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zinp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#climatology_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.climatology_test" title="Link to this definition">¶</a></dt>
+<dd><p>Checks that values are within reasonable range bounds and flags as SUSPECT.</p>
+<p>Data for which no ClimatologyConfig member exists is marked as UNKNOWN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference internal" href="#ioos_qc.qartod.ClimatologyConfig" title="ioos_qc.qartod.ClimatologyConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClimatologyConfig</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>]]]</span>) – A ClimatologyConfig object or a list of dicts containing tuples
+that can be used to create a ClimatologyConfig object. See ClimatologyConfig
+docs for more info.</p></li>
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Input data as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>tinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+If anything else is passed in the format is assumed to be seconds since the unix epoch.</p></li>
+<li><p><strong>zinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.density_inversion_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">density_inversion_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suspect_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#density_inversion_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.density_inversion_test" title="Link to this definition">¶</a></dt>
+<dd><p>With few exceptions, potential water density will increase with increasing pressure. When
+vertical profile data is obtained, this test is used to flag as failed T, C, and SP observations, which
+yield densities that do not sufficiently increase with pressure. A small operator-selected density
+threshold (DT) allows for micro-turbulent exceptions. This test can be run on downcasts, upcasts,
+or down/up cast results produced in real time.</p>
+<p>Both Temperature and Salinity should be flagged based on the result of this test.</p>
+<p>Ref: Manual for Real-Time Quality Control of in-situ Temperature and Salinity Data, Version 2.0, January 2016</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Potential density values as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>zinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Corresponding depth/pressure values for each density.</p></li>
+<li><p><strong>suspect_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – A float value representing a maximum potential density(or sigma0)
+variation to be tolerated, downward density variation exceeding this will be flagged as SUSPECT.</p></li>
+<li><p><strong>fail_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – A float value representing a maximum potential density(or sigma0)
+variation to be tolerated, downward density variation exceeding this will be flagged as FAIL.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.flat_line_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">flat_line_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suspect_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#flat_line_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.flat_line_test" title="Link to this definition">¶</a></dt>
+<dd><p>Check for consecutively repeated values within a tolerance.
+Missing and masked data is flagged as UNKNOWN.
+More information: <a class="reference external" href="https://github.com/ioos/ioos_qc/pull/11">https://github.com/ioos/ioos_qc/pull/11</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Input data as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>tinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+If anything else is passed in the format is assumed to be seconds since the unix epoch.</p></li>
+<li><p><strong>suspect_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The number of seconds within <cite>tolerance</cite> to allow before being flagged as SUSPECT.</p></li>
+<li><p><strong>fail_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – The number of seconds within <cite>tolerance</cite> to allow before being flagged as FAIL.</p></li>
+<li><p><strong>tolerance</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code></span>) – The tolerance that should be exceeded between consecutive values.
+To determine if the current point <cite>n</cite> should be flagged, we use a rolling window, with endpoint at
+point <cite>n</cite>, and calculate the range of values in the window. If that range is less than <cite>tolerance</cite>,
+then the point is flagged.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.gross_range_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">gross_range_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_span</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suspect_span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#gross_range_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.gross_range_test" title="Link to this definition">¶</a></dt>
+<dd><p>Checks that values are within reasonable range bounds.</p>
+<p>Given a 2-tuple of minimum/maximum values, flag data outside of the given
+range as FAIL data.  Optionally also flag data which falls outside of a user
+defined range as SUSPECT. Missing and masked data is flagged as UNKNOWN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Input data as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>fail_span</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – 2-tuple range which to flag outside data as FAIL.</p></li>
+<li><p><strong>suspect_span</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]]</span>) – 2-tuple range which to flag outside data as SUSPECT. [optional]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.location_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">location_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(-180,</span> <span class="pre">-90,</span> <span class="pre">180,</span> <span class="pre">90)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">range_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#location_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.location_test" title="Link to this definition">¶</a></dt>
+<dd><p>Checks that a location is within reasonable bounds.</p>
+<p>Checks that longitude and latitude are within reasonable bounds defaulting
+to lon = [-180, 180] and lat = [-90, 90].  Optionally, check for a maximum
+range parameter in great circle distance defaulting to meters which can
+also use a unit from the quantities library. Missing and masked data is
+flagged as UNKNOWN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lon</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Longitudes as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>lat</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Latitudes as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>bbox</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].</p></li>
+<li><p><strong>range_max</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Maximum allowed range expressed in geodesic curve distance (meters).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.qartod_compare">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">qartod_compare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vectors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#qartod_compare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.qartod_compare" title="Link to this definition">¶</a></dt>
+<dd><p>Aggregates an array of flags by precedence into a single array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vectors</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]]</span>) – An array of uniform length arrays representing individual flags</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of aggregated flag data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.rate_of_change_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">rate_of_change_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#rate_of_change_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.rate_of_change_test" title="Link to this definition">¶</a></dt>
+<dd><p>Checks the first order difference of a series of values to see if
+there are any values exceeding a threshold defined by the inputs.
+These are then marked as SUSPECT.  It is up to the test operator
+to determine an appropriate threshold value for the absolute difference not to
+exceed. Threshold is expressed as a rate in observations units per second.
+Missing and masked data is flagged as UNKNOWN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Input data as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>tinp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
+This includes numpy datetime64, python datetime objects and pandas Timestamp object.
+ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
+If anything else is passed in the format is assumed to be seconds since the unix epoch.</p></li>
+<li><p><strong>threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – A float value representing a rate of change over time, in observation units per second.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.qartod.span">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">span</span></span><a class="headerlink" href="#ioos_qc.qartod.span" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Span</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.qartod.spike_test">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.qartod.</span></span><span class="sig-name descname"><span class="pre">spike_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suspect_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'average'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/qartod.html#spike_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.qartod.spike_test" title="Link to this definition">¶</a></dt>
+<dd><p>Check for spikes by checking neighboring data against thresholds.</p>
+<p>Determine if there is a spike at data point n-1 by subtracting
+the midpoint of n and n-2 and taking the absolute value of this
+quantity, and checking if it exceeds a low or high threshold (default).
+Values which do not exceed either threshold are flagged GOOD,
+values which exceed the low threshold are flagged SUSPECT,
+and values which exceed the high threshold are flagged FAIL.
+Missing and masked data is flagged as UNKNOWN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inp</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – Input data as a numeric numpy array or a list of numbers.</p></li>
+<li><p><strong>suspect_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – The SUSPECT threshold value, in observations units.</p></li>
+<li><p><strong>fail_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code>]</span>) – The SUSPECT threshold value, in observations units.</p></li>
+<li><p><strong>method</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – <dl class="simple">
+<dt>[‘average’(default),’differential’] optional input to assign the method used to detect spikes.</dt><dd><ul>
+<li><dl class="simple">
+<dt>”average”: Determine if there is a spike at data point n-1 by subtracting</dt><dd><p>the midpoint of n and n-2 and taking the absolute value of this
+quantity, and checking if it exceeds a low or high threshold.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>”differential”: Determine if there is a spike at data point n by calculating the difference</dt><dd><p>between n and n-1 and n+1 and n variation. To considered, (n - n-1)*(n+1 - n) should
+be smaller than zero (in opposite direction).</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A masked array of flag values equal in size to that of the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>flag_arr</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-ioos_qc.results">
+<span id="ioos-qc-results-module"></span><h2>ioos_qc.results module<a class="headerlink" href="#module-ioos_qc.results" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.results.CallResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.results.</span></span><span class="sig-name descname"><span class="pre">CallResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#CallResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.CallResult" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CallResult.function">
+<span class="sig-name descname"><span class="pre">function</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code></em><a class="headerlink" href="#ioos_qc.results.CallResult.function" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CallResult.package">
+<span class="sig-name descname"><span class="pre">package</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#ioos_qc.results.CallResult.package" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CallResult.results">
+<span class="sig-name descname"><span class="pre">results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.CallResult.results" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CallResult.test">
+<span class="sig-name descname"><span class="pre">test</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#ioos_qc.results.CallResult.test" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.results.</span></span><span class="sig-name descname"><span class="pre">CollectedResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zinp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#CollectedResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.CollectedResult" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.data">
+<span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.function">
+<span class="sig-name descname"><span class="pre">function</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.function" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.function_name">
+<span class="sig-name descname"><span class="pre">function_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#CollectedResult.function_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.CollectedResult.function_name" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.hash_key">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hash_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.hash_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.lat">
+<span class="sig-name descname"><span class="pre">lat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.lat" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.lon">
+<span class="sig-name descname"><span class="pre">lon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.lon" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.package">
+<span class="sig-name descname"><span class="pre">package</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.package" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.results">
+<span class="sig-name descname"><span class="pre">results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">MaskedArray</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.results" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.stream_id">
+<span class="sig-name descname"><span class="pre">stream_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.stream_id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.test">
+<span class="sig-name descname"><span class="pre">test</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.test" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.tinp">
+<span class="sig-name descname"><span class="pre">tinp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.tinp" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.CollectedResult.zinp">
+<span class="sig-name descname"><span class="pre">zinp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ioos_qc.results.CollectedResult.zinp" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.results.</span></span><span class="sig-name descname"><span class="pre">ContextResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_indexes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zinp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#ContextResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.ContextResult" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.data">
+<span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.data" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.lat">
+<span class="sig-name descname"><span class="pre">lat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.lat" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.lon">
+<span class="sig-name descname"><span class="pre">lon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.lon" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.results">
+<span class="sig-name descname"><span class="pre">results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><a class="reference internal" href="#ioos_qc.results.CallResult" title="ioos_qc.results.CallResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">CallResult</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#ioos_qc.results.ContextResult.results" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.stream_id">
+<span class="sig-name descname"><span class="pre">stream_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.stream_id" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.subset_indexes">
+<span class="sig-name descname"><span class="pre">subset_indexes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.subset_indexes" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.tinp">
+<span class="sig-name descname"><span class="pre">tinp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.tinp" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ioos_qc.results.ContextResult.zinp">
+<span class="sig-name descname"><span class="pre">zinp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#ioos_qc.results.ContextResult.zinp" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.results.collect_results">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.results.</span></span><span class="sig-name descname"><span class="pre">collect_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#collect_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.collect_results" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.results.collect_results_dict">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.results.</span></span><span class="sig-name descname"><span class="pre">collect_results_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#collect_results_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.collect_results_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Turns a list of ContextResult objects into a dictionary of test results
+by combining the subset_index information in each ContextResult together into
+a single array of results. This is mostly here for historical purposes. Users
+should migrate to using the Result objects directly.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.results.collect_results_list">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.results.</span></span><span class="sig-name descname"><span class="pre">collect_results_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/results.html#collect_results_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.results.collect_results_list" title="Link to this definition">¶</a></dt>
+<dd><p>Turns a list of ContextResult objects into an iterator of CollectedResult objects
+by combining the subset_index information in each ContextResult together into
+a single array of results.</p>
+</dd></dl>
+
+</section>
+<section id="module-ioos_qc.stores">
+<span id="ioos-qc-stores-module"></span><h2>ioos_qc.stores module<a class="headerlink" href="#module-ioos_qc.stores" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.stores.BaseStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.stores.</span></span><span class="sig-name descname"><span class="pre">BaseStore</span></span><a class="reference internal" href="../_modules/ioos_qc/stores.html#BaseStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.BaseStore" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.stores.BaseStore.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#BaseStore.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.BaseStore.save" title="Link to this definition">¶</a></dt>
+<dd><p>Serialize results to a store. This could save a file or publish messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ioos_qc.stores.BaseStore.stream_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stream_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ioos_qc.stores.BaseStore.stream_ids" title="Link to this definition">¶</a></dt>
+<dd><p>A list of stream_ids to save to the store.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.stores.CFNetCDFStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.stores.</span></span><span class="sig-name descname"><span class="pre">CFNetCDFStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#CFNetCDFStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.CFNetCDFStore" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ioos_qc.stores.BaseStore" title="ioos_qc.stores.BaseStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseStore</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.stores.CFNetCDFStore.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_ncd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsg_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_aggregate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#CFNetCDFStore.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.CFNetCDFStore.save" title="Link to this definition">¶</a></dt>
+<dd><p>Serialize results to a store. This could save a file or publish messages.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ioos_qc.stores.CFNetCDFStore.stream_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stream_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ioos_qc.stores.CFNetCDFStore.stream_ids" title="Link to this definition">¶</a></dt>
+<dd><p>A list of stream_ids to save to the store.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.stores.NetcdfStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.stores.</span></span><span class="sig-name descname"><span class="pre">NetcdfStore</span></span><a class="reference internal" href="../_modules/ioos_qc/stores.html#NetcdfStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.NetcdfStore" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.stores.NetcdfStore.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_ncd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#NetcdfStore.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.NetcdfStore.save" title="Link to this definition">¶</a></dt>
+<dd><p>Updates the given netcdf with test configuration and results.
+If there is already a variable for a given test, it will update that variable with the latest results.
+Otherwise, it will create a new variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_or_ncd</strong> – path or netcdf4 Dataset in which to store results</p></li>
+<li><p><strong>results</strong> – output of run()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.stores.PandasStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.stores.</span></span><span class="sig-name descname"><span class="pre">PandasStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#PandasStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.PandasStore" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ioos_qc.stores.BaseStore" title="ioos_qc.stores.BaseStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseStore</span></code></a></p>
+<p>Store results in a dataframe.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.stores.PandasStore.compute_aggregate">
+<span class="sig-name descname"><span class="pre">compute_aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rollup'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#PandasStore.compute_aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.PandasStore.compute_aggregate" title="Link to this definition">¶</a></dt>
+<dd><p>Internally compute the total aggregate and add it to the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.stores.PandasStore.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">write_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#PandasStore.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.PandasStore.save" title="Link to this definition">¶</a></dt>
+<dd><p>Serialize results to a store. This could save a file or publish messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="ioos_qc.stores.PandasStore.stream_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stream_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ioos_qc.stores.PandasStore.stream_ids" title="Link to this definition">¶</a></dt>
+<dd><p>A list of stream_ids to save to the store.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.stores.column_from_collected_result">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.stores.</span></span><span class="sig-name descname"><span class="pre">column_from_collected_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/stores.html#column_from_collected_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.stores.column_from_collected_result" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-ioos_qc.streams">
+<span id="ioos-qc-streams-module"></span><h2>ioos_qc.streams module<a class="headerlink" href="#module-ioos_qc.streams" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.streams.BaseStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.streams.</span></span><span class="sig-name descname"><span class="pre">BaseStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#BaseStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.BaseStream" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Each stream should define how to return a list of datastreams along with
+their time and depth association. Each of these streams will passed through
+quality control configurations and returned back to it. Each stream needs
+to also define what to do with the resulting results (how to store them.).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.BaseStream.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#BaseStream.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.BaseStream.data" title="Link to this definition">¶</a></dt>
+<dd><p>Return the data array from the source dataset based on stream_id. This is useful when
+plotting QC results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.BaseStream.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#BaseStream.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.BaseStream.run" title="Link to this definition">¶</a></dt>
+<dd><p>Iterate over the configs, splitting the streams up by geographic and time window
+before applying the individual config using QcConfig.run(). Store results for future usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.BaseStream.time">
+<span class="sig-name descname"><span class="pre">time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#BaseStream.time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.BaseStream.time" title="Link to this definition">¶</a></dt>
+<dd><p>Return the time array from the source dataset.
+This is useful when plotting QC results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.streams.NetcdfStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.streams.</span></span><span class="sig-name descname"><span class="pre">NetcdfStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_ncd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NetcdfStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NetcdfStream" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.NetcdfStream.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NetcdfStream.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NetcdfStream.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.NetcdfStream.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NetcdfStream.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NetcdfStream.run" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.NetcdfStream.time">
+<span class="sig-name descname"><span class="pre">time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NetcdfStream.time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NetcdfStream.time" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.streams.NumpyStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.streams.</span></span><span class="sig-name descname"><span class="pre">NumpyStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NumpyStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NumpyStream" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.NumpyStream.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NumpyStream.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NumpyStream.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.NumpyStream.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NumpyStream.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NumpyStream.run" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.NumpyStream.time">
+<span class="sig-name descname"><span class="pre">time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#NumpyStream.time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.NumpyStream.time" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.streams.PandasStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.streams.</span></span><span class="sig-name descname"><span class="pre">PandasStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#PandasStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.PandasStream" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.PandasStream.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#PandasStream.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.PandasStream.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.PandasStream.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#PandasStream.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.PandasStream.run" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.PandasStream.time">
+<span class="sig-name descname"><span class="pre">time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#PandasStream.time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.PandasStream.time" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.streams.XarrayStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.streams.</span></span><span class="sig-name descname"><span class="pre">XarrayStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_ncd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#XarrayStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.XarrayStream" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.XarrayStream.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#XarrayStream.data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.XarrayStream.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.XarrayStream.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#XarrayStream.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.XarrayStream.run" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.streams.XarrayStream.time">
+<span class="sig-name descname"><span class="pre">time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/streams.html#XarrayStream.time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.streams.XarrayStream.time" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ioos_qc.utils">
+<span id="ioos-qc-utils-module"></span><h2>ioos_qc.utils module<a class="headerlink" href="#module-ioos_qc.utils" title="Link to this heading">¶</a></h2>
+<p>Utilities.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ioos_qc.utils.GeoNumpyDateEncoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">GeoNumpyDateEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skipkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_ascii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_circular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'utf-8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_decimal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namedtuple_as_object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tuple_as_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bigint_as_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_sort_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">for_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_as_string_bitcount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable_as_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#GeoNumpyDateEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.GeoNumpyDateEncoder" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">GeoJSONEncoder</span></code></p>
+<p>Encode numpy dates for geospatial formats.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ioos_qc.utils.GeoNumpyDateEncoder.default">
+<span class="sig-name descname"><span class="pre">default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#GeoNumpyDateEncoder.default"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.GeoNumpyDateEncoder.default" title="Link to this definition">¶</a></dt>
+<dd><p>If input object is an ndarray it will be converted into a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.add_flag_metadata">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">add_flag_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#add_flag_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.add_flag_metadata" title="Link to this definition">¶</a></dt>
+<dd><p>Add flag metadata.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.cf_safe_name">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">cf_safe_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#cf_safe_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.cf_safe_name" title="Link to this definition">¶</a></dt>
+<dd><p>Make CF safe names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.check_timestamps">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">check_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_time_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#check_timestamps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.check_timestamps" title="Link to this definition">¶</a></dt>
+<dd><p>Sanity checks for timestamp arrays.</p>
+<p>Checks that the times supplied are in monotonically increasing
+chronological order, and optionally that time intervals between
+measurements do not exceed a value <cite>max_time_interval</cite>.  Note that this is
+not a QARTOD test, but rather a utility test to make sure times are in the
+proper order and optionally do not have large gaps prior to processing the
+data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>times</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span>) – Input array of timestamps</p></li>
+<li><p><strong>max_time_interval</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Real</span></code></span>) – The interval between values should not exceed this value. [optional]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.dict_depth">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">dict_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#dict_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.dict_depth" title="Link to this definition">¶</a></dt>
+<dd><p>Get the depth of a dict.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.dict_update">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">dict_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#dict_update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.dict_update" title="Link to this definition">¶</a></dt>
+<dd><p>Update value of a nested dictionary of varying depth.</p>
+<p><a class="reference external" href="http://stackoverflow.com/a/3233356">http://stackoverflow.com/a/3233356</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.great_circle_distance">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">great_circle_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_arr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#great_circle_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.great_circle_distance" title="Link to this definition">¶</a></dt>
+<dd><p>Compute great circle distances.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.isfixedlength">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">isfixedlength</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#isfixedlength"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.isfixedlength" title="Link to this definition">¶</a></dt>
+<dd><p>Check if a list has the correct length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.isnan">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">isnan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#isnan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.isnan" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if a value is NaN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.load_config_as_dict">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">load_config_as_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#load_config_as_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.load_config_as_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Load an object as a config dict. The source can be a dict, OrderedDict,
+YAML string, JSON string, a StringIO, or a file path to a valid YAML or
+JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">OrderedDict</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.load_config_from_xarray">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">load_config_from_xarray</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#load_config_from_xarray"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.load_config_from_xarray" title="Link to this definition">¶</a></dt>
+<dd><p>Load an xarray dataset as a config dict.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.mapdates">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">mapdates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#mapdates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.mapdates" title="Link to this definition">¶</a></dt>
+<dd><p>Map dates objects to datetime64[ns].</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ioos_qc.utils.openf">
+<span class="sig-prename descclassname"><span class="pre">ioos_qc.utils.</span></span><span class="sig-name descname"><span class="pre">openf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ioos_qc/utils.html#openf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ioos_qc.utils.openf" title="Link to this definition">¶</a></dt>
+<dd><p>Allow one-line-lambdas to read file contents.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">ioos_qc</a></h1>
+
+
+
+<p class="blurb">IOOS QARTOD and other Quality Control tests implemented in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=ioos&repo=ioos_qc&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Notebook Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html">IOOS QC Releases and Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development and Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../other.html">Other QARTOD Implementations</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ioos_qc</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ioos_qc package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ioos_qc.config_creator.html">ioos_qc.config_creator package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.argo">ioos_qc.argo module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.argo.pressure_increasing_test"><code class="docutils literal notranslate"><span class="pre">pressure_increasing_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.argo.speed_test"><code class="docutils literal notranslate"><span class="pre">speed_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.axds">ioos_qc.axds module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.axds.span"><code class="docutils literal notranslate"><span class="pre">span</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.axds.valid_range_test"><code class="docutils literal notranslate"><span class="pre">valid_range_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ioos-qc-config-module">ioos_qc.config module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.gliders">ioos_qc.gliders module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.gliders.pressure_check"><code class="docutils literal notranslate"><span class="pre">pressure_check()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.plotting">ioos_qc.plotting module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.plotting.bokeh_multi_plot"><code class="docutils literal notranslate"><span class="pre">bokeh_multi_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.plotting.bokeh_multi_var"><code class="docutils literal notranslate"><span class="pre">bokeh_multi_var()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.plotting.bokeh_plot"><code class="docutils literal notranslate"><span class="pre">bokeh_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.plotting.bokeh_plot_collected_result"><code class="docutils literal notranslate"><span class="pre">bokeh_plot_collected_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.plotting.bokeh_plot_collected_results"><code class="docutils literal notranslate"><span class="pre">bokeh_plot_collected_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.plotting.bokeh_plot_var"><code class="docutils literal notranslate"><span class="pre">bokeh_plot_var()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.qartod">ioos_qc.qartod module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.ClimatologyConfig"><code class="docutils literal notranslate"><span class="pre">ClimatologyConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.FLAGS"><code class="docutils literal notranslate"><span class="pre">FLAGS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.QartodFlags"><code class="docutils literal notranslate"><span class="pre">QartodFlags</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.attenuated_signal_test"><code class="docutils literal notranslate"><span class="pre">attenuated_signal_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.climatology_test"><code class="docutils literal notranslate"><span class="pre">climatology_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.density_inversion_test"><code class="docutils literal notranslate"><span class="pre">density_inversion_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.flat_line_test"><code class="docutils literal notranslate"><span class="pre">flat_line_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.gross_range_test"><code class="docutils literal notranslate"><span class="pre">gross_range_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.location_test"><code class="docutils literal notranslate"><span class="pre">location_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.qartod_compare"><code class="docutils literal notranslate"><span class="pre">qartod_compare()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.rate_of_change_test"><code class="docutils literal notranslate"><span class="pre">rate_of_change_test()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.span"><code class="docutils literal notranslate"><span class="pre">span</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.qartod.spike_test"><code class="docutils literal notranslate"><span class="pre">spike_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.results">ioos_qc.results module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.results.CallResult"><code class="docutils literal notranslate"><span class="pre">CallResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.results.CollectedResult"><code class="docutils literal notranslate"><span class="pre">CollectedResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.results.ContextResult"><code class="docutils literal notranslate"><span class="pre">ContextResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.results.collect_results"><code class="docutils literal notranslate"><span class="pre">collect_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.results.collect_results_dict"><code class="docutils literal notranslate"><span class="pre">collect_results_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.results.collect_results_list"><code class="docutils literal notranslate"><span class="pre">collect_results_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.stores">ioos_qc.stores module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.stores.BaseStore"><code class="docutils literal notranslate"><span class="pre">BaseStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.stores.CFNetCDFStore"><code class="docutils literal notranslate"><span class="pre">CFNetCDFStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.stores.NetcdfStore"><code class="docutils literal notranslate"><span class="pre">NetcdfStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.stores.PandasStore"><code class="docutils literal notranslate"><span class="pre">PandasStore</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.stores.column_from_collected_result"><code class="docutils literal notranslate"><span class="pre">column_from_collected_result()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.streams">ioos_qc.streams module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.streams.BaseStream"><code class="docutils literal notranslate"><span class="pre">BaseStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.streams.NetcdfStream"><code class="docutils literal notranslate"><span class="pre">NetcdfStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.streams.NumpyStream"><code class="docutils literal notranslate"><span class="pre">NumpyStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.streams.PandasStream"><code class="docutils literal notranslate"><span class="pre">PandasStream</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.streams.XarrayStream"><code class="docutils literal notranslate"><span class="pre">XarrayStream</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-ioos_qc.utils">ioos_qc.utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.GeoNumpyDateEncoder"><code class="docutils literal notranslate"><span class="pre">GeoNumpyDateEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.add_flag_metadata"><code class="docutils literal notranslate"><span class="pre">add_flag_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.cf_safe_name"><code class="docutils literal notranslate"><span class="pre">cf_safe_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.check_timestamps"><code class="docutils literal notranslate"><span class="pre">check_timestamps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.dict_depth"><code class="docutils literal notranslate"><span class="pre">dict_depth()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.dict_update"><code class="docutils literal notranslate"><span class="pre">dict_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.great_circle_distance"><code class="docutils literal notranslate"><span class="pre">great_circle_distance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.isfixedlength"><code class="docutils literal notranslate"><span class="pre">isfixedlength()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.isnan"><code class="docutils literal notranslate"><span class="pre">isnan()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.load_config_as_dict"><code class="docutils literal notranslate"><span class="pre">load_config_as_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.load_config_from_xarray"><code class="docutils literal notranslate"><span class="pre">load_config_from_xarray()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.mapdates"><code class="docutils literal notranslate"><span class="pre">mapdates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ioos_qc.utils.openf"><code class="docutils literal notranslate"><span class="pre">openf()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ioos_qc</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">ioos_qc</a></li>
+      <li>Next: <a href="ioos_qc.config_creator.html" title="next chapter">ioos_qc.config_creator package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022-2025, IOOS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

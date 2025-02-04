@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Usage &#8212; ioos_qc 2.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=b21de401"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="IOOS QARTOD Resources" href="resources.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h1>
+<p>At its core, <code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code> is a collection of modules and methods to run various quality control checks on an input stream of data.</p>
+<p>The following implementations are available in <code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code>:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://ioos.noaa.gov/project/qartod/">IOOS QARTOD</a> - <a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.qartod" title="ioos_qc.qartod"><code class="xref py py-mod docutils literal notranslate"><span class="pre">API</span></code></a></p></li>
+<li><p><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.argo" title="ioos_qc.argo"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ARGO</span> <span class="pre">-</span> <span class="pre">API</span></code></a></p></li>
+<li><p><a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.axds" title="ioos_qc.axds"><code class="xref py py-mod docutils literal notranslate"><span class="pre">AXDS</span> <span class="pre">-</span> <span class="pre">API</span></code></a> - A collection of checks used by <a class="reference external" href="https://axiomdatascience.com">Axiom Data Science</a></p></li>
+</ul>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Calling a test manually</span><a class="headerlink" href="#id3" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc</span><span class="w"> </span><span class="kn">import</span> <span class="n">qartod</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="n">results</span> <span class="o">=</span> <span class="n">qartod</span><span class="o">.</span><span class="n">gross_range_test</span><span class="p">(</span>
+<span class="linenos"> 4</span>    <span class="n">inp</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
+<span class="linenos"> 5</span>    <span class="n">suspect_span</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
+<span class="linenos"> 6</span>    <span class="n">fail_span</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+<span class="linenos"> 7</span><span class="p">)</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="c1"># prints a masked array with values:</span>
+<span class="linenos">12</span><span class="c1"># [1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 4, 4]</span>
+</pre></div>
+</div>
+</div>
+<p>In this example, we call the <code class="docutils literal notranslate"><span class="pre">gross_range_test</span></code> on a list of dummy data.
+We’ve configured the test to fail if the data is outside the range <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">10]</span></code> and be marked suspect if outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">8]</span></code>.
+The test returns an array of qc results for each data point, where <code class="docutils literal notranslate"><span class="pre">1</span></code> is PASS, <code class="docutils literal notranslate"><span class="pre">3</span></code> is SUSPECT, and <code class="docutils literal notranslate"><span class="pre">4</span></code> is FAIL.</p>
+</section>
+<section id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading">¶</a></h2>
+<p>If all you want to do is run a one-time test against a stream of data, then all you really need is the example above.
+However, in most projects, the hard part is not implementing the qc test methods themselves, rather it is problems such as:</p>
+<ul class="simple">
+<li><p>How to store QC test configurations and manage them?</p></li>
+<li><p>How to manage the inputs (data) going into the test, and the output (results) coming out?</p></li>
+<li><p>How to share QC result with your users in a consistent way that follows community standards?</p></li>
+<li><p>How to ensure that your test implementations perform well against large datasets?</p></li>
+<li><p>How to generate baseline QC configurations for a dataset?</p></li>
+<li><p>How to visualize and communicate QC results in a standard way?</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code> project does not just implement QC algorithms – it attempts to help you with these problems as well.</p>
+<p>The following sections explore concepts that <code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code> uses to help you manage and run your tests efficiently.</p>
+</section>
+<section id="concepts">
+<h2>Concepts<a class="headerlink" href="#concepts" title="Link to this heading">¶</a></h2>
+<p>There are three main concepts in the <code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code> project:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#configurations">Configurations</a>: Standardized quality control definitions</p></li>
+<li><p><a class="reference internal" href="#streams">Streams</a>: Flexible data source classes to support running qualith checks against various data formats</p></li>
+<li><p><a class="reference internal" href="#stores">Stores</a>: Flexible data storage classes to support storing quality results in various data formats</p></li>
+<li><p><a class="reference internal" href="#configgeneration">ConfigGeneration</a>: Classes to generate configuration objects based on external climatology datasets</p></li>
+</ul>
+</section>
+<section id="configurations">
+<h2>Configurations<a class="headerlink" href="#configurations" title="Link to this heading">¶</a></h2>
+<p>Configuration objects represent a collection of quality control tests to run and the parameters for each one. There are three main types of <cite>Config</cite> objects:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#contextconfig">ContextConfig</a>: This defines a collection of <code class="docutils literal notranslate"><span class="pre">ConfigTypes</span></code> objects. These can be applied to multiple variables provided in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>, <code class="docutils literal notranslate"><span class="pre">dask.DataFrame</span></code>, <code class="docutils literal notranslate"><span class="pre">netCDF4.Dataset</span></code>, or <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>. Optionally, these configs can be constrained to specific time domains (<code class="docutils literal notranslate"><span class="pre">windows</span></code>) – and/or spatial domains (<code class="docutils literal notranslate"><span class="pre">regions</span></code>).</p></li>
+<li><p><a class="reference internal" href="#config">Config</a>: A collection of <code class="docutils literal notranslate"><span class="pre">ContextConfig</span></code> objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.</p></li>
+</ul>
+<p>Each configuration type can be initialized through Python objects or from files and can be represented in the following ways:</p>
+<ul class="simple">
+<li><p>python - <code class="docutils literal notranslate"><span class="pre">dict</span></code> or <code class="docutils literal notranslate"><span class="pre">OrderedDict</span></code></p></li>
+<li><p>JSON/YAML filepath (<code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">Path</span></code> object), <code class="docutils literal notranslate"><span class="pre">str</span></code>, or <code class="docutils literal notranslate"><span class="pre">StringIO</span></code></p></li>
+</ul>
+<p>In addition, the <code class="docutils literal notranslate"><span class="pre">ContextConfig</span></code> and <code class="docutils literal notranslate"><span class="pre">Config</span></code> objects can be initialized with:</p>
+<ul class="simple">
+<li><p>netCDF4/xarray filepath (<code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">Path</span></code> object) or <code class="docutils literal notranslate"><span class="pre">Dataset</span></code></p></li>
+</ul>
+<section id="contextconfig">
+<h3>ContextConfig<a class="headerlink" href="#contextconfig" title="Link to this heading">¶</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">ContextConfig</span></code> object defines multiple <code class="docutils literal notranslate"><span class="pre">ConfigTypes</span></code> objects as well as optional <cite>region</cite> and <cite>window</cite> objects.</p>
+<section id="region">
+<h4>region<a class="headerlink" href="#region" title="Link to this heading">¶</a></h4>
+<p>A <cite>GeoJSON</cite> representation of a geographical region. This is processed into a <code class="docutils literal notranslate"><span class="pre">shapely.geometry.GeometryCollection</span></code> internally for intersection calculations.</p>
+</section>
+<section id="window">
+<h4>window<a class="headerlink" href="#window" title="Link to this heading">¶</a></h4>
+<p>An object defining a time window using <code class="docutils literal notranslate"><span class="pre">starting</span></code> and <code class="docutils literal notranslate"><span class="pre">ending</span></code>. Internally this is defined as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">window</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s1">&#39;TimeWindow&#39;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;starting&#39;</span><span class="p">,</span> <span class="s1">&#39;ending&#39;</span><span class="p">),</span>
+    <span class="n">defaults</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h4>Usage<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">A basic <code class="docutils literal notranslate"><span class="pre">ContextConfig</span></code> object</span><a class="headerlink" href="#id4" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextConfig</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 4</span><span class="s2">    region: null</span>
+<span class="linenos"> 5</span><span class="s2">    window:</span>
+<span class="linenos"> 6</span><span class="s2">        starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos"> 7</span><span class="s2">        ending: 2020-04-01T00:00:00Z</span>
+<span class="linenos"> 8</span><span class="s2">    streams:</span>
+<span class="linenos"> 9</span><span class="s2">        variable1:</span>
+<span class="linenos">10</span><span class="s2">            qartod:</span>
+<span class="linenos">11</span><span class="s2">                location_test:</span>
+<span class="linenos">12</span><span class="s2">                    bbox: [-80, 40, -70, 60]</span>
+<span class="linenos">13</span><span class="s2">        variable2:</span>
+<span class="linenos">14</span><span class="s2">            qartod:</span>
+<span class="linenos">15</span><span class="s2">                gross_range_test:</span>
+<span class="linenos">16</span><span class="s2">                    suspect_span: [1, 11]</span>
+<span class="linenos">17</span><span class="s2">                    fail_span: [0, 12]</span>
+<span class="linenos">18</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">19</span><span class="n">c</span> <span class="o">=</span> <span class="n">ContextConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">20</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1"># Also loadable as a Config</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="config">
+<h3>Config<a class="headerlink" href="#config" title="Link to this heading">¶</a></h3>
+<p>The highest level and most flexible configuration object is a <code class="docutils literal notranslate"><span class="pre">Config</span></code>. It can describe quality control configurations for any number of regions, windows and streams.</p>
+<section id="id2">
+<h4>Usage<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">A basic <code class="docutils literal notranslate"><span class="pre">Config</span></code> object</span><a class="headerlink" href="#id5" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 4</span><span class="s2">    contexts:</span>
+<span class="linenos"> 5</span><span class="s2">        -   region: null</span>
+<span class="linenos"> 6</span><span class="s2">            window:</span>
+<span class="linenos"> 7</span><span class="s2">                starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos"> 8</span><span class="s2">                ending: 2020-04-01T00:00:00Z</span>
+<span class="linenos"> 9</span><span class="s2">            streams:</span>
+<span class="linenos">10</span><span class="s2">                variable1:</span>
+<span class="linenos">11</span><span class="s2">                    qartod:</span>
+<span class="linenos">12</span><span class="s2">                        location_test:</span>
+<span class="linenos">13</span><span class="s2">                            bbox: [-80, 40, -70, 60]</span>
+<span class="linenos">14</span><span class="s2">                variable2:</span>
+<span class="linenos">15</span><span class="s2">                    qartod:</span>
+<span class="linenos">16</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">17</span><span class="s2">                            suspect_span: [1, 11]</span>
+<span class="linenos">18</span><span class="s2">                            fail_span: [0, 12]</span>
+<span class="linenos">19</span><span class="s2">        -   region: null</span>
+<span class="linenos">20</span><span class="s2">            window:</span>
+<span class="linenos">21</span><span class="s2">                starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos">22</span><span class="s2">                ending: 2020-04-01T00:00:00Z</span>
+<span class="linenos">23</span><span class="s2">            streams:</span>
+<span class="linenos">24</span><span class="s2">                variable1:</span>
+<span class="linenos">25</span><span class="s2">                    qartod:</span>
+<span class="linenos">26</span><span class="s2">                        location_test:</span>
+<span class="linenos">27</span><span class="s2">                            bbox: [-80, 40, -70, 60]</span>
+<span class="linenos">28</span><span class="s2">                variable2:</span>
+<span class="linenos">29</span><span class="s2">                    qartod:</span>
+<span class="linenos">30</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">31</span><span class="s2">                            suspect_span: [1, 11]</span>
+<span class="linenos">32</span><span class="s2">                            fail_span: [0, 12]</span>
+<span class="linenos">33</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">34</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="streams">
+<h2>Streams<a class="headerlink" href="#streams" title="Link to this heading">¶</a></h2>
+<p>Streams represent the data input types for running quality control tests. A user “runs” a stream of data through a collection of quality control tests defined by a <a class="reference internal" href="#config">Config</a>. A list of possible Streams can be found in the <a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.streams" title="ioos_qc.streams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Streams</span> <span class="pre">API</span></code></a>.
+All streams return a generator of QC results that contain contextual information that can be useful when using the results. You can iterate over the results generator directly or you can collect them into more familiar <code class="docutils literal notranslate"><span class="pre">list</span></code> or <code class="docutils literal notranslate"><span class="pre">dict</span></code> objects before usage. If you are
+working in a streaming environment you will want to use generator result objects yourself. If you are running one-time or batch process quality checks you likely want to collect the results or use one of the <a class="reference internal" href="#stores">Stores</a> provided by <code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code> comes with some built-in <a class="reference internal" href="#streams">Streams</a>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#numpystream">NumpyStream</a> - Run QC checks against an numpy array</p></li>
+<li><p><a class="reference internal" href="#pandasstream">PandasStream</a> - Run QC checks against a DataFrame</p></li>
+<li><p><a class="reference internal" href="#xarraystream">XarrayStream</a> - Run QC checks staing an xarray Dataset</p></li>
+<li><p><a class="reference internal" href="#netcdfstream">NetcdfStream</a> - Run QC checks against a netCDF file (deprecated - use <code class="docutils literal notranslate"><span class="pre">XarrayStream</span></code>)</p></li>
+</ul>
+<section id="results">
+<h3>Results<a class="headerlink" href="#results" title="Link to this heading">¶</a></h3>
+<p>Each yielded result will be a <code class="xref py py-mod docutils literal notranslate"><span class="pre">StreamConfigResult</span></code> or a <a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.ContextResult" title="ioos_qc.results.ContextResult"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ContextResult</span></code></a>, depending on which type of <a class="reference internal" href="#config">Config</a> object was used. Collected results are only ever of one type, a <a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.CollectedResult" title="ioos_qc.results.CollectedResult"><code class="xref py py-mod docutils literal notranslate"><span class="pre">CollectedResult</span></code></a>, and only one <code class="docutils literal notranslate"><span class="pre">CollectedResult</span></code> will be returned after collecting Results. The benefit of using a <code class="docutils literal notranslate"><span class="pre">CollectedResult</span></code> is that it will piece back together all of the different <a class="reference internal" href="#contextconfig">ContextConfig</a> objects in a <a class="reference internal" href="#config">Config</a> and return you one result per unique <code class="docutils literal notranslate"><span class="pre">stream_id</span></code> and module/test combination.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For example: If you had a <a class="reference internal" href="#config">Config</a> object that contained (3) different <a class="reference internal" href="#contextconfig">ContextConfig</a> objects (each defining a time window and test inputs) for a single variable/<code class="docutils literal notranslate"><span class="pre">stream_id</span></code>, running that <code class="docutils literal notranslate"><span class="pre">Config</span></code> through any <code class="docutils literal notranslate"><span class="pre">Stream</span></code> implementation would yield (3) different <code class="docutils literal notranslate"><span class="pre">ContextResult</span></code> objects. You could use them yourself to construct whatever results you wanted to manually, or you could collect those results back into a single <code class="docutils literal notranslate"><span class="pre">CollectedResult</span></code> object to only have to deal with one result.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Historically, test results were returned in a <code class="docutils literal notranslate"><span class="pre">dict</span></code> structure. While this is still supported it <strong>should be considered deprecated</strong>. The individually yielded result objects or a list of <a class="reference internal" href="api/ioos_qc.html#ioos_qc.results.CollectedResult" title="ioos_qc.results.CollectedResult"><code class="xref py py-mod docutils literal notranslate"><span class="pre">CollectedResult</span> <span class="pre">objects</span></code></a> should be used in any applications, including any implementation of <a class="reference internal" href="#stores">Stores</a>, going forward.</p>
+</div>
+<div class="literal-block-wrapper docutils container" id="id6">
+<div class="code-block-caption"><span class="caption-text">Different way to use Stream results</span><a class="headerlink" href="#id6" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">PandasStream</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_results</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 8</span><span class="s2">    contexts:</span>
+<span class="linenos"> 9</span><span class="s2">        -   window:</span>
+<span class="linenos">10</span><span class="s2">                starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos">11</span><span class="s2">                ending: 2020-02-01T00:00:00Z</span>
+<span class="linenos">12</span><span class="s2">            streams:</span>
+<span class="linenos">13</span><span class="s2">                variable1:</span>
+<span class="linenos">14</span><span class="s2">                    qartod:</span>
+<span class="linenos">15</span><span class="s2">                        aggregate:</span>
+<span class="linenos">16</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">17</span><span class="s2">                            suspect_span: [3, 4]</span>
+<span class="linenos">18</span><span class="s2">                            fail_span: [2, 5]</span>
+<span class="linenos">19</span><span class="s2">                variable2:</span>
+<span class="linenos">20</span><span class="s2">                    qartod:</span>
+<span class="linenos">21</span><span class="s2">                        aggregate:</span>
+<span class="linenos">22</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">23</span><span class="s2">                            suspect_span: [23, 24]</span>
+<span class="linenos">24</span><span class="s2">                            fail_span: [22, 25]</span>
+<span class="linenos">25</span><span class="s2">        -   window:</span>
+<span class="linenos">26</span><span class="s2">                starting: 2020-02-01T00:00:00Z</span>
+<span class="linenos">27</span><span class="s2">                ending: 2020-03-01T00:00:00Z</span>
+<span class="linenos">28</span><span class="s2">            streams:</span>
+<span class="linenos">29</span><span class="s2">                variable1:</span>
+<span class="linenos">30</span><span class="s2">                    qartod:</span>
+<span class="linenos">31</span><span class="s2">                        aggregate:</span>
+<span class="linenos">32</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">33</span><span class="s2">                            suspect_span: [43, 44]</span>
+<span class="linenos">34</span><span class="s2">                            fail_span: [42, 45]</span>
+<span class="linenos">35</span><span class="s2">                variable2:</span>
+<span class="linenos">36</span><span class="s2">                    qartod:</span>
+<span class="linenos">37</span><span class="s2">                        aggregate:</span>
+<span class="linenos">38</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">39</span><span class="s2">                            suspect_span: [23, 24]</span>
+<span class="linenos">40</span><span class="s2">                            fail_span: [22, 25]</span>
+<span class="linenos">41</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">42</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">43</span>
+<span class="linenos">44</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="linenos">45</span><span class="n">data_inputs</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">46</span>    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;01/01/2020&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">),</span>
+<span class="linenos">47</span>    <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+<span class="linenos">48</span>    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">36.1</span><span class="p">,</span>
+<span class="linenos">49</span>    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">76.5</span><span class="p">,</span>
+<span class="linenos">50</span>    <span class="s1">&#39;variable1&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+<span class="linenos">51</span>    <span class="s1">&#39;variable2&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+<span class="linenos">52</span><span class="p">}</span>
+<span class="linenos">53</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_inputs</span><span class="p">)</span>
+<span class="linenos">54</span>
+<span class="linenos">55</span><span class="c1"># Setup the stream</span>
+<span class="linenos">56</span><span class="n">ps</span> <span class="o">=</span> <span class="n">PandasStream</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="linenos">57</span>
+<span class="linenos">58</span><span class="c1"># Pass the run method the config to use</span>
+<span class="linenos">59</span><span class="n">results</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="linenos">60</span>
+<span class="linenos">61</span><span class="c1"># results is a generator of ContextResult objects</span>
+<span class="linenos">62</span><span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<span class="linenos">63</span><span class="c1"># &lt;generator object PandasStream.run at ...&gt;</span>
+<span class="linenos">64</span>
+<span class="linenos">65</span><span class="c1"># list_collected is a list of CollectedResult objects</span>
+<span class="linenos">66</span><span class="c1"># for each stream_id and module/test combination</span>
+<span class="linenos">67</span><span class="n">list_collected</span> <span class="o">=</span> <span class="n">collect_results</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+<span class="linenos">68</span><span class="nb">print</span><span class="p">(</span><span class="n">list_collected</span><span class="p">)</span>
+<span class="linenos">69</span><span class="c1"># [</span>
+<span class="linenos">70</span><span class="c1">#   CollectedResult(stream_id=&#39;variable1&#39;, package=&#39;qartod&#39;, test=&#39;gross_range_test&#39;, ...),</span>
+<span class="linenos">71</span><span class="c1">#   CollectedResult(stream_id=&#39;variable1&#39;, package=&#39;qartod&#39;, test=&#39;aggregate&#39;, ...),</span>
+<span class="linenos">72</span><span class="c1">#   CollectedResult(stream_id=&#39;variable2&#39;, package=&#39;qartod&#39;, test=&#39;gross_range_test&#39;, ...),</span>
+<span class="linenos">73</span><span class="c1">#   CollectedResult(stream_id=&#39;variable2&#39;, package=&#39;qartod&#39;, test=&#39;aggregate&#39;, ...),</span>
+<span class="linenos">74</span><span class="c1"># ]</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="numpystream">
+<h3>NumpyStream<a class="headerlink" href="#numpystream" title="Link to this heading">¶</a></h3>
+<div class="literal-block-wrapper docutils container" id="id7">
+<div class="code-block-caption"><span class="caption-text">An example of a NumpyStream</span><a class="headerlink" href="#id7" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">NumpyStream</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 7</span><span class="s2">    window:</span>
+<span class="linenos"> 8</span><span class="s2">        starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos"> 9</span><span class="s2">        ending: 2020-04-01T00:00:00Z</span>
+<span class="linenos">10</span><span class="s2">    streams:</span>
+<span class="linenos">11</span><span class="s2">        variable1:</span>
+<span class="linenos">12</span><span class="s2">            qartod:</span>
+<span class="linenos">13</span><span class="s2">                aggregate:</span>
+<span class="linenos">14</span><span class="s2">                gross_range_test:</span>
+<span class="linenos">15</span><span class="s2">                    suspect_span: [20, 30]</span>
+<span class="linenos">16</span><span class="s2">                    fail_span: [10, 40]</span>
+<span class="linenos">17</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">18</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="linenos">21</span><span class="n">tinp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;01/01/2020&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+<span class="linenos">22</span><span class="n">inp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tinp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+<span class="linenos">23</span><span class="n">zinp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">tinp</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="linenos">24</span><span class="n">lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">tinp</span><span class="p">,</span> <span class="mf">36.1</span><span class="p">)</span>
+<span class="linenos">25</span><span class="n">lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">tinp</span><span class="p">,</span> <span class="o">-</span><span class="mf">76.5</span><span class="p">)</span>
+<span class="linenos">26</span>
+<span class="linenos">27</span><span class="c1"># Setup the stream</span>
+<span class="linenos">28</span><span class="n">ns</span> <span class="o">=</span> <span class="n">NumpyStream</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">tinp</span><span class="p">,</span> <span class="n">zinp</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
+<span class="linenos">29</span><span class="c1"># Pass the run method the config to use</span>
+<span class="linenos">30</span><span class="n">results</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="pandasstream">
+<h3>PandasStream<a class="headerlink" href="#pandasstream" title="Link to this heading">¶</a></h3>
+<p>A PandasStream pulls all required information to run the qc tests from a single DataFrame. If the axes column names are not in <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">lat</span></code>, <code class="docutils literal notranslate"><span class="pre">lon</span></code> or <code class="docutils literal notranslate"><span class="pre">geom</span></code>, you may provide them as key word arguments. See the API docs for more information.</p>
+<div class="literal-block-wrapper docutils container" id="id8">
+<div class="code-block-caption"><span class="caption-text">An example of a PandasStream</span><a class="headerlink" href="#id8" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">PandasStream</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 7</span><span class="s2">    contexts:</span>
+<span class="linenos"> 8</span><span class="s2">        -   window:</span>
+<span class="linenos"> 9</span><span class="s2">                starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos">10</span><span class="s2">                ending: 2020-02-01T00:00:00Z</span>
+<span class="linenos">11</span><span class="s2">            streams:</span>
+<span class="linenos">12</span><span class="s2">                variable1:</span>
+<span class="linenos">13</span><span class="s2">                    qartod:</span>
+<span class="linenos">14</span><span class="s2">                        aggregate:</span>
+<span class="linenos">15</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">16</span><span class="s2">                            suspect_span: [3, 4]</span>
+<span class="linenos">17</span><span class="s2">                            fail_span: [2, 5]</span>
+<span class="linenos">18</span><span class="s2">                variable2:</span>
+<span class="linenos">19</span><span class="s2">                    qartod:</span>
+<span class="linenos">20</span><span class="s2">                        aggregate:</span>
+<span class="linenos">21</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">22</span><span class="s2">                            suspect_span: [23, 24]</span>
+<span class="linenos">23</span><span class="s2">                            fail_span: [22, 25]</span>
+<span class="linenos">24</span><span class="s2">        -   window:</span>
+<span class="linenos">25</span><span class="s2">                starting: 2020-02-01T00:00:00Z</span>
+<span class="linenos">26</span><span class="s2">                ending: 2020-03-01T00:00:00Z</span>
+<span class="linenos">27</span><span class="s2">            streams:</span>
+<span class="linenos">28</span><span class="s2">                variable1:</span>
+<span class="linenos">29</span><span class="s2">                    qartod:</span>
+<span class="linenos">30</span><span class="s2">                        aggregate:</span>
+<span class="linenos">31</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">32</span><span class="s2">                            suspect_span: [43, 44]</span>
+<span class="linenos">33</span><span class="s2">                            fail_span: [42, 45]</span>
+<span class="linenos">34</span><span class="s2">                variable2:</span>
+<span class="linenos">35</span><span class="s2">                    qartod:</span>
+<span class="linenos">36</span><span class="s2">                        aggregate:</span>
+<span class="linenos">37</span><span class="s2">                        gross_range_test:</span>
+<span class="linenos">38</span><span class="s2">                            suspect_span: [23, 24]</span>
+<span class="linenos">39</span><span class="s2">                            fail_span: [22, 25]</span>
+<span class="linenos">40</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">41</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">42</span>
+<span class="linenos">43</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="linenos">44</span><span class="n">data_inputs</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">45</span>    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;01/01/2020&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">),</span>
+<span class="linenos">46</span>    <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+<span class="linenos">47</span>    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">36.1</span><span class="p">,</span>
+<span class="linenos">48</span>    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">76.5</span><span class="p">,</span>
+<span class="linenos">49</span>    <span class="s1">&#39;variable1&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+<span class="linenos">50</span>    <span class="s1">&#39;variable2&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+<span class="linenos">51</span><span class="p">}</span>
+<span class="linenos">52</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_inputs</span><span class="p">)</span>
+<span class="linenos">53</span>
+<span class="linenos">54</span><span class="c1"># Setup the stream</span>
+<span class="linenos">55</span><span class="n">ps</span> <span class="o">=</span> <span class="n">PandasStream</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="linenos">56</span><span class="c1"># ps = PandasStream(df, time=&#39;time&#39;, z=&#39;z&#39;, lat=&#39;lat&#39;, lon=&#39;lon&#39;, geom=&#39;geom&#39;)</span>
+<span class="linenos">57</span><span class="c1"># Pass the run method the config to use</span>
+<span class="linenos">58</span><span class="n">results</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="xarraystream">
+<h3>XarrayStream<a class="headerlink" href="#xarraystream" title="Link to this heading">¶</a></h3>
+<div class="literal-block-wrapper docutils container" id="id9">
+<div class="code-block-caption"><span class="caption-text">An example of a XarrayStream</span><a class="headerlink" href="#id9" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">XarrayStream</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 8</span><span class="s2">    window:</span>
+<span class="linenos"> 9</span><span class="s2">        starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos">10</span><span class="s2">        ending: 2020-04-01T00:00:00Z</span>
+<span class="linenos">11</span><span class="s2">    streams:</span>
+<span class="linenos">12</span><span class="s2">        variable1:</span>
+<span class="linenos">13</span><span class="s2">            qartod:</span>
+<span class="linenos">14</span><span class="s2">                aggregate:</span>
+<span class="linenos">15</span><span class="s2">                gross_range_test:</span>
+<span class="linenos">16</span><span class="s2">                    suspect_span: [20, 30]</span>
+<span class="linenos">17</span><span class="s2">                    fail_span: [10, 40]</span>
+<span class="linenos">18</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">19</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="linenos">22</span><span class="n">data_inputs</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">23</span>    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;01/01/2020&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">),</span>
+<span class="linenos">24</span>    <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+<span class="linenos">25</span>    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">36.1</span><span class="p">,</span>
+<span class="linenos">26</span>    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">76.5</span><span class="p">,</span>
+<span class="linenos">27</span>    <span class="s1">&#39;variable1&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+<span class="linenos">28</span><span class="p">}</span>
+<span class="linenos">29</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_inputs</span><span class="p">)</span>
+<span class="linenos">30</span><span class="n">ds</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="linenos">31</span>
+<span class="linenos">32</span><span class="c1"># Setup the stream</span>
+<span class="linenos">33</span><span class="n">xs</span> <span class="o">=</span> <span class="n">XarrayStream</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="linenos">34</span><span class="c1"># xs = XarrayStream(ds, time=&#39;time&#39;, z=&#39;z&#39;, lat=&#39;lat&#39;, lon=&#39;lon&#39;)</span>
+<span class="linenos">35</span><span class="c1"># Pass the run method the config to use</span>
+<span class="linenos">36</span><span class="n">results</span> <span class="o">=</span> <span class="n">xs</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="netcdfstream">
+<h3>NetcdfStream<a class="headerlink" href="#netcdfstream" title="Link to this heading">¶</a></h3>
+<p>A subset of the NumpyStream, the NetcdfStream simply extracts numpy arrays from variables within a netCDF file and passes them through as arrays to NumpyStream. If you are using this class you should look towards the XarrayStream class which subsets more efficiently.</p>
+<div class="literal-block-wrapper docutils container" id="id10">
+<div class="code-block-caption"><span class="caption-text">An example of a NetcdfStream</span><a class="headerlink" href="#id10" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetcdfStream</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">config</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos"> 8</span><span class="s2">    window:</span>
+<span class="linenos"> 9</span><span class="s2">        starting: 2020-01-01T00:00:00Z</span>
+<span class="linenos">10</span><span class="s2">        ending: 2020-04-01T00:00:00Z</span>
+<span class="linenos">11</span><span class="s2">    streams:</span>
+<span class="linenos">12</span><span class="s2">        variable1:</span>
+<span class="linenos">13</span><span class="s2">            qartod:</span>
+<span class="linenos">14</span><span class="s2">                aggregate:</span>
+<span class="linenos">15</span><span class="s2">                gross_range_test:</span>
+<span class="linenos">16</span><span class="s2">                    suspect_span: [20, 30]</span>
+<span class="linenos">17</span><span class="s2">                    fail_span: [10, 40]</span>
+<span class="linenos">18</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="linenos">19</span><span class="n">c</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="linenos">22</span><span class="n">data_inputs</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">23</span>    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;01/01/2020&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">),</span>
+<span class="linenos">24</span>    <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+<span class="linenos">25</span>    <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">36.1</span><span class="p">,</span>
+<span class="linenos">26</span>    <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">76.5</span><span class="p">,</span>
+<span class="linenos">27</span>    <span class="s1">&#39;variable1&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rows</span><span class="p">),</span>
+<span class="linenos">28</span><span class="p">}</span>
+<span class="linenos">29</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_inputs</span><span class="p">)</span>
+<span class="linenos">30</span><span class="n">ds</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="linenos">31</span>
+<span class="linenos">32</span><span class="c1"># Setup the stream</span>
+<span class="linenos">33</span><span class="n">ns</span> <span class="o">=</span> <span class="n">NetcdfStream</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="linenos">34</span><span class="c1"># ns = NetcdfStream(ds, time=&#39;time&#39;, z=&#39;z&#39;, lat=&#39;lat&#39;, lon=&#39;lon&#39;)</span>
+<span class="linenos">35</span><span class="c1"># Pass the run method the config to use</span>
+<span class="linenos">36</span><span class="n">results</span> <span class="o">=</span> <span class="n">ns</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="stores">
+<h2>Stores<a class="headerlink" href="#stores" title="Link to this heading">¶</a></h2>
+<p>Stores represent different data formats for storing quality control <a class="reference internal" href="#results">Results</a> from <a class="reference internal" href="#streams">Streams</a>. The results from any <code class="docutils literal notranslate"><span class="pre">Stream</span></code> should be able to be passed into any <code class="docutils literal notranslate"><span class="pre">Store</span></code> implementation defined in the <a class="reference internal" href="api/ioos_qc.html#module-ioos_qc.stores" title="ioos_qc.stores"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Stores</span> <span class="pre">API</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ioos_qc</span></code> comes with some built-in <a class="reference internal" href="#stores">Stores</a>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pandasstore">PandasStore</a> - Store QC results in a DataFrame.</p></li>
+<li><p><a class="reference internal" href="#cfnetcdfstore">CFNetCDFStore</a> - Store QC results in a CF DSG file supported by <a class="reference external" href="https://github.com/pyoceans/pocean-core">pocean-core</a>.</p></li>
+</ul>
+<section id="pandasstore">
+<h3>PandasStore<a class="headerlink" href="#pandasstore" title="Link to this heading">¶</a></h3>
+<p>Collects all results and stores them as columns in a DataFrame.</p>
+<div class="literal-block-wrapper docutils container" id="id11">
+<div class="code-block-caption"><span class="caption-text">A typical PandasStore workflow</span><a class="headerlink" href="#id11" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 2</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">PandasStream</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">PandasStore</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># Setup the stream</span>
+<span class="linenos"> 6</span><span class="n">stream</span> <span class="o">=</span> <span class="n">PandasStream</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="c1"># Run the tests by passing in a Config object</span>
+<span class="linenos"> 9</span><span class="n">results</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="c1"># Store the results in another DataFrame</span>
+<span class="linenos">12</span><span class="n">store</span> <span class="o">=</span> <span class="n">PandasStore</span><span class="p">(</span>
+<span class="linenos">13</span>    <span class="n">results</span><span class="p">,</span>
+<span class="linenos">14</span>    <span class="n">axes</span><span class="o">=</span><span class="p">{</span>
+<span class="linenos">15</span>        <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span>
+<span class="linenos">16</span>        <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
+<span class="linenos">17</span>        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="s1">&#39;lat&#39;</span><span class="p">,</span>
+<span class="linenos">18</span>        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="s1">&#39;lon&#39;</span>
+<span class="linenos">19</span>    <span class="p">}</span>
+<span class="linenos">20</span><span class="p">)</span>
+<span class="linenos">21</span>
+<span class="linenos">22</span><span class="c1"># Compute any aggregations</span>
+<span class="linenos">23</span><span class="n">store</span><span class="o">.</span><span class="n">compute_aggregate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;rollup_qc&#39;</span><span class="p">)</span>  <span class="c1"># Appends to the results internally</span>
+<span class="linenos">24</span>
+<span class="linenos">25</span><span class="c1"># Write only the test results to the store</span>
+<span class="linenos">26</span><span class="n">results_store</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">write_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">write_axes</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="linenos">27</span>
+<span class="linenos">28</span><span class="c1"># Append columns from qc results back into the data</span>
+<span class="linenos">29</span><span class="n">results_store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">results_store</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="cfnetcdfstore">
+<h3>CFNetCDFStore<a class="headerlink" href="#cfnetcdfstore" title="Link to this heading">¶</a></h3>
+<p>Store the QC results in a CF compliant DSG type netCDF file, along with all metadata information and serializing the configuration used in the tests into the netCDF file. This currently only supports creating a new file with all results and does not support appending to existing files or results, although that is expected to be implemented at some point. You can also choose to store a subset of results in a file to support storing the aggregate results in one file and the individual test results in another file.</p>
+<div class="literal-block-wrapper docutils container" id="id12">
+<div class="code-block-caption"><span class="caption-text">A typical CFNetCDFStore workflow</span><a class="headerlink" href="#id12" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="linenos"> 2</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.streams</span><span class="w"> </span><span class="kn">import</span> <span class="n">PandasStream</span>
+<span class="linenos"> 3</span><span class="kn">from</span><span class="w"> </span><span class="nn">ioos_qc.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">CFNetCDFStore</span>
+<span class="linenos"> 4</span><span class="kn">from</span><span class="w"> </span><span class="nn">pocean.dsg</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncompleteMultidimensionalTrajectory</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="c1"># Setup the stream</span>
+<span class="linenos"> 7</span><span class="n">stream</span> <span class="o">=</span> <span class="n">PandasStream</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="c1"># Run the tests by passing in a Config object</span>
+<span class="linenos">10</span><span class="n">results</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="c1"># Save a netCDF file</span>
+<span class="linenos">13</span><span class="n">ncd</span> <span class="o">=</span> <span class="n">CFNetCDFStore</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+<span class="linenos">14</span><span class="n">ncd</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+<span class="linenos">15</span>    <span class="s1">&#39;results.nc&#39;</span><span class="p">,</span>
+<span class="linenos">16</span>    <span class="n">IncompleteMultidimensionalTrajectory</span><span class="p">,</span>
+<span class="linenos">17</span>    <span class="n">config</span><span class="p">,</span>
+<span class="linenos">18</span>    <span class="n">dsg_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+<span class="linenos">19</span>        <span class="n">reduce_dims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">20</span>        <span class="n">unlimited</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="linenos">21</span>        <span class="n">unique_dims</span><span class="o">=</span><span class="kc">True</span>
+<span class="linenos">22</span>    <span class="p">)</span>
+<span class="linenos">23</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="configgeneration">
+<h2>ConfigGeneration<a class="headerlink" href="#configgeneration" title="Link to this heading">¶</a></h2>
+<p>A <cite>QcConfigCreator</cite> instance generates a config for <cite>QcConfig</cite> informed by reference datasets, such as climatologies, defined via configuration.</p>
+<section id="creatorconfig">
+<h3>CreatorConfig<a class="headerlink" href="#creatorconfig" title="Link to this heading">¶</a></h3>
+<p>CreatorConfig performs checks on the configuration to ensure that all required fields and attributes are provided.</p>
+<p>For convenience, the <cite>get_assets.py</cite> script is provided to download and prepare climatology dataset from NARR and Ocean Atlas.</p>
+<div class="literal-block-wrapper docutils container" id="id13">
+<div class="code-block-caption"><span class="caption-text">Specify datasets and variables to be used by QcConfigCreator</span><a class="headerlink" href="#id13" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">creator_config</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 2</span>    <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="linenos"> 3</span>        <span class="p">{</span>
+<span class="linenos"> 4</span>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;ocean_atlas&quot;</span><span class="p">,</span>
+<span class="linenos"> 5</span>            <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="s2">&quot;assets/ocean_atlas.nc&quot;</span><span class="p">,</span>
+<span class="linenos"> 6</span>            <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 7</span>                <span class="s2">&quot;o2&quot;</span><span class="p">:</span> <span class="s2">&quot;o_an&quot;</span><span class="p">,</span>
+<span class="linenos"> 8</span>                <span class="s2">&quot;salinity&quot;</span><span class="p">:</span> <span class="s2">&quot;s_an&quot;</span><span class="p">,</span>
+<span class="linenos"> 9</span>                <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="s2">&quot;t_an&quot;</span>
+<span class="linenos">10</span>            <span class="p">},</span>
+<span class="linenos">11</span>            <span class="s2">&quot;3d&quot;</span><span class="p">:</span> <span class="s2">&quot;depth&quot;</span>
+<span class="linenos">12</span>        <span class="p">},</span>
+<span class="linenos">13</span>        <span class="p">{</span>
+<span class="linenos">14</span>            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;narr&quot;</span><span class="p">,</span>
+<span class="linenos">15</span>            <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="s2">&quot;assets/narr.nc&quot;</span><span class="p">,</span>
+<span class="linenos">16</span>            <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">17</span>                <span class="s2">&quot;air&quot;</span><span class="p">:</span> <span class="s2">&quot;air&quot;</span><span class="p">,</span>
+<span class="linenos">18</span>                <span class="s2">&quot;pres&quot;</span><span class="p">:</span> <span class="s2">&quot;slp&quot;</span><span class="p">,</span>
+<span class="linenos">19</span>                <span class="s2">&quot;rhum&quot;</span><span class="p">:</span> <span class="s2">&quot;rhum&quot;</span><span class="p">,</span>
+<span class="linenos">20</span>                <span class="s2">&quot;uwnd&quot;</span><span class="p">:</span> <span class="s2">&quot;uwnd&quot;</span><span class="p">,</span>
+<span class="linenos">21</span>                <span class="s2">&quot;vwnd&quot;</span><span class="p">:</span> <span class="s2">&quot;vwnd&quot;</span>
+<span class="linenos">22</span>            <span class="p">}</span>
+<span class="linenos">23</span>        <span class="p">}</span>
+<span class="linenos">24</span>    <span class="p">]</span>
+<span class="linenos">25</span><span class="p">}</span>
+<span class="linenos">26</span><span class="n">cc</span> <span class="o">=</span> <span class="n">CreatorConfig</span><span class="p">(</span><span class="n">creator_config</span><span class="p">)</span>
+<span class="linenos">27</span>
+<span class="linenos">28</span><span class="nb">print</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
+<span class="linenos">29</span><span class="p">{</span>
+<span class="linenos">30</span>    <span class="s2">&quot;narr&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">31</span>        <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="s2">&quot;assets/narr.nc&quot;</span><span class="p">,</span>
+<span class="linenos">32</span>        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">33</span>            <span class="s2">&quot;air&quot;</span><span class="p">:</span> <span class="s2">&quot;air&quot;</span><span class="p">,</span>
+<span class="linenos">34</span>            <span class="s2">&quot;pres&quot;</span><span class="p">:</span> <span class="s2">&quot;slp&quot;</span><span class="p">,</span>
+<span class="linenos">35</span>            <span class="s2">&quot;rhum&quot;</span><span class="p">:</span> <span class="s2">&quot;rhum&quot;</span><span class="p">,</span>
+<span class="linenos">36</span>            <span class="s2">&quot;uwnd&quot;</span><span class="p">:</span> <span class="s2">&quot;uwnd&quot;</span><span class="p">,</span>
+<span class="linenos">37</span>            <span class="s2">&quot;vwnd&quot;</span><span class="p">:</span> <span class="s2">&quot;vwnd&quot;</span>
+<span class="linenos">38</span>        <span class="p">}</span>
+<span class="linenos">39</span>    <span class="p">},</span>
+<span class="linenos">40</span>    <span class="s2">&quot;ocean_atlas&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">41</span>        <span class="s2">&quot;3d&quot;</span><span class="p">:</span> <span class="s2">&quot;depth&quot;</span><span class="p">,</span>
+<span class="linenos">42</span>        <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="s2">&quot;assets/ocean_atlas.nc&quot;</span><span class="p">,</span>
+<span class="linenos">43</span>        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">44</span>            <span class="s2">&quot;o2&quot;</span><span class="p">:</span> <span class="s2">&quot;o_an&quot;</span><span class="p">,</span>
+<span class="linenos">45</span>            <span class="s2">&quot;salinity&quot;</span><span class="p">:</span> <span class="s2">&quot;s_an&quot;</span><span class="p">,</span>
+<span class="linenos">46</span>            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="s2">&quot;t_an&quot;</span>
+<span class="linenos">47</span>        <span class="p">}</span>
+<span class="linenos">48</span>    <span class="p">}</span>
+<span class="linenos">49</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="qcconfigcreator">
+<h3>QcConfigCreator<a class="headerlink" href="#qcconfigcreator" title="Link to this heading">¶</a></h3>
+<div class="literal-block-wrapper docutils container" id="id14">
+<div class="code-block-caption"><span class="caption-text">Create QcConfigCreator using configuration just created</span><a class="headerlink" href="#id14" title="Link to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">qccc</span> <span class="o">=</span> <span class="n">QcConfigCreator</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="nb">print</span><span class="p">(</span><span class="n">qccc</span><span class="p">)</span>
+<span class="linenos"> 4</span><span class="p">{</span>
+<span class="linenos"> 5</span>    <span class="s2">&quot;narr&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 6</span>        <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="s2">&quot;assets/narr.nc&quot;</span><span class="p">,</span>
+<span class="linenos"> 7</span>        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 8</span>            <span class="s2">&quot;air&quot;</span><span class="p">:</span> <span class="s2">&quot;air&quot;</span><span class="p">,</span>
+<span class="linenos"> 9</span>            <span class="s2">&quot;pres&quot;</span><span class="p">:</span> <span class="s2">&quot;slp&quot;</span><span class="p">,</span>
+<span class="linenos">10</span>            <span class="s2">&quot;rhum&quot;</span><span class="p">:</span> <span class="s2">&quot;rhum&quot;</span><span class="p">,</span>
+<span class="linenos">11</span>            <span class="s2">&quot;uwnd&quot;</span><span class="p">:</span> <span class="s2">&quot;uwnd&quot;</span><span class="p">,</span>
+<span class="linenos">12</span>            <span class="s2">&quot;vwnd&quot;</span><span class="p">:</span> <span class="s2">&quot;vwnd&quot;</span>
+<span class="linenos">13</span>        <span class="p">}</span>
+<span class="linenos">14</span>    <span class="p">},</span>
+<span class="linenos">15</span>    <span class="s2">&quot;ocean_atlas&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">16</span>        <span class="s2">&quot;3d&quot;</span><span class="p">:</span> <span class="s2">&quot;depth&quot;</span><span class="p">,</span>
+<span class="linenos">17</span>        <span class="s2">&quot;file_path&quot;</span><span class="p">:</span> <span class="s2">&quot;assets/ocean_atlas.nc&quot;</span><span class="p">,</span>
+<span class="linenos">18</span>        <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">19</span>            <span class="s2">&quot;o2&quot;</span><span class="p">:</span> <span class="s2">&quot;o_an&quot;</span><span class="p">,</span>
+<span class="linenos">20</span>            <span class="s2">&quot;salinity&quot;</span><span class="p">:</span> <span class="s2">&quot;s_an&quot;</span><span class="p">,</span>
+<span class="linenos">21</span>            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="s2">&quot;t_an&quot;</span>
+<span class="linenos">22</span>        <span class="p">}</span>
+<span class="linenos">23</span>    <span class="p">}</span>
+<span class="linenos">24</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="qcvariableconfig">
+<h3>QcVariableConfig<a class="headerlink" href="#qcvariableconfig" title="Link to this heading">¶</a></h3>
+<p>An instance of <em>QcVariableConfig</em> specifies how quality control will be tested for a given variable.</p>
+<p>In this example, the variable <em>air</em>, or air temperature, will be quality controlled based on  climatological data in the region defined by <em>bbox</em> (xmin, ymin, xmax, ymax), for a time range (between 2020-01-01 and 2020-01-08). The <em>tests</em> sections specifies that two tests will be performed: <em>spike_test</em> and <em>gross_range_test</em>. Each test section requires <em>suspect_min</em>, <em>suspect_max</em>, <em>fail_min</em>, and <em>fail_max</em> to be defined.</p>
+<p>The <em>{fail,suspect}_{min,max}</em> values will be evaluated as functions with values for <em>min</em>, <em>max</em>, <em>mean</em>, and <em>std</em> derived from the dataset for the bounds specified.  Note that each term, operator, and grouping symbol must be surrounded by whitespace.</p>
+<p>Test function allowed symbols:</p>
+<ul class="simple">
+<li><p>Data derived descriptive statistics: min, max, mean, std</p></li>
+<li><p>Operators: -, +, *, /</p></li>
+<li><p>Grouping symbols: (, )</p></li>
+</ul>
+<p>Like CreatorConfig, QcVaribleConfig performs checks on the configuration to ensure that it adheres to the specified schema and includes all required fields and attributes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">qc_variable_config</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 2</span>    <span class="s2">&quot;variable&quot;</span><span class="p">:</span> <span class="s2">&quot;air&quot;</span><span class="p">,</span>
+<span class="linenos"> 3</span>    <span class="s2">&quot;bbox&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">165</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">80</span><span class="p">],</span>
+<span class="linenos"> 4</span>    <span class="s2">&quot;start_time&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span>
+<span class="linenos"> 5</span>    <span class="s2">&quot;end_time&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-01-08&quot;</span><span class="p">,</span>
+<span class="linenos"> 6</span>    <span class="s2">&quot;tests&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 7</span>        <span class="s2">&quot;spike_test&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 8</span>            <span class="s2">&quot;suspect_min&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="linenos"> 9</span>            <span class="s2">&quot;suspect_max&quot;</span><span class="p">:</span> <span class="s2">&quot;( 1 + 2 )&quot;</span><span class="p">,</span>
+<span class="linenos">10</span>            <span class="s2">&quot;fail_min&quot;</span><span class="p">:</span> <span class="s2">&quot;3 * 2 - 6&quot;</span><span class="p">,</span>
+<span class="linenos">11</span>            <span class="s2">&quot;fail_max&quot;</span><span class="p">:</span> <span class="s2">&quot;3 * mean + std / ( max * min )&quot;</span>
+<span class="linenos">12</span>        <span class="p">},</span>
+<span class="linenos">13</span>        <span class="s2">&quot;gross_range_test&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">14</span>            <span class="s2">&quot;suspect_min&quot;</span><span class="p">:</span> <span class="s2">&quot;min - std * 2&quot;</span><span class="p">,</span>
+<span class="linenos">15</span>            <span class="s2">&quot;suspect_max&quot;</span><span class="p">:</span> <span class="s2">&quot;max + std / 2&quot;</span><span class="p">,</span>
+<span class="linenos">16</span>            <span class="s2">&quot;fail_min&quot;</span><span class="p">:</span> <span class="s2">&quot;mean * std&quot;</span><span class="p">,</span>
+<span class="linenos">17</span>            <span class="s2">&quot;fail_max&quot;</span><span class="p">:</span> <span class="s2">&quot;mean / std&quot;</span>
+<span class="linenos">18</span>        <span class="p">}</span>
+<span class="linenos">19</span>    <span class="p">}</span>
+<span class="linenos">20</span><span class="p">}</span>
+<span class="linenos">21</span><span class="n">vc</span> <span class="o">=</span> <span class="n">QcVariableConfig</span><span class="p">(</span><span class="n">qc_variable_config</span><span class="p">)</span>
+<span class="linenos">22</span><span class="nb">print</span><span class="p">(</span><span class="n">vc</span><span class="p">)</span>
+<span class="linenos">23</span><span class="p">{</span>
+<span class="linenos">24</span>    <span class="s2">&quot;bbox&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="linenos">25</span>        <span class="o">-</span><span class="mi">165</span><span class="p">,</span>
+<span class="linenos">26</span>        <span class="mi">70</span><span class="p">,</span>
+<span class="linenos">27</span>        <span class="mi">160</span><span class="p">,</span>
+<span class="linenos">28</span>        <span class="mi">80</span>
+<span class="linenos">29</span>    <span class="p">],</span>
+<span class="linenos">30</span>    <span class="s2">&quot;end_time&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-01-08&quot;</span><span class="p">,</span>
+<span class="linenos">31</span>    <span class="s2">&quot;start_time&quot;</span><span class="p">:</span> <span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span>
+<span class="linenos">32</span>    <span class="s2">&quot;tests&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">33</span>        <span class="s2">&quot;gross_range_test&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">34</span>            <span class="s2">&quot;fail_max&quot;</span><span class="p">:</span> <span class="s2">&quot;mean / std&quot;</span><span class="p">,</span>
+<span class="linenos">35</span>            <span class="s2">&quot;fail_min&quot;</span><span class="p">:</span> <span class="s2">&quot;mean * std&quot;</span><span class="p">,</span>
+<span class="linenos">36</span>            <span class="s2">&quot;suspect_max&quot;</span><span class="p">:</span> <span class="s2">&quot;max + std / 2&quot;</span><span class="p">,</span>
+<span class="linenos">37</span>            <span class="s2">&quot;suspect_min&quot;</span><span class="p">:</span> <span class="s2">&quot;min - std * 2&quot;</span>
+<span class="linenos">38</span>        <span class="p">},</span>
+<span class="linenos">39</span>        <span class="s2">&quot;spike_test&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">40</span>            <span class="s2">&quot;fail_max&quot;</span><span class="p">:</span> <span class="s2">&quot;3 * mean + std / ( max * min )&quot;</span><span class="p">,</span>
+<span class="linenos">41</span>            <span class="s2">&quot;fail_min&quot;</span><span class="p">:</span> <span class="s2">&quot;3 * 2 - 6&quot;</span><span class="p">,</span>
+<span class="linenos">42</span>            <span class="s2">&quot;suspect_max&quot;</span><span class="p">:</span> <span class="s2">&quot;( 1 + 2 )&quot;</span><span class="p">,</span>
+<span class="linenos">43</span>            <span class="s2">&quot;suspect_min&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span>
+<span class="linenos">44</span>        <span class="p">}</span>
+<span class="linenos">45</span>    <span class="p">}</span>
+<span class="linenos">46</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="create-config-for-qcconfig">
+<h3>Create config for QcConfig<a class="headerlink" href="#create-config-for-qcconfig" title="Link to this heading">¶</a></h3>
+<p>Finally, the <cite>QcConfigCreator</cite> instance (<cite>qccc</cite>) takes the <cite>QcVariableConfig</cite> instance (<cite>vc</cite>) and returns a config that can then be used with <cite>QcConfig</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">config</span> <span class="o">=</span> <span class="n">qccc</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="n">vc</span><span class="p">)</span>
+<span class="linenos"> 2</span><span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="linenos"> 3</span><span class="p">{</span>
+<span class="linenos"> 4</span>    <span class="s2">&quot;qartod&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 5</span>        <span class="s2">&quot;gross_range_test&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos"> 6</span>            <span class="s2">&quot;fail_span&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="linenos"> 7</span>                <span class="o">-</span><span class="mf">224.23900165924232</span><span class="p">,</span>
+<span class="linenos"> 8</span>                <span class="o">-</span><span class="mf">2.673170364457356</span>
+<span class="linenos"> 9</span>            <span class="p">],</span>
+<span class="linenos">10</span>            <span class="s2">&quot;suspect_span&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="linenos">11</span>                <span class="o">-</span><span class="mf">54.89132748864793</span><span class="p">,</span>
+<span class="linenos">12</span>                <span class="mf">7.09364403443822</span>
+<span class="linenos">13</span>            <span class="p">]</span>
+<span class="linenos">14</span>        <span class="p">},</span>
+<span class="linenos">15</span>        <span class="s2">&quot;spike_test&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="linenos">16</span>            <span class="s2">&quot;fail_span&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="linenos">17</span>                <span class="mf">0.0</span><span class="p">,</span>
+<span class="linenos">18</span>                <span class="o">-</span><span class="mf">73.54932418742399</span>
+<span class="linenos">19</span>            <span class="p">],</span>
+<span class="linenos">20</span>            <span class="s2">&quot;suspect_span&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="linenos">21</span>                <span class="mf">1.0</span><span class="p">,</span>
+<span class="linenos">22</span>                <span class="mf">3.0</span>
+<span class="linenos">23</span>            <span class="p">]</span>
+<span class="linenos">24</span>        <span class="p">}</span>
+<span class="linenos">25</span>    <span class="p">}</span>
+<span class="linenos">26</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">ioos_qc</a></h1>
+
+
+
+<p class="blurb">IOOS QARTOD and other Quality Control tests implemented in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=ioos&repo=ioos_qc&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#concepts">Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configurations">Configurations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#contextconfig">ContextConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#streams">Streams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#results">Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#numpystream">NumpyStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pandasstream">PandasStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xarraystream">XarrayStream</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#netcdfstream">NetcdfStream</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stores">Stores</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pandasstore">PandasStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cfnetcdfstore">CFNetCDFStore</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configgeneration">ConfigGeneration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creatorconfig">CreatorConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qcconfigcreator">QcConfigCreator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qcvariableconfig">QcVariableConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-config-for-qcconfig">Create config for QcConfig</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">IOOS QARTOD Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Notebook Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">IOOS QC Releases and Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development and Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other.html">Other QARTOD Implementations</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">ioos_qc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="resources.html" title="next chapter">IOOS QARTOD Resources</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022-2025, IOOS.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

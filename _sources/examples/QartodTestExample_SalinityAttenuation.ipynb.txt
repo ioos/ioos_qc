@@ -1,0 +1,555 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Attenuated Signal Test Example\n",
+    "\n",
+    "This notebook demonstrates an example of how an attenuation test can be used to detect biofouling on an instrument.\n",
+    "\n",
+    "The source data is derived from a historical USGS CTD station located at Lower Sand Island, OR in the Columbia River estuary.\n",
+    "The selected time period shows the tidal influence on salinity over a spring-neap time period.\n",
+    "Near the end of the selected period, there is a decrease in the range of salinity corresponding with biofouling.\n",
+    "\n",
+    "The data was downloaded from the [Center for Coastal Margin and Prediction (CMOP) Data Explorer](https://amb6400b.stccmop.org/ws/product/offeringplot_ctime.py?handlegaps=true&series=time,sandi.790.A.CTD.salt.PD0&width=8.54&height=2.92&starttime=2001-7-1%200:00&endtime=2001-09-5%2023:59)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Setup"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from bokeh import plotting\n",
+    "\n",
+    "plotting.output_notebook()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "from bokeh.layouts import gridplot\n",
+    "\n",
+    "\n",
+    "def plot_results(data, var_name, results, title, test_name):\n",
+    "    time = data.index\n",
+    "    obs = data[var_name]\n",
+    "    qc_test = results[\"qartod\"][test_name]\n",
+    "\n",
+    "    qc_pass = np.ma.masked_where(qc_test != 1, obs)\n",
+    "    qc_suspect = np.ma.masked_where(qc_test != 3, obs)\n",
+    "    qc_fail = np.ma.masked_where(qc_test != 4, obs)\n",
+    "    qc_notrun = np.ma.masked_where(qc_test != 2, obs)\n",
+    "\n",
+    "    p1 = plotting.figure(x_axis_type=\"datetime\", title=test_name + \" : \" + title)\n",
+    "    p1.grid.grid_line_alpha = 0.3\n",
+    "    p1.xaxis.axis_label = \"Time\"\n",
+    "    p1.yaxis.axis_label = \"Observation Value\"\n",
+    "\n",
+    "    p1.line(time, obs, legend_label=\"obs\", color=\"#A6CEE3\")\n",
+    "    p1.circle(\n",
+    "        time,\n",
+    "        qc_notrun,\n",
+    "        size=2,\n",
+    "        legend_label=\"qc not run\",\n",
+    "        color=\"gray\",\n",
+    "        alpha=0.2,\n",
+    "    )\n",
+    "    p1.circle(time, qc_pass, size=4, legend_label=\"qc pass\", color=\"green\", alpha=0.5)\n",
+    "    p1.circle(\n",
+    "        time,\n",
+    "        qc_suspect,\n",
+    "        size=4,\n",
+    "        legend_label=\"qc suspect\",\n",
+    "        color=\"orange\",\n",
+    "        alpha=0.7,\n",
+    "    )\n",
+    "    p1.circle(time, qc_fail, size=6, legend_label=\"qc fail\", color=\"red\", alpha=1.0)\n",
+    "    p1.circle(\n",
+    "        time,\n",
+    "        qc_notrun,\n",
+    "        size=6,\n",
+    "        legend_label=\"qc not eval\",\n",
+    "        color=\"gray\",\n",
+    "        alpha=1.0,\n",
+    "    )\n",
+    "\n",
+    "    plotting.show(gridplot([[p1]], width=800, height=400))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Run example\n",
+    "\n",
+    "#### 1. Load data and perform exploratory analysis\n",
+    "\n",
+    "Historical salinity [data from Lower Sand Island, Columbia River Estuary](http://amb6400b.stccmop.org/ws/product/offeringplot_ctime.py?handlegaps=true&series=time,sandi.790.A.CTD.salt.PD0&width=8.54&height=2.92&starttime=2001-7-1%200:00&endtime=2001-09-5%2023:59). The location is the same as [sandi for CREOFS](https://tidesandcurrents.noaa.gov/ofs/ofs_station.html?stname=Lower%20Sand%20Island%20Light&ofs=cre&stnid=sandi&subdomain=ba)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "\n",
+    "url = \"https://github.com/ioos/ioos_qc/raw/master/docs/source/examples\"\n",
+    "fname = f\"{url}/attenuated_salinity_example.csv\"\n",
+    "\n",
+    "data = pd.read_csv(fname, header=1, index_col=\"'time PST'\", parse_dates=True)\n",
+    "data.plot();"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "var_name = data.columns[0]\n",
+    "data[var_name]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### 2. Plot range and standard deviation of salinity over M2 moving window"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# lunar day (M2)\n",
+    "time_delta = 3600 * 24.8\n",
+    "print(f\"window: {time_delta}\")\n",
+    "\n",
+    "# start QC after half a tidal day\n",
+    "min_period_secs = time_delta / 2\n",
+    "\n",
+    "# one obs per minute\n",
+    "min_period_obs = time_delta / 2 / 60\n",
+    "\n",
+    "# pandas uses phrase \"min_periods\" to indicate minimum number of observations in the window\n",
+    "# - ioos_qc uses the phrase \"min_period\" to indicate minimum number of seconds in the window\n",
+    "# Depending on your use case, you can define the period in number of observations or number of seconds\n",
+    "print(f\"min_period (secs): {min_period_secs}\")\n",
+    "print(f\"min_period (num obs): {min_period_obs}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Range check."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "range_data = data.rolling(f\"{time_delta}S\", min_periods=int(min_period_obs)).apply(\n",
+    "    np.ptp,\n",
+    "    raw=True,\n",
+    ")\n",
+    "\n",
+    "range_data.plot();"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Check that min_{periods, obs} are NaN\n",
+    "\n",
+    "- note that N-1 are NaNs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "range_data.isna().sum()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Standard deviation check."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "stdev_data = data.rolling(f\"{time_delta}S\", min_periods=int(min_period_obs)).apply(\n",
+    "    np.std,\n",
+    "    raw=True,\n",
+    ")\n",
+    "\n",
+    "stdev_data.plot();"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### 3. Run QC and plot results\n",
+    "\n",
+    "##### Test range\n",
+    "\n",
+    "The beginning 743 points (`min_period`) are marked as \"NOT EVALUATED\" because there is not enough data yet to evaluate whether they are pass or fail.\n",
+    "\n",
+    "The range of the signal falls so quickly that no points are marked as \"SUSPECT\", but immediately change from \"PASS\" to \"FAIL\"."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from ioos_qc.config import QcConfig\n",
+    "\n",
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 17.25,\n",
+    "            \"fail_threshold\": 15,\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": min_period_secs,\n",
+    "            \"check_type\": \"range\",\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "\n",
+    "p1 = plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "##### Test standard deviation\n",
+    "\n",
+    "The \"standard deviation\" test picks up likely suspect data whereas the \"range\" test did not.\n",
+    "The exemplifies the utility of using both tests in tandem."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 5,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": min_period_secs,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Sensitivity Tests\n",
+    "\n",
+    "\n",
+    "### 1. Test results sensitivity to `min_period`\n",
+    "\n",
+    "The following plots demonstrate the sensitivity of the test results in the beginning of a time series to the selection of `min_period`. \n",
+    "\n",
+    "\n",
+    "### `min_period`: 0\n",
+    "\n",
+    "No observations are marked suspect at the beginning of the time series, but the first 744 observations (the size of the rolling window) are labeled \"FAILING\"."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 5,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": 0,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `min_period`: 10min\n",
+    "\n",
+    "Only the first 10s observations are marked as NOT EVALUATED, but the remainder of the first 744 samples are labeled as \"FAILING\"."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 5,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": 10 * 60,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `min_period`: 1h"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 5,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": 60 * 60,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `min_period`: test_period/2\n",
+    "\n",
+    "The first 744 samples are marked \"NOT EVALUATED\", but none are marked as \"FAILING\"."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 5,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": int(time_delta / 2),\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 2. Test results sensitivity to `suspect_threshold`.\n",
+    "\n",
+    "\n",
+    "### `suspect_threshold`: 7"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 7,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": min_period_secs,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `suspect_threshold`: 6"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 6,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": min_period_secs,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `suspect_threshold`: 5"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "qc_config = {\n",
+    "    \"qartod\": {\n",
+    "        \"attenuated_signal_test\": {\n",
+    "            \"suspect_threshold\": 5,\n",
+    "            \"fail_threshold\": 4.5,\n",
+    "            \"check_type\": \"std\",\n",
+    "            \"test_period\": int(time_delta),\n",
+    "            \"min_period\": min_period_secs,\n",
+    "        },\n",
+    "    },\n",
+    "}\n",
+    "qc = QcConfig(qc_config)\n",
+    "qc_results = qc.run(inp=data[var_name], tinp=data.index.values)\n",
+    "\n",
+    "title = \"Salinity [psu] : Lower Sand Island, OR\"\n",
+    "plot_results(data, var_name, qc_results, title, \"attenuated_signal_test\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.4"
+  },
+  "nbsphinx": {
+   "orphan": true
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
