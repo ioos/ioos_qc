@@ -230,10 +230,8 @@ def check_timestamps(
 
 
 def dict_update(d: Mapping, u: Mapping) -> Mapping:
-    """Update value of a nested dictionary of varying depth.
-
-    http://stackoverflow.com/a/3233356
-    """
+    """Update value of a nested dictionary of varying depth."""
+    # http://stackoverflow.com/a/3233356
     for k, v in u.items():
         if isinstance(d, Mapping):
             if isinstance(v, Mapping):
