@@ -380,3 +380,8 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #
 # texinfo_no_detailmenu = False
+
+# Ignore self-ref URLs
+linkcheck_ignore = [
+    "https://ioos.github.io/ioos_qc/.*"
+]
