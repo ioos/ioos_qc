@@ -109,10 +109,9 @@ def BNF():
     fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
         lambda t: t.insert(0, (t.pop(0), len(t[0]))),
     )
-    atom = (
-        addop[...]
-        + ((fn_call | pi | e | fnumber | ident).setParseAction(push_first) | Group(lpar + expr + rpar))
-    ).setParseAction(push_unary_minus)
+    atom = (addop[...] + ((fn_call | pi | e | fnumber | ident).setParseAction(push_first) | Group(lpar + expr + rpar))).setParseAction(
+        push_unary_minus,
+    )
 
     # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left
     # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.

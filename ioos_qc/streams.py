@@ -462,11 +462,7 @@ class XarrayStream:
                 # and build up the subset dict to apply later
 
                 # Time subset
-                if (
-                    self.time_var in ds[call.stream_id].coords
-                    and context.window.starting
-                    and context.window.ending
-                ):
+                if self.time_var in ds[call.stream_id].coords and context.window.starting and context.window.ending:
                     label_indexes[self.time_var] = slice(
                         context.window.starting,
                         context.window.ending,

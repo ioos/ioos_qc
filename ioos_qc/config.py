@@ -546,10 +546,7 @@ class QcConfig(Config):
 
 class NcQcConfig(Config):
     def __init__(self, *args, **kwargs) -> None:
-        msg = (
-            "The NcQcConfig object has been replaced by ioos_qc.config.Config "
-            "and ioos_qc.streams.XarrayStream"
-        )
+        msg = "The NcQcConfig object has been replaced by ioos_qc.config.Config and ioos_qc.streams.XarrayStream"
         raise NotImplementedError(
             msg,
         )

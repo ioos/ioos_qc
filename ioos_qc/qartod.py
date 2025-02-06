@@ -180,9 +180,7 @@ def location_test(
     # Ignore warnings when comparing NaN values even though they are masked
     # https://github.com/numpy/numpy/blob/master/doc/release/1.8.0-notes.rst#runtime-warnings-when-comparing-nan-numbers
     with np.errstate(invalid="ignore"):
-        flag_arr[(lon < bbox.minx) | (lat < bbox.miny) | (lon > bbox.maxx) | (lat > bbox.maxy)] = (
-            QartodFlags.FAIL
-        )
+        flag_arr[(lon < bbox.minx) | (lat < bbox.miny) | (lon > bbox.maxx) | (lat > bbox.maxy)] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
 
@@ -793,13 +791,13 @@ def flat_line_test(
     standard_name="attenuated_signal_test_quality_flag",
     long_name="Attenuated Signal Test Quality Flag",
 )
-def attenuated_signal_test( # noqa: PLR0913
+def attenuated_signal_test(  # noqa: PLR0913
     inp: Sequence[Real],
     tinp: Sequence[Real],
     suspect_threshold: Real,
     fail_threshold: Real,
     test_period: Real | None = None,
-    min_obs: Real  | None = None,
+    min_obs: Real | None = None,
     min_period: int | None = None,
     check_type: str = "std",
 ) -> np.ma.MaskedArray:
@@ -905,7 +903,7 @@ def density_inversion_test(
     inp: Sequence[Real],
     zinp: Sequence[Real],
     suspect_threshold: float | None = None,
-    fail_threshold: float |  None = None,
+    fail_threshold: float | None = None,
 ) -> np.ma.core.MaskedArray:
     """With few exceptions, potential water density will increase with increasing pressure. When
     vertical profile data is obtained, this test is used to flag as failed T, C, and SP observations, which

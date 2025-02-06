@@ -147,13 +147,14 @@ class CreatorConfig(dict):
 
     def __init__(self, path_or_dict, schema=QC_CONFIG_CREATOR_SCHEMA) -> None:
         if isinstance(path_or_dict, (Path, str)):
-            with open(path_or_dict) as f:
+            path_or_dict = Path(path_or_dict)
+            with path_or_dict.open() as f:
                 config = json.load(f)
         elif isinstance(path_or_dict, dict):
             config = path_or_dict
         else:
-            msg = "Input is not valid file path or dict"
-            raise ValueError(msg)
+            msg = f"Input {path_or_dict} is not valid file path or dict."
+            raise TypeError(msg)
         validate(instance=config, schema=schema)
 
         datasets = {}
@@ -189,32 +190,33 @@ class QcVariableConfig(dict):
 
     """
 
-    allowed_stats = [
+    allowed_stats = (
         "min",
         "max",
         "mean",
         "std",
-    ]
-    allowed_operators = [
+    )
+    allowed_operators = (
         "+",
         "-",
         "*",
         "/",
-    ]
-    allowed_groupings = [
+    )
+    allowed_groupings = (
         "(",
         ")",
-    ]
+    )
 
     def __init__(self, path_or_dict, schema=VARIABLE_CONFIG_SCHEMA) -> None:
         if isinstance(path_or_dict, (Path, str)):
-            with open(path_or_dict) as f:
+            path_or_dict = Path(path_or_dict)
+            with path_or_dict.open() as f:
                 config = json.load(f)
         elif isinstance(path_or_dict, dict):
             config = path_or_dict
         else:
-            msg = "Input is not valid file path or dict"
-            raise ValueError(msg)
+            msg = f"Input {path_or_dict} is not valid file path or dict."
+            raise TypeError(msg)
 
         L.debug("Validating schema...")
         validate(instance=config, schema=schema)
@@ -234,19 +236,15 @@ class QcVariableConfig(dict):
         for token in tokens:
             try:
                 _ = float(token)
-            except ValueError:
-                if (
-                    token not in self.allowed_stats
-                    and token not in self.allowed_operators
-                    and token not in self.allowed_groupings
-                ):
+            except ValueError as err:  # noqa: PERF203
+                if token not in self.allowed_stats and token not in self.allowed_operators and token not in self.allowed_groupings:
                     msg = (
                         f"{token} not allowed in min/max specification in config of {test_name}.\n"
                         f"Allowable stats are: {list(self.allowed_stats)}.\n"
                         f"Allowable operators are: {list(self.allowed_operators)}."
                         f"Allowable groupings are: {list(self.allowed_groupings)}."
                     )
-                    raise ValueError(msg)
+                    raise ValueError(msg) from err
 
     def __str__(self) -> str:
         return json.dumps(self, indent=4, sort_keys=True)
@@ -290,9 +288,7 @@ class QcConfigCreator:
         """
         stats = self._get_stats(variable_config)
         L.debug("Creating config...")
-        test_configs = {
-            name: self._create_test_section(name, variable_config, stats) for name in variable_config["tests"]
-        }
+        test_configs = {name: self._create_test_section(name, variable_config, stats) for name in variable_config["tests"]}
 
         return {
             f"{variable_config['variable']}": {
@@ -443,11 +439,11 @@ class QcConfigCreator:
         start_time = datetime.datetime.strptime(
             variable_config["start_time"],
             "%Y-%m-%d",
-        )
+        ).replace(tzinfo=datetime.timezone.utc)
         end_time = datetime.datetime.strptime(
             variable_config["end_time"],
             "%Y-%m-%d",
-        )
+        ).replace(tzinfo=datetime.timezone.utc)
         time_range = slice(start_time, end_time)
         subset = self._get_subset(
             variable_config["variable"],
@@ -556,10 +552,7 @@ class QcConfigCreator:
         ds_name, ds = self.var2dataset(var)
         var_in_file, _ = self._var2var_in_file(var)
 
-        if "3d" in self.config[ds_name]:
-            var = ds[var_in_file][:, depth, lat_mask, lon_mask]
-        else:  # 2d
-            var = ds[var_in_file][:, lat_mask, lon_mask]
+        var = ds[var_in_file][:, depth, lat_mask, lon_mask] if "3d" in self.config[ds_name] else ds[var_in_file][:, lat_mask, lon_mask]
 
         # try cubic interpolation to daily values
         try:
@@ -576,23 +569,25 @@ class QcConfigCreator:
         - Adds data for day 1 and 366 to ensure periodicity if required to ensure periodicity
 
         """
-        if (time_slice.stop - time_slice.start).days > 365:
+        full_year = 365
+        if (time_slice.stop - time_slice.start).days > full_year:
             msg = "Maximum of 365 days available for config_creator"
             raise NotImplementedError(msg)
 
         x = var.time.dt.dayofyear
         y = var.data
-        if 1 not in x and 366 not in x:
-            x = np.hstack([1, x, 366])
+        min_day, max_day = 1, 366
+        if min_day not in x and max_day not in x:
+            x = np.hstack([min_day, x, max_day])
             # add new average value at beginning and end to ensure periodicity
             end_value = (y[0:1, :, :] + y[-1:, :, :]) / 2
             y = np.concatenate([end_value, y, end_value])
-        elif 1 not in x:
-            x = np.hstack([1, x])
+        elif min_day not in x:
+            x = np.hstack([min_day, x])
             # add new beginning value that is equal to end value to ensure periodicity
             y = np.concatenate([y[-1:, :, :], y])
         else:  # 366 must not be in x, but 1 is
-            x = np.hstack([x, 366])
+            x = np.hstack([x, max_day])
             # add new end value that is equal to beginning value to ensure periodicity
             y = np.concatenate([y, y[0:1, :, :]])
 
@@ -629,9 +624,10 @@ class QcConfigCreator:
 
 def to_json(qc_config, out_file=None):
     """Given qc_config return json."""
+    out_file = Path(out_file)
     if out_file:
-        with open(out_file, "w") as outfile:
-            json.dump(outfile, qc_config)
+        with out_file.open("w") as f:
+            json.dump(f, qc_config)
             return None
     else:
         return json.dumps(qc_config)
