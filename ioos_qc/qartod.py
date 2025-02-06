@@ -1,12 +1,15 @@
-#!/usr/bin/env python
 """Tests based on the IOOS QARTOD manuals."""
+
+from __future__ import annotations
 
 import logging
 import warnings
 from collections import namedtuple
-from collections.abc import Sequence
-from numbers import Real as N
-from typing import Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from numbers import Real
 
 import numpy as np
 import pandas as pd
@@ -45,7 +48,7 @@ WEEK_PERIODS = [
     "weekofyear",
 ]
 
-span = namedtuple("Span", "minv maxv")
+span = namedtuple("Span", "minv maxv")  # noqa: PYI024
 
 
 @add_flag_metadata(
@@ -53,14 +56,14 @@ span = namedtuple("Span", "minv maxv")
     long_name="Aggregate Quality Flag",
     aggregate=True,
 )
-def aggregate(results: List) -> np.ma.MaskedArray:
+def aggregate(results: list) -> np.ma.MaskedArray:
     """Runs qartod_compare against all other qartod tests in results."""
     all_tests = [r.results for r in results]
     return qartod_compare(all_tests)
 
 
 def qartod_compare(
-    vectors: Sequence[Sequence[N]],
+    vectors: Sequence[Sequence[Real]],
 ) -> np.ma.MaskedArray:
     """Aggregates an array of flags by precedence into a single array.
 
@@ -76,9 +79,9 @@ def qartod_compare(
 
     """
     shapes = [v.shape[0] for v in vectors]
-    # Assert that all of the vectors are the same size.
-    assert all(s == shapes[0] for s in shapes)
-    assert all(v.ndim == 1 for v in vectors)
+    if not all(v.ndim == 1 for v in vectors) or not all(s == shapes[0] for s in shapes):
+        msg = f"Vectors are not the same size.\n{vectors=}"
+        raise ValueError(msg)
 
     result = np.ma.empty(shapes[0])
     result.fill(QartodFlags.MISSING)
@@ -104,10 +107,10 @@ def qartod_compare(
     long_name="Location Test Quality Flag",
 )
 def location_test(
-    lon: Sequence[N],
-    lat: Sequence[N],
-    bbox: Tuple[N, N, N, N] = (-180, -90, 180, 90),
-    range_max: Optional[N] = None,
+    lon: Sequence[Real],
+    lat: Sequence[Real],
+    bbox: tuple[Real, Real, Real, Real] = (-180, -90, 180, 90),
+    range_max: Real | None = None,
 ) -> np.ma.core.MaskedArray:
     """Checks that a location is within reasonable bounds.
 
@@ -134,9 +137,11 @@ def location_test(
         A masked array of flag values equal in size to that of the input.
 
     """
-    bboxnt = namedtuple("BBOX", "minx miny maxx maxy")
+    bboxnt = namedtuple("BBOX", "minx miny maxx maxy")  # noqa: PYI024
     if bbox is not None:
-        assert isfixedlength(bbox, 4)
+        if not isfixedlength(bbox, 4):
+            msg = f"{bbox=}, expecred 4."
+            raise ValueError(msg)
         bbox = bboxnt(*bbox)
 
     with warnings.catch_warnings():
@@ -187,9 +192,9 @@ def location_test(
     long_name="Gross Range Test Quality Flag",
 )
 def gross_range_test(
-    inp: Sequence[N],
-    fail_span: Tuple[N, N],
-    suspect_span: Optional[Tuple[N, N]] = None,
+    inp: Sequence[Real],
+    fail_span: tuple[Real, Real],
+    suspect_span: tuple[Real, Real] | None = None,
 ) -> np.ma.core.MaskedArray:
     """Checks that values are within reasonable range bounds.
 
@@ -212,7 +217,9 @@ def gross_range_test(
         A masked array of flag values equal in size to that of the input.
 
     """
-    assert isfixedlength(fail_span, 2)
+    if not isfixedlength(fail_span, 2):
+        msg = f"{fail_span=}, expected 2"
+        raise ValueError(msg)
     sspan = span(*sorted(fail_span))
 
     with warnings.catch_warnings():
@@ -229,7 +236,9 @@ def gross_range_test(
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     if suspect_span is not None:
-        assert isfixedlength(suspect_span, 2)
+        if not isfixedlength(suspect_span, 2):
+            msg = f"{suspect_span=}, expected 2."
+            raise ValueError(msg)
         uspan = span(*sorted(suspect_span))
         if uspan.minv < sspan.minv or uspan.maxv > sspan.maxv:
             msg = f"Suspect {uspan} must fall within the Fail {sspan}"
@@ -275,7 +284,7 @@ class ClimatologyConfig:
 
     """
 
-    mem = namedtuple(
+    mem = namedtuple(  # noqa: PYI024
         "window",
         [
             "tspan",
@@ -303,15 +312,12 @@ class ClimatologyConfig:
         """
         span = (None, None)
         for m in self._members:
-            if m.period is not None:
-                # If a period is defined, extract the attribute from the
-                # pd.Timestamp object before comparison. The min and max
-                # values are in this period unit already.
-                tind_copy = getattr(tind, m.period)
-            else:
-                # If a period isn't defined, make a new Timestamp object
-                # to align with the above name 'tind_copy'
-                tind_copy = tind
+            # If a period is defined, extract the attribute from the
+            # pd.Timestamp object before comparison. The min and max
+            # values are in this period unit already.
+            # If a period isn't defined, make a new Timestamp object
+            # to align with the above name 'tind_copy'
+            tind_copy = getattr(tind, m.period) if m.period is not None else tind
 
             # If we are between times
             if tind_copy > m.tspan.minv and tind_copy <= m.tspan.maxv:
@@ -325,45 +331,43 @@ class ClimatologyConfig:
 
     def add(
         self,
-        tspan: Tuple[N, N],
-        vspan: Tuple[N, N],
-        fspan: Optional[Tuple[N, N]] = None,
-        zspan: Optional[Tuple[N, N]] = None,
-        period: Optional[str] = None,
+        tspan: tuple[Real, Real],
+        vspan: tuple[Real, Real],
+        fspan: tuple[Real, Real] | None = None,
+        zspan: tuple[Real, Real] | None = None,
+        period: str | None = None,
     ) -> None:
-        assert isfixedlength(tspan, 2)
+        if not isfixedlength(tspan, 2):
+            msg = f"{tspan=}, expected 2."
+            raise ValueError(msg)
         # If period is defined, tspan is a numeric
         # if it isn't defined, its a parsable date
-        if period is not None:
-            tspan = span(*sorted(tspan))
-        else:
-            tspan = span(
-                *sorted(
-                    [
-                        pd.Timestamp(tspan[0]),
-                        pd.Timestamp(tspan[1]),
-                    ],
-                ),
-            )
+        tspan = span(*sorted(tspan)) if period is not None else span(*sorted([pd.Timestamp(tspan[0]), pd.Timestamp(tspan[1])]))
 
-        assert isfixedlength(vspan, 2)
+        if not isfixedlength(vspan, 2):
+            msg = f"{vspan=}, expected 2."
+            raise ValueError(msg)
         vspan = span(*sorted(vspan))
 
         if fspan is not None:
-            assert isfixedlength(fspan, 2)
+            if not isfixedlength(fspan, 2):
+                msg = f"{fspan=}, expected 2."
+                raise ValueError(msg)
             fspan = span(*sorted(fspan))
 
         if zspan is not None:
-            assert isfixedlength(zspan, 2)
+            if not isfixedlength(zspan, 2):
+                msg = f"{zspan=}, expected 2."
+                raise ValueError(msg)
             zspan = span(*sorted(zspan))
 
         if period is not None:
             # Test to make sure this is callable on a Timestamp
             try:
                 getattr(pd.Timestamp.now(), period)
-            except AttributeError:
+            except AttributeError as err:
                 msg = 'The period "{period}" is not recognized'
-                raise ValueError(msg)
+                raise ValueError(msg) from err
 
         self._members.append(
             self.mem(
@@ -434,10 +438,7 @@ class ClimatologyConfig:
             # Failed and suspect data for this value span. Combining fail_idx or
             # suspect_idx with values_idx represents the subsets of data that should be
             # fail and suspect respectively.
-            if not isnan(m.fspan):
-                fail_idx = (inp < m.fspan.minv) | (inp > m.fspan.maxv)
-            else:
-                fail_idx = np.zeros(inp.size, dtype=bool)
+            fail_idx = (inp < m.fspan.minv) | (inp > m.fspan.maxv) if not isnan(m.fspan) else np.zeros(inp.size, dtype=bool)
 
             suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
 
@@ -465,10 +466,10 @@ class ClimatologyConfig:
     long_name="Climatology Test Quality Flag",
 )
 def climatology_test(
-    config: Union[ClimatologyConfig, Sequence[Dict[str, Tuple]]],
-    inp: Sequence[N],
-    tinp: Sequence[N],
-    zinp: Sequence[N],
+    config: ClimatologyConfig | Sequence[dict[str, tuple]],
+    inp: Sequence[Real],
+    tinp: Sequence[Real],
+    zinp: Sequence[Real],
 ) -> np.ma.core.MaskedArray:
     """Checks that values are within reasonable range bounds and flags as SUSPECT.
 
@@ -524,9 +525,9 @@ def climatology_test(
     long_name="Spike Test Quality Flag",
 )
 def spike_test(
-    inp: Sequence[N],
-    suspect_threshold: Optional[N] = None,
-    fail_threshold: Optional[N] = None,
+    inp: Sequence[Real],
+    suspect_threshold: Real | None = None,
+    fail_threshold: Real | None = None,
     method: str = "average",
 ) -> np.ma.core.MaskedArray:
     """Check for spikes by checking neighboring data against thresholds.
@@ -633,8 +634,8 @@ def spike_test(
     long_name="Rate of Change Test Quality Flag",
 )
 def rate_of_change_test(
-    inp: Sequence[N],
-    tinp: Sequence[N],
+    inp: Sequence[Real],
+    tinp: Sequence[Real],
     threshold: float,
 ) -> np.ma.core.MaskedArray:
     """Checks the first order difference of a series of values to see if
@@ -695,11 +696,11 @@ def rate_of_change_test(
     long_name="Flat Line Test Quality Flag",
 )
 def flat_line_test(
-    inp: Sequence[N],
-    tinp: Sequence[N],
+    inp: Sequence[Real],
+    tinp: Sequence[Real],
     suspect_threshold: int,
     fail_threshold: int,
-    tolerance: N = 0,
+    tolerance: Real = 0,
 ) -> np.ma.MaskedArray:
     """Check for consecutively repeated values within a tolerance.
     Missing and masked data is flagged as UNKNOWN.
@@ -743,7 +744,8 @@ def flat_line_test(
     flag_arr = np.full((inp.size,), QartodFlags.GOOD)
 
     # if we have fewer than 3 points, we can't run the test, so everything passes
-    if len(inp) < 3:
+    min_inp_size = 3
+    if len(inp) < min_inp_size:
         return flag_arr.reshape(original_shape)
 
     # determine median time interval
@@ -775,7 +777,7 @@ def flat_line_test(
         test_results = np.ma.filled(data_range < tolerance, fill_value=False)
         # data points before end of first window should pass
         n_fill = min(len(inp), count)
-        test_results = np.insert(test_results, 0, np.full((n_fill,), False))
+        test_results = np.insert(test_results, 0, np.full((n_fill,), fill_value=False))
         flag_arr[test_results] = flag_value
 
     run_test(suspect_threshold, QartodFlags.SUSPECT)
@@ -791,16 +793,15 @@ def flat_line_test(
     standard_name="attenuated_signal_test_quality_flag",
     long_name="Attenuated Signal Test Quality Flag",
 )
-def attenuated_signal_test(
-    inp: Sequence[N],
-    tinp: Sequence[N],
-    suspect_threshold: N,
-    fail_threshold: N,
-    test_period: Optional[N] = None,
-    min_obs: Optional[N] = None,
-    min_period: Optional[int] = None,
+def attenuated_signal_test( # noqa: PLR0913
+    inp: Sequence[Real],
+    tinp: Sequence[Real],
+    suspect_threshold: Real,
+    fail_threshold: Real,
+    test_period: Real | None = None,
+    min_obs: Real  | None = None,
+    min_period: int | None = None,
     check_type: str = "std",
-    *args,
 ) -> np.ma.MaskedArray:
     """Check for near-flat-line conditions using a range or standard deviation.
 
@@ -844,7 +845,7 @@ def attenuated_signal_test(
     # check_func: Applied to a flattened numpy array when no `time_period` is supplied
     # These are split for performance reasons
     if check_type == "std":
-        window_func = lambda x: x.std()  # noqa
+        window_func = lambda x: x.std()  # noqa: E731
         check_func = np.ma.std
     elif check_type == "range":
 
@@ -901,10 +902,10 @@ def attenuated_signal_test(
     long_name="Density Inversion Test Flag",
 )
 def density_inversion_test(
-    inp: Sequence[N],
-    zinp: Sequence[N],
-    suspect_threshold: Optional[float] = None,
-    fail_threshold: Optional[float] = None,
+    inp: Sequence[Real],
+    zinp: Sequence[Real],
+    suspect_threshold: float | None = None,
+    fail_threshold: float |  None = None,
 ) -> np.ma.core.MaskedArray:
     """With few exceptions, potential water density will increase with increasing pressure. When
     vertical profile data is obtained, this test is used to flag as failed T, C, and SP observations, which
@@ -951,7 +952,8 @@ def density_inversion_test(
     # If no data or just one record, return respectively an empty mask array or UNKNOWN
     if inp.size == 0:
         return np.ma.masked_array([])
-    if inp.size < 2:
+    inp_size = 2
+    if inp.size < inp_size:
         flag_arr[0] = QartodFlags.UNKNOWN
         return flag_arr
 

@@ -8,4 +8,4 @@ pyparsing
 ruamel.yaml
 scipy
 shapely
-xarray
+xarray>2022.03

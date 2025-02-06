@@ -4,11 +4,7 @@ from collections import OrderedDict, defaultdict
 import numpy as np
 import pandas as pd
 import xarray as xr
-
-try:
-    from xarray.core.indexing import remap_label_indexers as map_index_queries
-except ImportError:
-    from xarray.core.indexing import map_index_queries
+from xarray.core.indexing import map_index_queries
 
 from ioos_qc.config import Config
 from ioos_qc.results import ContextResult
@@ -552,10 +548,7 @@ class XarrayStream:
                 )
                 # This if-else clause is required only to support Python <3.8.
                 # we can remove it when ioos_qc drops support for Python <=3.7.
-                if isinstance(int_indexes, tuple):
-                    int_indexes = int_indexes[0]
-                else:
-                    int_indexes = int_indexes.dim_indexers
+                int_indexes = int_indexes[0] if isinstance(int_indexes, tuple) else int_indexes.dim_indexers
                 # Initial slicer will select everything.
                 # This selects all values in a dimension if there are no
                 # labeled indexes for it.

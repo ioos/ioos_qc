@@ -1,16 +1,20 @@
-line-length = 110
+line-length = 143
 
 lint.select = ["ALL"]
 
 lint.ignore = [
   "ANN",  # type annotation
-  "D107",  # Missing docstring in `__init__`
+  "D103",  # Missing docstring in public function
   "D100",  # Missing docstring in public module
   "D101",  # Missing docstring in public class
   "D102",  # Missing docstring in public method
+  "D105",  # Missing docstring in magic method
+  "D107",  # Missing docstring in `__init__`
   "D203",  # 1 blank line required before class docstring
   "D205",  # 1 blank line required between summary line and description
   "D213",  # incompatible. Ignoring `multi-line-summary-second-line`
+  "D401",  # First line of docstring should be in imperative mood
+  "D417",  # Missing argument descriptions in the docstring
   "FIX002",  # Line contains TODO, consider resolving the issue
   "TD002",  # Missing author in TODO
   "TD003",  # Missing issue link on the line following this TODO

@@ -255,12 +255,12 @@ class QcVariableConfig(dict):
 class QcConfigCreator:
     """Creates level-0 configuration to create QcQonfig.
 
-    Arguments
+    Arguments:
     ---------
     creator_config (QcCreatorConfig)
         Configuration for datasets and variables used to create qc_config.
 
-    Attributes
+    Attributes:
     ----------
     allowed_stats (list)
         Specific statistics allowed to be used to configure each test.

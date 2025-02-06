@@ -383,5 +383,5 @@ texinfo_documents = [
 
 # Ignore self-ref URLs
 linkcheck_ignore = [
-    "https://ioos.github.io/ioos_qc/.*"
+    "https://ioos.github.io/ioos_qc/.*",
 ]
