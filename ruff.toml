@@ -4,10 +4,11 @@ lint.select = ["ALL"]
 
 lint.ignore = [
   "ANN",  # type annotation
-  "D103",  # Missing docstring in public function
   "D100",  # Missing docstring in public module
   "D101",  # Missing docstring in public class
   "D102",  # Missing docstring in public method
+  "D103",  # Missing docstring in public function
+  "D104",  # Missing docstring in public package
   "D105",  # Missing docstring in magic method
   "D107",  # Missing docstring in `__init__`
   "D203",  # 1 blank line required before class docstring
@@ -22,14 +23,30 @@ lint.ignore = [
 ]
 
 [lint.extend-per-file-ignores]
-"docs/source/conf.py" = [
+"docs/*" = [
   "A001",  # builtin-variable-shadowing
+  "ARG001",
+  "C408",
   "D100",  # Missing docstring in public module
+  "D400",
+  "D415",
   "E402",  # Module level import not at top of file
   "E501",  # Line too long
   "ERA001",  # Found commented-out code
   "ERA001",  # Found commented-out code
   "EXE001",  # Shebang is present but file is not executable
+  "EXE003",
+  "EXE005",
+  "F811",
+  "PD011",
+  "PD901",
+  "PLR2004",
+  "PTH103",
+  "PTH107",
+  "PTH110",
+  "PTH118",
+  "RUF015",
+  "T201",
 ]
 "test_*.py" = [
   "ANN001",  # Missing type annotation for function argument
