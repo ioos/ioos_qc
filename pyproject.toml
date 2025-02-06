@@ -68,6 +68,13 @@ ignore = [
   "tests/*",
 ]
 
+[tool.pytest.ini_options]
+addopts = "-s -rxs -v"
+
+filterwarnings = [
+  "error",
+]
+
 [tool.interrogate]
 ignore-init-method = true
 ignore-init-module = false
