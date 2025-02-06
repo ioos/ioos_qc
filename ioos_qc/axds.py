@@ -1,10 +1,7 @@
-#!/usr/bin/env python
 """Tests based on the IOOS QARTOD manuals."""
 
 import logging
-from collections import namedtuple
 from collections.abc import Sequence
-from typing import Tuple
 
 import numpy as np
 
@@ -16,8 +13,6 @@ L = logging.getLogger(__name__)
 FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
-span = namedtuple("Span", "minv maxv")
-
 
 @add_flag_metadata(
     standard_name="gross_range_test_quality_flag",
@@ -25,7 +20,8 @@ span = namedtuple("Span", "minv maxv")
 )
 def valid_range_test(
     inp: Sequence[any],
-    valid_span: Tuple[any, any],
+    *,
+    valid_span: tuple[any, any],
     dtype: np.dtype = None,
     start_inclusive: bool = True,
     end_inclusive: bool = False,
@@ -83,19 +79,17 @@ def valid_range_test(
             # Try datetime-like objects
             inp = np.ma.masked_invalid(mapdates(inp))
             valid_span = np.ma.masked_invalid(mapdates(valid_span))
-        except BaseException:
+        except BaseException:  # noqa: BLE001
             try:
                 # Try floating point numbers
                 inp = np.ma.masked_invalid(np.array(inp).astype(np.floating))
                 valid_span = np.ma.masked_invalid(
                     np.array(valid_span).astype(np.floating),
                 )
-            except BaseException:
+            except BaseException as err:
                 # Well, we tried.
                 msg = "Could not determine the type of input, try using the dtype parameter"
-                raise ValueError(
-                    msg,
-                )
+                raise ValueError(msg) from err
     else:
         inp = np.ma.masked_invalid(np.array(inp, dtype=dtype))
         valid_span = np.ma.masked_invalid(np.array(valid_span, dtype=dtype))

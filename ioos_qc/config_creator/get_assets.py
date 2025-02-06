@@ -1,4 +1,3 @@
-#!python
 """Download and process source data used for ConfigCreator."""
 
 import logging
@@ -43,12 +42,12 @@ def ocean_atlas_download(output_dir, month, sources=SOURCES) -> None:
                 name_in_file,
                 month.month,
             )
-        r = request.urlopen(url)
+        r = request.urlopen(url)  # noqa: S310
         data = r.read()
 
         fname = f"ocean_atlas_{name}_{month.month:02}.nc"
         out_file = output_dir / fname
-        with open(out_file, "wb") as f:
+        with out_file.open("wb") as f:
             f.write(data)
 
 
@@ -150,7 +149,7 @@ def ocean_atlas_enhance(output_dir) -> None:
 def get_ocean_atlas(output_dir) -> None:
     time_range = xr.cftime_range(start="2018", end="2018-12-31", freq="MS")
     for month in time_range:
-        logger.info(f"downloading Ocean Atlas for {month}")
+        logger.info("downloading Ocean Atlas for %s", month)
         ocean_atlas_download(output_dir, month)
         ocean_atlas_merge_variables(output_dir, month)
         ocean_atlas_variable_enhance(output_dir, month)
@@ -168,12 +167,12 @@ def narr_download(output_dir, sources=SOURCES) -> None:
     }
     for variable_name, variable_file in variables.items():
         url = sources["NARR"]["url"].format(variable_file)
-        r = request.urlopen(url)
+        r = request.urlopen(url)  # noqa: S310
         data = r.read()
 
         fname = f"narr_{variable_name}.nc"
         out_file = output_dir / fname
-        with open(out_file, "wb") as f:
+        with out_file.open("wb") as f:
             f.write(data)
 
 
@@ -244,18 +243,16 @@ def get_narr(output_dir) -> None:
 
 def remove_tmp_files(dirs_to_delete) -> None:
     logger.info("removing tmp files")
-    for dir in dirs_to_delete:
-        logger.info(f"removing {dir}")
-        shutil.rmtree(str(dir))
+    for directory in dirs_to_delete:
+        logger.info("removing %s", directory)
+        shutil.rmtree(str(directory))
 
 
-def main(output_dir, remove_tmp_files=False) -> None:
+def main(output_dir, *, remove_tmp_files=False) -> None:
     output_dir = Path(output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(
-        f"Downloading and saving data for QcConfigCreator to {output_dir}",
-    )
+    logger.info("Downloading and saving data for QcConfigCreator to %s", output_dir)
     logger.info("Downloading Ocean Atlas")
     ocean_atlas_dir = output_dir / "ocean_atlas"
     ocean_atlas_dir.mkdir(exist_ok=True)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests based on the ARGO QC manual."""
 
 import logging
@@ -126,7 +125,8 @@ def speed_test(
     flag_arr[mloc] = QartodFlags.MISSING
 
     # If only one data point, return
-    if lon.size < 2:
+    lon_size = 2
+    if lon.size < lon_size:
         flag_arr[0] = QartodFlags.UNKNOWN
         return flag_arr.reshape(original_shape)
 

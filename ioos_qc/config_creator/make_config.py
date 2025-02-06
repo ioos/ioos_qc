@@ -1,4 +1,3 @@
-#!python
 from ioos_qc.config_creator import (
     QC_CONFIG_CREATOR_SCHEMA,
     VARIABLE_CONFIG_SCHEMA,

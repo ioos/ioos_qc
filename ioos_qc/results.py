@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 import logging
-from collections import OrderedDict as odict
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
-from typing import List, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 
@@ -24,7 +22,7 @@ class CallResult(NamedTuple):
 
 class ContextResult(NamedTuple):
     stream_id: str
-    results: List[CallResult]
+    results: list[CallResult]
     subset_indexes: np.ndarray
     data: np.ndarray = None
     tinp: np.ndarray = None
@@ -73,7 +71,7 @@ def collect_results_list(results):
     by combining the subset_index information in each ContextResult together into
     a single array of results.
     """
-    collected = odict()
+    collected = OrderedDict()
 
     # ContextResults
     for r in results:
@@ -155,7 +153,7 @@ def collect_results_dict(results):
     """
     # Magic for nested key generation
     # https://stackoverflow.com/a/27809959
-    collected = defaultdict(lambda: defaultdict(odict))
+    collected = defaultdict(lambda: defaultdict(OrderedDict))
 
     # ContextResults
     for r in results:

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """QC Config objects.
 
 Module to store the different QC modules in ioos_qc
@@ -10,18 +9,19 @@ tw (namedtuple)
 
 """
 
+from __future__ import annotations
+
 import io
 import logging
 import warnings
-from collections import OrderedDict as odict
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
 from copy import deepcopy
 from dataclasses import dataclass, field
 from functools import partial
 from importlib import import_module
 from inspect import signature
 from pathlib import Path
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 from shapely.geometry import GeometryCollection, shape
@@ -30,9 +30,9 @@ from ioos_qc.results import CallResult, collect_results
 from ioos_qc.utils import dict_depth, load_config_as_dict
 
 L = logging.getLogger(__name__)
-ConfigTypes = Union[dict, odict, str, Path, io.StringIO]
+ConfigTypes = Union[dict, OrderedDict, str, Path, io.StringIO]
 
-tw = namedtuple("TimeWindow", ("starting", "ending"), defaults=[None, None])
+tw = namedtuple("TimeWindow", ("starting", "ending"), defaults=[None, None])  # noqa: PYI024
 
 
 @dataclass(frozen=True)
@@ -153,7 +153,7 @@ class Call:
         # Get our own copy of the kwargs object so we can change it
         testkwargs = deepcopy(passedkwargs)
         # Merges dicts
-        testkwargs = odict({**self.kwargs, **testkwargs})
+        testkwargs = OrderedDict({**self.kwargs, **testkwargs})
 
         # Get the arguments that the test functions support
         sig = signature(self.func)
@@ -168,13 +168,13 @@ class Call:
                     results=self.func(**testkwargs),
                 ),
             )
-        except Exception as e:
-            L.error(f'Could not run "{self.module}.{self.method}: {e}')
+        except Exception as err:  # noqa: BLE001
+            L.error(f'Could not run "{self.module}.{self.method}: {err}')
 
         return results
 
 
-def extract_calls(source) -> List[Call]:
+def extract_calls(source) -> list[Call]:
     """Extracts call objects from a source object.
 
     Parameters
@@ -224,14 +224,13 @@ class Config:
     def __init__(
         self,
         source,
-        version=None,
         default_stream_key="_stream",
     ) -> None:
         """Parameters
         ----------
         source:
             The QC configuration representation in one of the following formats:
-                python dict or odict
+                python dict or OrderedDict
                 JSON/YAML filepath (str or Path object)
                 JSON/YAML str
                 JSON/YAML StringIO
@@ -247,6 +246,7 @@ class Config:
 
         # If we are passed an object we can extract calls from do so
         # Else, process as a Config object
+        is_config = 4
         extracted = extract_calls(source)
         if extracted:
             self._calls = extracted
@@ -261,19 +261,19 @@ class Config:
             elif "streams" in self.config:
                 # Return a list with just one ContextConfig
                 self._calls += list(ContextConfig(self.config).calls)
-            elif dict_depth(self.config) >= 4:
+
+            elif dict_depth(self.config) >= is_config:
                 # This is a Config
                 self._calls += list(
-                    ContextConfig(odict(streams=self.config)).calls,
+                    ContextConfig(OrderedDict(streams=self.config)).calls,
                 )
             else:
                 # This is a QcConfig
                 self._calls += list(
                     ContextConfig(
-                        odict(streams={default_stream_key: self.config}),
+                        OrderedDict(streams={default_stream_key: self.config}),
                     ).calls,
                 )
-                # raise ValueError("Can not add context to a QC Config object. Create it manually.")
 
     @property
     def contexts(self):
@@ -302,17 +302,12 @@ class Config:
     @property
     def calls(self):
         return self._calls
-        # Could need this in the future
-        # return [
-        #     c for c in self._calls
-        #     if not hasattr(c.func, 'aggregate') or c.func.aggregate is False
-        # ]
 
     @property
     def aggregate_calls(self):
         return [c for c in self._calls if hasattr(c.func, "aggregate") and c.func.aggregate is True]
 
-    def has(self, stream_id: str, method: Union[callable, str]):
+    def has(self, stream_id: str, method: callable | str):
         if isinstance(method, str):
             for c in self._calls:
                 if c.stream_id == stream_id and c.method_path == method:
@@ -323,12 +318,8 @@ class Config:
                     return c
         return False
 
-    def calls_by_stream_id(self, stream_id) -> List[Call]:
-        calls = []
-        for c in self._calls:
-            if c.stream_id == stream_id:
-                calls.append(c)
-        return calls
+    def calls_by_stream_id(self, stream_id) -> list[Call]:
+        return [c for c in self._calls if c.stream_id == stream_id]
 
     def add(self, source) -> None:
         """Adds a source of calls to this Config. See extract_calls for information on the
@@ -378,18 +369,19 @@ class ContextConfig:
 
     Attributes
     ----------
-    config (odict)
+    config (OrderedDict)
         dict representation of the parsed ContextConfig source
     region (GeometryCollection)
         A `shapely` object representing the valid geographic region
     window (namedtuple)
         A TimeWindow object representing the valid time period
-    streams (odict)
+    streams (OrderedDict)
         dict representation of the parsed Config objects
 
     """
 
-    def __init__(self, source: ConfigTypes) -> None:
+    def __init__(self, source: ConfigTypes) -> None:  # noqa: PLR0912,C901
+        # This one needs a refactor!
         self.config = load_config_as_dict(source)
 
         self._calls = []
@@ -450,7 +442,7 @@ class ContextConfig:
                     continue
 
                 for testname, kwargs in modules.items():
-                    kwargs = kwargs or {}
+                    new_kwargs = kwargs or {}
                     if not hasattr(testpackage, testname):
                         L.warning(
                             f'No ioos_qc method "{package}.{testname}" was found, skipping',
@@ -462,7 +454,7 @@ class ContextConfig:
                         Call(
                             stream_id=stream_id,
                             context=self.context,
-                            call=partial(runfunc, (), **kwargs),
+                            call=partial(runfunc, (), **new_kwargs),
                             attrs=getattr(sc, "attrs", {}),
                         ),
                     )
@@ -491,7 +483,6 @@ class ContextConfig:
         self._calls.extend([e for e in extracted if e.context == self.context])
 
     def __str__(self) -> str:
-        # sc = list(self.streams.keys())
         return (
             f"<ContextConfig "
             f"calls={len(self._calls)} "
@@ -514,7 +505,7 @@ class QcConfig(Config):
         ----------
         source
             The QC configuration representation in one of the following formats:
-                python dict or odict
+                python dict or OrderedDict
                 JSON/YAML filepath (str or Path object)
                 JSON/YAML str
                 JSON/YAML StringIO
@@ -528,6 +519,7 @@ class QcConfig(Config):
         warnings.warn(
             "The QcConfig object is deprecated, please use Config directly",
             DeprecationWarning,
+            stacklevel=2,
         )
         self._default_stream_key = default_stream_key
         super().__init__(source, default_stream_key=default_stream_key)
@@ -554,10 +546,7 @@ class QcConfig(Config):
 
 class NcQcConfig(Config):
     def __init__(self, *args, **kwargs) -> None:
-        msg = (
-            "The NcQcConfig object has been replaced by ioos_qc.config.Config "
-            "and ioos_qc.streams.XarrayStream"
-        )
+        msg = "The NcQcConfig object has been replaced by ioos_qc.config.Config and ioos_qc.streams.XarrayStream"
         raise NotImplementedError(
             msg,
         )

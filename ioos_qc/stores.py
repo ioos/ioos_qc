@@ -1,19 +1,22 @@
-#!/usr/bin/env python
+from __future__ import annotations
+
 import inspect
 import json
 import logging
 from importlib import import_module
 from pathlib import Path
-from typing import List, Optional
+from typing import TYPE_CHECKING
 
 import h5netcdf.legacyapi as nc4
 import numpy as np
 import pandas as pd
 
-from ioos_qc.config import Config
 from ioos_qc.qartod import aggregate
 from ioos_qc.results import CollectedResult, collect_results
 from ioos_qc.utils import GeoNumpyDateEncoder, cf_safe_name
+
+if TYPE_CHECKING:
+    from ioos_qc.config import Config
 
 L = logging.getLogger(__name__)
 
@@ -30,14 +33,14 @@ class BaseStore:
         """Serialize results to a store. This could save a file or publish messages."""
 
     @property
-    def stream_ids(self) -> List[str]:
+    def stream_ids(self) -> list[str]:
         """A list of stream_ids to save to the store."""
 
 
 class PandasStore(BaseStore):
     """Store results in a dataframe."""
 
-    def __init__(self, results, axes: Optional[dict] = None) -> None:
+    def __init__(self, results, axes: dict | None = None) -> None:
         # OK, time to evaluate the actual tests now that we need the results
         self.results = list(results)
         self.collected_results = collect_results(self.results, how="list")
@@ -50,7 +53,7 @@ class PandasStore(BaseStore):
         }
 
     @property
-    def stream_ids(self) -> List[str]:
+    def stream_ids(self) -> list[str]:
         return self._stream_ids
 
     def compute_aggregate(self, name="rollup") -> None:
@@ -66,74 +69,71 @@ class PandasStore(BaseStore):
 
     def save(
         self,
+        *,
         write_data: bool = False,
         write_axes: bool = True,
-        include: Optional[list] = None,
-        exclude: Optional[list] = None,
+        include: list | None = None,
+        exclude: list | None = None,
     ) -> pd.DataFrame:
-        df = pd.DataFrame()
+        save_df = pd.DataFrame()
 
         for cr in self.collected_results:
             # Add time axis
-            if write_axes is True and self.axes["t"] not in df and cr.tinp is not None and cr.tinp.size != 0:
+            if write_axes is True and self.axes["t"] not in save_df and cr.tinp is not None and cr.tinp.size != 0:
                 L.info(
                     f"Adding column {self.axes['t']} from stream {cr.stream_id}",
                 )
-                df[self.axes["t"]] = cr.tinp
+                save_df[self.axes["t"]] = cr.tinp
 
             # Add z axis
-            if write_axes is True and self.axes["z"] not in df and cr.zinp is not None and cr.zinp.size != 0:
+            if write_axes is True and self.axes["z"] not in save_df and cr.zinp is not None and cr.zinp.size != 0:
                 L.info(
                     f"Adding column {self.axes['z']} from stream {cr.stream_id}",
                 )
-                df[self.axes["z"]] = cr.zinp
+                save_df[self.axes["z"]] = cr.zinp
 
             # Add x axis
-            if write_axes is True and self.axes["x"] not in df and cr.lon is not None and cr.lon.size != 0:
+            if write_axes is True and self.axes["x"] not in save_df and cr.lon is not None and cr.lon.size != 0:
                 L.info(
                     f"Adding column {self.axes['x']} from stream {cr.stream_id}",
                 )
-                df[self.axes["x"]] = cr.lon
+                save_df[self.axes["x"]] = cr.lon
 
             # Add x axis
-            if write_axes is True and self.axes["y"] not in df and cr.lat is not None and cr.lat.size != 0:
+            if write_axes is True and self.axes["y"] not in save_df and cr.lat is not None and cr.lat.size != 0:
                 L.info(
                     f"Adding column {self.axes['y']} from stream {cr.stream_id}",
                 )
-                df[self.axes["y"]] = cr.lat
+                save_df[self.axes["y"]] = cr.lat
 
             # Inclusion list, skip everything not defined
-            if include is not None and (
-                cr.function not in include and cr.stream_id not in include and cr.test not in include
-            ):
+            if include is not None and (cr.function not in include and cr.stream_id not in include and cr.test not in include):
                 continue
 
             # Exclusion list, skip everything defined
-            if exclude is not None and (
-                cr.function in exclude or cr.stream_id in exclude or cr.test in cr.test in include
-            ):
+            if exclude is not None and (cr.function in exclude or cr.stream_id in exclude or cr.test in cr.test in include):
                 continue
 
             # Add data column
-            if write_data and cr.stream_id not in df and cr.stream_id:
+            if write_data and cr.stream_id not in save_df and cr.stream_id:
                 L.info(f"Adding column {cr.stream_id}")
-                df[cr.stream_id] = cr.data
+                save_df[cr.stream_id] = cr.data
 
             # Add QC results column
             # Aggregate will have None stream_id, so allow it to be that way!
             column_name = column_from_collected_result(cr)
-            if column_name not in df:
-                df[column_name] = cr.results
+            if column_name not in save_df:
+                save_df[column_name] = cr.results
             else:
                 L.warning(
                     f"Found duplicate QC results column: {column_name}, skipping.",
                 )
 
-        return df
+        return save_df
 
 
 class CFNetCDFStore(BaseStore):
-    def __init__(self, results, axes=None, **kwargs) -> None:
+    def __init__(self, results, axes=None) -> None:
         # OK, time to evaluate the actual tests now that we need the results
         self.results = list(results)
         self.collected_results = collect_results(self.results, how="list")
@@ -146,18 +146,19 @@ class CFNetCDFStore(BaseStore):
         }
 
     @property
-    def stream_ids(self) -> List[str]:
+    def stream_ids(self) -> list[str]:
         return self._stream_ids
 
-    def save(
+    def save(  # noqa: PLR0913, C901
         self,
         path_or_ncd,
         dsg,
+        *,
         config: Config,
-        dsg_kwargs: Optional[dict] = None,
+        dsg_kwargs: dict | None = None,
         write_data: bool = False,
-        include: Optional[list] = None,
-        exclude: Optional[list] = None,
+        include: list | None = None,
+        exclude: list | None = None,
         compute_aggregate: bool = False,
     ):
         if dsg_kwargs is None:
@@ -166,7 +167,7 @@ class CFNetCDFStore(BaseStore):
         if compute_aggregate is True:
             ps.compute_aggregate(name="qc_rollup")
 
-        df = ps.save(write_data=write_data, include=include, exclude=exclude)
+        data_df = ps.save(write_data=write_data, include=include, exclude=exclude)
 
         # Write a new file
         attrs = {}
@@ -268,13 +269,13 @@ class CFNetCDFStore(BaseStore):
 
         # pocean requires these default columns, which should be removed as a requirement
         # in pocean.
-        df["station"] = 0
-        df["trajectory"] = 0
-        df["profile"] = 0
-        if "z" not in df:
-            df["z"] = 0
+        data_df["station"] = 0
+        data_df["trajectory"] = 0
+        data_df["profile"] = 0
+        if "z" not in data_df:
+            data_df["z"] = 0
         return dsg.from_dataframe(
-            df,
+            data_df,
             path_or_ncd,
             axes=self.axes,
             **dsg_kwargs,
@@ -282,7 +283,7 @@ class CFNetCDFStore(BaseStore):
 
 
 class NetcdfStore:
-    def save(self, path_or_ncd, config, results):
+    def save(self, path_or_ncd, config, results):  # noqa: PLR0912, PLR0915, C901
         """Updates the given netcdf with test configuration and results.
         If there is already a variable for a given test, it will update that variable with the latest results.
         Otherwise, it will create a new variable.
@@ -345,15 +346,7 @@ class NetcdfStore:
                         varflagnames = [d for d in flags.__dict__ if not d.startswith("__")]
                         varflagvalues = [getattr(flags, d) for d in varflagnames]
 
-                        if qcvarname not in ncd.variables:
-                            v = ncd.createVariable(
-                                qcvarname,
-                                np.byte,
-                                source_var.dimensions,
-                            )
-                        else:
-                            v = ncd[qcvarname]
-                        qcvar_names.append(qcvarname)
+                        v = ncd.createVariable(qcvarname, np.byte, source_var.dimensions) if qcvarname not in ncd.variables else ncd[qcvarname]
 
                         # determine standard name
                         # https://github.com/cf-convention/cf-conventions/issues/216

@@ -505,12 +505,8 @@ class PandasStreamManyContextTest(unittest.TestCase):
         results = ps.run(self.config)
         results = collect_results(results, how="list")
 
-        var1_gr = next(
-            res for res in results if res.stream_id == "variable1" and res.test == "gross_range_test"
-        )
-        var2_gr = next(
-            res for res in results if res.stream_id == "variable2" and res.test == "gross_range_test"
-        )
+        var1_gr = next(res for res in results if res.stream_id == "variable1" and res.test == "gross_range_test")
+        var2_gr = next(res for res in results if res.stream_id == "variable2" and res.test == "gross_range_test")
         # Variable 1
         # Actual data returned in full
         npt.assert_array_equal(
