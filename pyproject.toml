@@ -73,6 +73,8 @@ addopts = "-s -rxs -v"
 
 filterwarnings = [
   "error",
+  "ignore:The QcConfig object is deprecated",
+  "ignore:gliders.pressure_check",
 ]
 
 [tool.interrogate]
