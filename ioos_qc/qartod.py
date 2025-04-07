@@ -962,15 +962,15 @@ def density_inversion_test(
         with np.errstate(invalid="ignore"):
             is_suspect = delta < suspect_threshold
             if any(is_suspect):
-                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712- Previous value
-                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712- Reversed value
+                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712 - Previous value
+                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712 - Reversed value
 
     if fail_threshold is not None:
         with np.errstate(invalid="ignore"):
             is_fail = delta < fail_threshold
             if any(is_fail):
-                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # noqa:E712- Previous value
-                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # noqa:E712- Reversed Value
+                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # noqa:E712 - Previous value
+                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # noqa:E712 - Reversed Value
 
     # If the value or depth is masked set the flag to MISSING for this record and the following one.
     is_missing = inp.mask | zinp.mask
