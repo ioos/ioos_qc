@@ -22,6 +22,8 @@ lint.ignore = [
   "TRY003",  # Avoid specifying long messages outside the exception class
 ]
 
+extend-exclude = ["ioos_qc/config_creator/fx_parser.py"]
+
 [lint.extend-per-file-ignores]
 "docs/*" = [
   "A001",  # builtin-variable-shadowing

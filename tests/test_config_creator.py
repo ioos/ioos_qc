@@ -62,7 +62,7 @@ class TestQcVariableConfig(unittest.TestCase):
         assert config["end_time"] == "2020-01-08"
 
         assert "tests" in config
-        assert len(config["tests"]), 2
+        assert len(config["tests"]) == 2
 
         spike_test = config["tests"]["spike_test"]
         assert spike_test["suspect_min"] == "3"
