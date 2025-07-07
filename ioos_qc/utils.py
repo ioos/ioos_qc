@@ -238,9 +238,9 @@ def dict_update(d: Mapping, u: Mapping) -> Mapping:
                 r = dict_update(d.get(k, {}), v)
                 d[k] = r
             else:
-                d[k] = u[k]
+                d[k] = v
         else:
-            d = {k: u[k]}
+            d = {k: v}
     return d
 
 
