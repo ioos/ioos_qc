@@ -45,6 +45,11 @@ repos:
       args:
         - --ignore-words-list=pres,ba,ot
 
+- repo: https://github.com/woodruffw/zizmor-pre-commit
+  rev: v1.11.0
+  hooks:
+    - id: zizmor
+
 ci:
     autofix_commit_msg: |
         [pre-commit.ci] auto fixes from pre-commit.com hooks
