@@ -756,7 +756,7 @@ def flat_line_test(
         """https://rigtorp.se/2011/01/01/rolling-statistics-numpy.html."""
         if len(a) < window:
             return np.ma.MaskedArray(np.empty((0, window + 1)))
-        shape = a.shape[:-1] + (a.shape[-1] - window + 1, window + 1)
+        shape = *a.shape[:-1], *(a.shape[-1] - window + 1, window + 1)
         strides = (*a.strides, a.strides[-1])
         arr = np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
         return np.ma.masked_invalid(arr[:-1, :])
