@@ -525,7 +525,7 @@ class QcConfig(Config):
         super().__init__(source, default_stream_key=default_stream_key)
 
     def run(self, **passedkwargs):
-        from ioos_qc.streams import NumpyStream
+        from ioos_qc.streams import NumpyStream  # noqa: PLC0415
 
         # Cleanup kwarg names
         passedkwargs["time"] = passedkwargs.pop("tinp", None)

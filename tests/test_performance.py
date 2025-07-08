@@ -1,5 +1,9 @@
 import logging
+import time
 import unittest
+from pathlib import Path
+
+import pandas as pd
 
 from ioos_qc import qartod
 from ioos_qc.config import QcConfig
@@ -11,10 +15,6 @@ L.handlers = [logging.StreamHandler()]
 
 class PerformanceTest(unittest.TestCase):
     def setUp(self):
-        from pathlib import Path
-
-        import pandas as pd
-
         data = pd.read_csv(Path(__file__).parent / "data/20363_1000427.csv.gz")
         self.times = data["time_epoch"]
         self.inp = data["value"]
@@ -36,8 +36,6 @@ class PerformanceTest(unittest.TestCase):
                     tinp=self.times,
                     zinp=self.zinp,
                 )
-
-        import time
 
         start = time.time()
 

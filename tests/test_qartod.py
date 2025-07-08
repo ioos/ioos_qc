@@ -17,7 +17,7 @@ L.handlers = [logging.StreamHandler()]
 def dask_arr(vals):
     """If dask is enabled for this environment, return dask array of values. Otherwise, return values."""
     try:
-        import dask.array as da
+        import dask.array as da  # noqa: PLC0415
 
         return da.from_array(vals, chunks=2)
     except ImportError:
@@ -189,9 +189,9 @@ class QartodGrossRangeTest(unittest.TestCase):
             warnings.simplefilter("ignore")
             inputs = [
                 vals,
-                np.array(vals, dtype=np.integer),
+                np.array(vals, dtype=int),
                 np.array(vals, dtype=np.float64),
-                dask_arr(np.array(vals, dtype=np.integer)),
+                dask_arr(np.array(vals, dtype=int)),
                 dask_arr(np.array(vals, dtype=np.float64)),
             ]
 

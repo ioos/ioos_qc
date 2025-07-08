@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import re
 from collections import OrderedDict
 from collections.abc import Mapping
 from datetime import date, datetime
@@ -167,7 +168,7 @@ def isfixedlength(
 
 def isnan(v: Any) -> bool:
     """Return True if a value is NaN."""
-    return v is None or v is np.nan or v is np.ma.masked
+    return v is None or np.isnan(v).any() or v is np.ma.masked
 
 
 def mapdates(dates):
@@ -238,9 +239,9 @@ def dict_update(d: Mapping, u: Mapping) -> Mapping:
                 r = dict_update(d.get(k, {}), v)
                 d[k] = r
             else:
-                d[k] = u[k]
+                d[k] = v
         else:
-            d = {k: u[k]}
+            d = {k: v}
     return d
 
 
@@ -254,8 +255,6 @@ def dict_depth(d):
 
 def cf_safe_name(name: str) -> str:
     """Make CF safe names."""
-    import re
-
     if isinstance(name, str):
         if re.match("^[0-9_]", name):
             # Add a letter to the front
