@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/xarray_subset_grid/
+      url: https://pypi.org/p/ioos-qc
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
