@@ -18,7 +18,7 @@ repos:
     - id: add-trailing-comma
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.12.11
+  rev: v0.13.3
   hooks:
     - id: ruff
       args: ["--fix", "--show-fixes"]
@@ -30,7 +30,7 @@ repos:
     - id: nb-strip-paths
 
 - repo: https://github.com/tox-dev/pyproject-fmt
-  rev: v2.6.0
+  rev: v2.7.0
   hooks:
     - id: pyproject-fmt
 
@@ -46,7 +46,7 @@ repos:
         - --ignore-words-list=pres,ba,ot
 
 - repo: https://github.com/woodruffw/zizmor-pre-commit
-  rev: v1.12.1
+  rev: v1.14.2
   hooks:
     - id: zizmor
 
