@@ -1,4 +1,6 @@
-qartod :
-  spike_test :
-    suspect_threshold : 0.8
-    fail_threshold : 3
+streams:
+    sea_surface_height_above_sea_level:
+        qartod :
+          spike_test :
+            suspect_threshold : 0.8
+            fail_threshold : 3
