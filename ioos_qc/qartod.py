@@ -588,7 +588,7 @@ def spike_test(
         # Make sure that only the record (n) where the difference prior and after are opposite are considered
         with np.errstate(invalid="ignore"):
             diff[1:-1][ref[:-1] * ref[1:] >= 0] = 0
-        
+
         # this is necessary to make sure that the mask value is a boolean array and not the nomask value (if all values are not masked)
         diff = np.ma.masked_invalid(diff)
     else:
