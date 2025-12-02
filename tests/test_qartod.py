@@ -1124,10 +1124,12 @@ class QartodSpikeTest(unittest.TestCase):
     def test_spike_methods(self):
         """Test the different input methods and review the different flags expected."""
         inp = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, None, 4, 4]
+        inp_all_present = [3, 4.99, 5, 6, 8, 6, 6, 6.75, 6, 6, 5.3, 6, 6, 9, 5, 5, 4, 4]
         suspect_threshold = 0.5
         fail_threshold = 1
         average_method_expected = [2, 3, 1, 1, 4, 3, 1, 3, 1, 1, 3, 1, 4, 4, 2, 9, 2, 2]
         diff_method_expected = [2, 1, 1, 1, 4, 1, 1, 3, 1, 1, 3, 1, 1, 4, 2, 9, 2, 2]
+        diff_method_expected_all_present = [2, 1, 1, 1, 4, 1, 1, 3, 1, 1, 3, 1, 1, 4, 1, 1, 1, 2]
 
         # Test average method
         npt.assert_array_equal(
@@ -1159,6 +1161,17 @@ class QartodSpikeTest(unittest.TestCase):
                 fail_threshold=fail_threshold,
             ),
             average_method_expected,
+        )
+
+        # Test diff method with all values present in the array
+        npt.assert_array_equal(
+            qartod.spike_test(
+                inp=inp_all_present,
+                suspect_threshold=suspect_threshold,
+                fail_threshold=fail_threshold,
+                method="differential",
+            ),
+            diff_method_expected_all_present,
         )
 
     def test_spike_test_bad_method(self):
