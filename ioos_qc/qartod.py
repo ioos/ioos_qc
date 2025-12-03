@@ -621,9 +621,9 @@ def spike_test(
             flag_arr[i] = QartodFlags.MISSING
 
         # Check if diff is masked but not in inp (this indicates that original data is not missing,
-        # but the data point got masked in diff lines 575-580 or in lines 582-593 due to trying to calculate a value
-        # using a valid value and a missing value; and because of that, we are not able to apply QARTOD
-        # thus the UNKNOWN flag)
+        # but the data point got masked in diff when applying the average or differential methods
+        # due to trying to calculate a value using a valid value and a missing value;
+        # and because of that, we are not able to apply QARTOD thus the UNKNOWN flag)
         elif diff.mask[i] and not inp.mask[i]:
             flag_arr[i] = QartodFlags.UNKNOWN
 
