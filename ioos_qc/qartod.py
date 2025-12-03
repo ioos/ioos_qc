@@ -588,6 +588,9 @@ def spike_test(
         # Make sure that only the record (n) where the difference prior and after are opposite are considered
         with np.errstate(invalid="ignore"):
             diff[1:-1][ref[:-1] * ref[1:] >= 0] = 0
+
+        # this is necessary to make sure that the mask value is a boolean array and not the nomask value (if all values are not masked)
+        diff = np.ma.masked_invalid(diff)
     else:
         msg = f'Unknown method: "{method}", only "average" and "differential" methods are available'
         raise ValueError(
@@ -618,7 +621,7 @@ def spike_test(
             flag_arr[i] = QartodFlags.MISSING
 
         # Check if diff is masked but not in inp (this indicates that original data is not missing,
-        # but the data point got masked in diff lines 575-580 due to trying to calculate a value
+        # but the data point got masked in diff lines 575-580 or in lines 582-593 due to trying to calculate a value
         # using a valid value and a missing value; and because of that, we are not able to apply QARTOD
         # thus the UNKNOWN flag)
         elif diff.mask[i] and not inp.mask[i]:
