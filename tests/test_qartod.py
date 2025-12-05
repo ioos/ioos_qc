@@ -1228,6 +1228,7 @@ class QartodRateOfChangeTest(unittest.TestCase):
         )
         self.times_epoch_secs = [t.astype(int) for t in self.times]
         self.threshold = 5 / 15 / 60  # 5 units per 15 minutes --> 5/15/60 units per second
+        self.fail_threshold = 10 / 15 / 60  # 10 units per 15 minutes --> 10/15/60 units per second
 
     def test_rate_of_change(self):
         times = self.times
@@ -1327,6 +1328,86 @@ class QartodRateOfChangeTest(unittest.TestCase):
             threshold=self.threshold,
         )
         npt.assert_array_equal(expected, result)
+
+    def test_rate_of_change_fail_flag(self):
+        """Test of optional fail flag."""
+        times = self.times
+        arr = [
+            2,
+            10,
+            2.1,
+            3,
+            4,
+            5,
+            7,
+            10,
+            0,
+            2,
+            2.2,
+            2,
+            1,
+            2,
+            3,
+            90,
+            91,
+            92,
+            93,
+            1,
+            2,
+            3,
+            4,
+            5,
+        ]
+        expected = [
+            1,
+            3,
+            3,
+            1,
+            1,
+            1,
+            1,
+            1,
+            4,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            4,
+            1,
+            1,
+            1,
+            4,
+            1,
+            1,
+            1,
+            1,
+        ]
+        inputs = [
+            arr,
+            np.asarray(arr, dtype=np.float64),
+            dask_arr(np.asarray(arr, dtype=np.float64)),
+        ]
+        for i in inputs:
+            result = qartod.rate_of_change_test(
+                inp=i,
+                tinp=times,
+                threshold=self.threshold,
+                fail_threshold=self.fail_threshold,
+            )
+            npt.assert_array_equal(expected, result)
+
+        # test epoch secs - should return same result
+        npt.assert_array_equal(
+            qartod.rate_of_change_test(
+                inp=i,
+                tinp=self.times_epoch_secs,
+                threshold=self.threshold,
+                fail_threshold=self.fail_threshold,
+            ),
+            expected,
+        )
 
 
 class QartodFlatLineTest(unittest.TestCase):

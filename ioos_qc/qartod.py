@@ -638,12 +638,16 @@ def rate_of_change_test(
     inp: Sequence[Real],
     tinp: Sequence[Real],
     threshold: float,
+    fail_threshold: float | None = None,
 ) -> np.ma.core.MaskedArray:
     """Checks the first order difference of a series of values to see if
     there are any values exceeding a threshold defined by the inputs.
     These are then marked as SUSPECT.  It is up to the test operator
     to determine an appropriate threshold value for the absolute difference not to
     exceed. Threshold is expressed as a rate in observations units per second.
+    There is an optional fail_threshold parameter that can be set by the user.
+    If the first order difference of a series of values exceeds this higher threshold,
+    the data point is marked as FAIL.
     Missing and masked data is flagged as UNKNOWN.
 
     Parameters
@@ -657,6 +661,10 @@ def rate_of_change_test(
         If anything else is passed in the format is assumed to be seconds since the unix epoch.
     threshold
         A float value representing a rate of change over time, in observation units per second.
+        Rates exceeding this will be flagged as SUSPECT.
+    fail_threshold
+        A float value representing a rate of change over time, in observation units per second.
+        Rates exceeding this will be flagged as FAIL.
 
     Returns
     -------
@@ -685,6 +693,11 @@ def rate_of_change_test(
 
     with np.errstate(invalid="ignore"):
         flag_arr[roc > threshold] = QartodFlags.SUSPECT
+
+    # the fail threshold is optional and only required for some use cases
+    if fail_threshold is not None:
+        with np.errstate(invalid="ignore"):
+            flag_arr[roc > fail_threshold] = QartodFlags.FAIL
 
     # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING
