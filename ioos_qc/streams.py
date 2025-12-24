@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 import urllib.error
@@ -5,15 +7,18 @@ import urllib.parse
 import urllib.request
 from collections import OrderedDict, defaultdict
 from io import BytesIO
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 from xarray.core.indexing import map_index_queries
 
-from ioos_qc.config import Config
 from ioos_qc.results import ContextResult
 from ioos_qc.utils import mapdates
+
+if TYPE_CHECKING:
+    from ioos_qc.config import Config
 
 L = logging.getLogger(__name__)
 
@@ -40,10 +45,7 @@ def _detect_erddap_format(url: str) -> str:
     """
     m = _ERDDAP_FORMAT_RE.search(url)
     if not m:
-        msg = (
-            "Unsupported ERDDAP URL format. Expected a URL containing one of: "
-            ".csv, .csvp, .csv0, .nc, .ncCF, .nc4, .cdf"
-        )
+        msg = "Unsupported ERDDAP URL format. Expected a URL containing one of: .csv, .csvp, .csv0, .nc, .ncCF, .nc4, .cdf"
         raise ValueError(msg)
     fmt = m.group("fmt").lower()
     # Normalize the family to "csv" or "nc"
@@ -55,7 +57,7 @@ def _detect_erddap_format(url: str) -> str:
 def _fetch_url_bytes(url: str, *, timeout: float = 30.0) -> bytes:
     """Fetch URL content as bytes with basic, user-friendly errors."""
     try:
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             url,
             headers={"User-Agent": "ioos_qc (python urllib)"},
         )
@@ -69,7 +71,7 @@ def _fetch_url_bytes(url: str, *, timeout: float = 30.0) -> bytes:
         raise ValueError(msg) from e
 
 
-def stream_from_path_or_erddap_url(
+def stream_from_path_or_erddap_url(  # noqa: PLR0913
     source,
     *,
     time: str | None = None,
@@ -105,6 +107,7 @@ def stream_from_path_or_erddap_url(
     - CSV URLs are loaded into a pandas DataFrame.
     - NetCDF URLs are fetched and loaded into an in-memory xarray Dataset.
     - Behavior matches the existing local file workflows once loaded.
+
     """
     if _is_http_url(source):
         fmt = _detect_erddap_format(source)
@@ -122,7 +125,7 @@ def stream_from_path_or_erddap_url(
         # manage temporary files or file handles.
         try:
             ds = xr.open_dataset(BytesIO(raw), engine="scipy").load()
-        except Exception:
+        except (ValueError, OSError):
             # Fall back to xarray engine auto-detection (may work in environments
             # where netCDF4/h5netcdf is available).
             ds = xr.open_dataset(BytesIO(raw)).load()

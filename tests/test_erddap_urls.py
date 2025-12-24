@@ -28,21 +28,21 @@ class _FakeHTTPResponse:
 class ERDDAPUrlStreamHelperTests(unittest.TestCase):
     def test_csv_url_creates_pandas_stream_and_runs_qc(self):
         csv_bytes = (
-            "time,variable1\n"
-            "UTC,1\n"
-            "2020-01-01T00:00:00Z,0\n"
-            "2020-01-02T00:00:00Z,10\n"
-            "2020-01-03T00:00:00Z,20\n"
-            "2020-01-04T00:00:00Z,30\n"
-            "2020-01-05T00:00:00Z,40\n"
-        ).encode("utf-8")
+            b"time,variable1\n"
+            b"UTC,1\n"
+            b"2020-01-01T00:00:00Z,0\n"
+            b"2020-01-02T00:00:00Z,10\n"
+            b"2020-01-03T00:00:00Z,20\n"
+            b"2020-01-04T00:00:00Z,30\n"
+            b"2020-01-05T00:00:00Z,40\n"
+        )
 
         url = "https://example.invalid/erddap/tabledap/dataset.csv?time,variable1"
 
         with patch("urllib.request.urlopen", return_value=_FakeHTTPResponse(csv_bytes)):
             s = stream_from_path_or_erddap_url(url, time="time")
 
-        self.assertIsInstance(s, PandasStream)
+        assert isinstance(s, PandasStream)
 
         config = """
             streams:
@@ -78,7 +78,7 @@ class ERDDAPUrlStreamHelperTests(unittest.TestCase):
         with patch("urllib.request.urlopen", return_value=_FakeHTTPResponse(nc_bytes)):
             s = stream_from_path_or_erddap_url(url, time="time")
 
-        self.assertIsInstance(s, XarrayStream)
+        assert isinstance(s, XarrayStream)
 
         config = """
             streams:
@@ -93,5 +93,3 @@ class ERDDAPUrlStreamHelperTests(unittest.TestCase):
             results["variable1"]["qartod"]["gross_range_test"],
             np.array([4, 3, 1, 1, 3], dtype="uint8"),
         )
-
-
