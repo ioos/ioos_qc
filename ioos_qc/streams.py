@@ -1,5 +1,10 @@
 import logging
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
 from collections import OrderedDict, defaultdict
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
@@ -11,6 +16,125 @@ from ioos_qc.results import ContextResult
 from ioos_qc.utils import mapdates
 
 L = logging.getLogger(__name__)
+
+_ERDDAP_FORMAT_RE = re.compile(
+    r"\.(?P<fmt>csv|csvp|csv0|nc|nccf|nc4|cdf)(?P<tail>$|\?)",
+    flags=re.IGNORECASE,
+)
+
+
+def _is_http_url(value: object) -> bool:
+    """Return True if value is an http(s) URL string."""
+    if not isinstance(value, str):
+        return False
+    parsed = urllib.parse.urlparse(value)
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def _detect_erddap_format(url: str) -> str:
+    """Best-effort detection of ERDDAP response format based on URL.
+
+    Supports common ERDDAP tabledap/griddap endpoints like:
+      - .../tabledap/<dataset>.csv?... (and .csvp/.csv0)
+      - .../tabledap/<dataset>.nc?...  (and .ncCF/.nc4/.cdf)
+    """
+    m = _ERDDAP_FORMAT_RE.search(url)
+    if not m:
+        msg = (
+            "Unsupported ERDDAP URL format. Expected a URL containing one of: "
+            ".csv, .csvp, .csv0, .nc, .ncCF, .nc4, .cdf"
+        )
+        raise ValueError(msg)
+    fmt = m.group("fmt").lower()
+    # Normalize the family to "csv" or "nc"
+    if fmt.startswith("csv"):
+        return "csv"
+    return "nc"
+
+
+def _fetch_url_bytes(url: str, *, timeout: float = 30.0) -> bytes:
+    """Fetch URL content as bytes with basic, user-friendly errors."""
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "ioos_qc (python urllib)"},
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+            return resp.read()
+    except urllib.error.HTTPError as e:
+        msg = f"HTTP error fetching {url!r}: {e.code} {getattr(e, 'reason', '')}".strip()
+        raise ValueError(msg) from e
+    except urllib.error.URLError as e:
+        msg = f"URL error fetching {url!r}: {getattr(e, 'reason', e)}"
+        raise ValueError(msg) from e
+
+
+def stream_from_path_or_erddap_url(
+    source,
+    *,
+    time: str | None = None,
+    z: str | None = None,
+    lat: str | None = None,
+    lon: str | None = None,
+    geom: str | None = None,
+    timeout: float = 30.0,
+):
+    """Create a Stream from a local path OR a public ERDDAP dataset URL.
+
+    This is a small convenience helper to enable running ioos_qc against ERDDAP
+    endpoints without changing any QC logic.
+
+    Parameters
+    ----------
+    source
+        Either a local file path (netCDF) or a public ERDDAP dataset URL that
+        returns CSV or NetCDF.
+    time, z, lat, lon, geom
+        Same meaning as in the Stream constructors. These are applied to the
+        returned Stream instance.
+    timeout
+        HTTP timeout in seconds when fetching URLs.
+
+    Returns
+    -------
+    PandasStream | XarrayStream
+        A Stream instance ready to be used with `Config` and `.run(...)`.
+
+    Notes
+    -----
+    - CSV URLs are loaded into a pandas DataFrame.
+    - NetCDF URLs are fetched and loaded into an in-memory xarray Dataset.
+    - Behavior matches the existing local file workflows once loaded.
+    """
+    if _is_http_url(source):
+        fmt = _detect_erddap_format(source)
+        raw = _fetch_url_bytes(source, timeout=timeout)
+
+        if fmt == "csv":
+            # ERDDAP CSV responses can be large; we keep this simple and rely on pandas.
+            # Users can still subset on the ERDDAP side via URL query params.
+            # ERDDAP CSV responses include a second row of units (e.g. "UTC", "degrees_north").
+            # Skip that row so it isn't treated as data.
+            df = pd.read_csv(BytesIO(raw), skiprows=[1])
+            return PandasStream(df, time=time, z=z, lat=lat, lon=lon, geom=geom)
+
+        # NetCDF: load as Dataset and keep it fully in-memory, so we don't have to
+        # manage temporary files or file handles.
+        try:
+            ds = xr.open_dataset(BytesIO(raw), engine="scipy").load()
+        except Exception:
+            # Fall back to xarray engine auto-detection (may work in environments
+            # where netCDF4/h5netcdf is available).
+            ds = xr.open_dataset(BytesIO(raw)).load()
+        return XarrayStream(ds, time=time, z=z, lat=lat, lon=lon)
+
+    # Local path (existing behavior)
+    if isinstance(source, str):
+        # For local files, keep existing behavior and rely on XarrayStream.
+        return XarrayStream(source, time=time, z=z, lat=lat, lon=lon)
+
+    msg = "source must be a local file path (str) or an http(s) ERDDAP URL (str)"
+    raise TypeError(msg)
 
 
 class BaseStream:
