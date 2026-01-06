@@ -320,7 +320,7 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
                 None,
             ),
         ]
-        times, values, depths = zip(*test_inputs)
+        times, values, depths = zip(*test_inputs, strict=True)
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
@@ -476,7 +476,7 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
         )
 
     def _run_test(self, test_inputs, expected_result):
-        times, values, depths = zip(*test_inputs)
+        times, values, depths = zip(*test_inputs, strict=True)
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
@@ -689,7 +689,7 @@ class QartodClimatologyDepthTest(unittest.TestCase):
         )
 
     def _run_test(self, test_inputs, expected_result):
-        times, values, depths = zip(*test_inputs)
+        times, values, depths = zip(*test_inputs, strict=True)
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
@@ -748,7 +748,7 @@ class QartodClimatologyMissingTest(unittest.TestCase):
         )
 
     def _run_test(self, test_inputs, expected_result):
-        times, values, depths = zip(*test_inputs)
+        times, values, depths = zip(*test_inputs, strict=True)
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),
@@ -821,7 +821,7 @@ class QartodClimatologyTest(unittest.TestCase):
         )
 
     def _run_test(self, test_inputs, expected_result):
-        times, values, depths = zip(*test_inputs)
+        times, values, depths = zip(*test_inputs, strict=True)
         inputs = [
             values,
             np.asarray(values, dtype=np.float64),

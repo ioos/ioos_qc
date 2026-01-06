@@ -21,7 +21,6 @@ from functools import partial
 from importlib import import_module
 from inspect import signature
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 from shapely.geometry import GeometryCollection, shape
@@ -30,7 +29,7 @@ from ioos_qc.results import CallResult, collect_results
 from ioos_qc.utils import dict_depth, load_config_as_dict
 
 L = logging.getLogger(__name__)
-ConfigTypes = Union[dict, OrderedDict, str, Path, io.StringIO]
+ConfigTypes = dict | OrderedDict | str | Path | io.StringIO
 
 tw = namedtuple("TimeWindow", ("starting", "ending"), defaults=[None, None])  # noqa: PYI024
 
