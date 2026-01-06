@@ -38,7 +38,7 @@ class TestCreatorConfig(unittest.TestCase):
         assert len(ocean_atlas["variables"].keys()) == 3
         vars_names = ["o2", "salinity", "temperature"]
         vars_in_files = ["o_an", "s_an", "t_an"]
-        for var_name, var_in_file in zip(vars_names, vars_in_files):
+        for var_name, var_in_file in zip(vars_names, vars_in_files, strict=True):
             assert ocean_atlas["variables"][var_name] == var_in_file
 
         assert "narr" in creator_config
@@ -47,7 +47,7 @@ class TestCreatorConfig(unittest.TestCase):
         assert len(narr["variables"].keys()) == 5
         vars_names = ["air", "pres", "rhum", "uwnd", "vwnd"]
         vars_in_files = ["air", "slp", "rhum", "uwnd", "vwnd"]
-        for var_name, var_in_file in zip(vars_names, vars_in_files):
+        for var_name, var_in_file in zip(vars_names, vars_in_files, strict=True):
             assert narr["variables"][var_name] == var_in_file
 
 
