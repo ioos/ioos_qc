@@ -15,10 +15,9 @@ maintainers = [
   { name = "Kyle Wilcox", email = "kyle@axds.co" },
   { name = "Filipe Fernandes", email = "ocefpaf+ioos_qc@gmail.com" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
