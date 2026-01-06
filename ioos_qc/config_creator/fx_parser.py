@@ -32,7 +32,7 @@ from pyparsing import (
     Regex,
     CaselessKeyword,
     Suppress,
-    delimitedList,
+    DelimitedList,
 )
 import math
 import operator
@@ -104,21 +104,21 @@ def BNF():
     expop = Literal("^")
 
     expr = Forward()
-    expr_list = delimitedList(Group(expr))
+    expr_list = DelimitedList(Group(expr))
     # add parse action that replaces the function identifier with a (name, number of args) tuple
-    fn_call = (ident + lpar - Group(expr_list) + rpar).setParseAction(
+    fn_call = (ident + lpar - Group(expr_list) + rpar).set_parse_action(
         lambda t: t.insert(0, (t.pop(0), len(t[0]))),
     )
-    atom = (addop[...] + ((fn_call | pi | e | fnumber | ident).setParseAction(push_first) | Group(lpar + expr + rpar))).setParseAction(
+    atom = (addop[...] + ((fn_call | pi | e | fnumber | ident).set_parse_action(push_first) | Group(lpar + expr + rpar))).set_parse_action(
         push_unary_minus,
     )
 
     # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left
     # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
     factor = Forward()
-    factor <<= atom + (expop + factor).setParseAction(push_first)[...]
-    term = factor + (multop + factor).setParseAction(push_first)[...]
-    expr <<= term + (addop + term).setParseAction(push_first)[...]
+    factor <<= atom + (expop + factor).set_parse_action(push_first)[...]
+    term = factor + (multop + factor).set_parse_action(push_first)[...]
+    expr <<= term + (addop + term).set_parse_action(push_first)[...]
     bnf = expr
 
     return bnf
@@ -159,7 +159,7 @@ def evaluate_stack(s, stats):
 
 def eval_fx(fx, stats):
     """Given fx and stats ('min', 'max', 'mean', 'std') return the result"""
-    _ = BNF().parseString(fx, parseAll=True)
+    _ = BNF().parse_string(fx, parse_all=True)
     val = evaluate_stack(exprStack[:], stats)
 
     return val
