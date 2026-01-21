@@ -545,7 +545,7 @@ def spike_test(
     suspect_threshold
         The SUSPECT threshold value, in observations units.
     fail_threshold
-        The SUSPECT threshold value, in observations units.
+        The FAIL threshold value, in observations units.
     method
         ['average'(default),'differential'] optional input to assign the method used to detect spikes.
             * "average": Determine if there is a spike at data point n-1 by subtracting
