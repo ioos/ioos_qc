@@ -12,8 +12,8 @@ description = "IOOS QARTOD and Quality Control tests implemented in Python"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 maintainers = [
-  { name = "Kyle Wilcox", email = "kyle@axds.co" },
   { name = "Filipe Fernandes", email = "ocefpaf+ioos_qc@gmail.com" },
+  { name = "Kyle Wilcox", email = "kyle@axds.co" },
 ]
 requires-python = ">=3.10"
 classifiers = [
