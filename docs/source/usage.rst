@@ -210,7 +210,7 @@ working in a streaming environment you will want to use generator result objects
 Results
 ~~~~~~~
 
-Each yielded result will be a :mod:`ContextResult <ioos_qc.results.ContextResult>` (when using a Config_ with any Stream). Collected results are only ever of one type, a :mod:`CollectedResult <ioos_qc.results.CollectedResult>`, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
+Each yielded result will be a :class:`ContextResult <ioos_qc.results.ContextResult>` (when using a Config_ with any Stream). Collected results are only ever of one type, a :class:`CollectedResult <ioos_qc.results.CollectedResult>`, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
 
 .. note::
 
@@ -218,7 +218,7 @@ Each yielded result will be a :mod:`ContextResult <ioos_qc.results.ContextResult
 
 .. warning::
 
-    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of :mod:`CollectedResult objects <ioos_qc.results.CollectedResult>` should be used in any applications, including any implementation of Stores_, going forward.
+    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of :class:`CollectedResult <ioos_qc.results.CollectedResult>` objects should be used in any applications, including any implementation of Stores_, going forward.
 
 
 .. code-block:: python
