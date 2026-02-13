@@ -9,7 +9,6 @@ docs/build
 .cache/
 .pytest_cache/
 .anaconda
-.venv/
 .idea
 .ipynb_checkpoints/
 .config/
