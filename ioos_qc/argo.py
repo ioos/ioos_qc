@@ -14,7 +14,7 @@ L = logging.getLogger(__name__)
 
 
 @add_flag_metadata(
-    stanard_name="pressure_increasing_test_quality_flag",
+    standard_name="pressure_increasing_test_quality_flag",
     long_name="Pressure Increasing Test Quality Flag",
 )
 def pressure_increasing_test(inp):
