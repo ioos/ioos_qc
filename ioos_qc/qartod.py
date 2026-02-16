@@ -140,7 +140,7 @@ def location_test(
     bboxnt = namedtuple("BBOX", "minx miny maxx maxy")  # noqa: PYI024
     if bbox is not None:
         if not isfixedlength(bbox, 4):
-            msg = f"{bbox=}, expecred 4."
+            msg = f"{bbox=}, expected 4."
             raise ValueError(msg)
         bbox = bboxnt(*bbox)
 
