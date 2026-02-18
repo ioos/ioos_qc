@@ -13,7 +13,7 @@ def bokeh_plot(time, data, var_name, results, title, module, test_name):  # noqa
     return gridplot([[plot]], sizing_mode="fixed")
 
 
-def bokeh_plot_var(time, data, var_name, results, title, module, test_name):  # noqa: PLR0913
+def bokeh_plot_var(time, data, var_name, results, title, module, test_name):  # noqa: PLR0913 ARG001
     """Method to plot QC results using Bokeh."""
     if module not in results or test_name not in results[module]:
         L.warning(f"No results for test {module}.{test_name} found")
