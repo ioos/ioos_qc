@@ -8,12 +8,12 @@ L = logging.getLogger(__name__)
 flag_pass, flag_notrun, flag_suspect, flag_fail = 1, 2, 3, 4
 
 
-def bokeh_plot(data, var_name, results, title, module, test_name):  # noqa: PLR0913
-    plot = bokeh_plot_var(data, var_name, results, title, module, test_name)
+def bokeh_plot(time, data, var_name, results, title, module, test_name):  # noqa: PLR0913
+    plot = bokeh_plot_var(time, data, var_name, results, title, module, test_name)
     return gridplot([[plot]], sizing_mode="fixed")
 
 
-def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0913
+def bokeh_plot_var(time, data, var_name, results, title, module, test_name):  # noqa: PLR0913
     """Method to plot QC results using Bokeh."""
     if module not in results or test_name not in results[module]:
         L.warning(f"No results for test {module}.{test_name} found")
@@ -35,7 +35,7 @@ def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0
     p1.yaxis.axis_label = "Data"
 
     p1.line(time, data, legend_label="data", color="#A6CEE3")
-    p1.circle(
+    p1.scatter(
         time,
         qc_notrun,
         size=2,
@@ -43,7 +43,7 @@ def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0
         color="gray",
         alpha=0.2,
     )
-    p1.circle(
+    p1.scatter(
         time,
         qc_pass,
         size=4,
@@ -51,7 +51,7 @@ def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0
         color="green",
         alpha=0.5,
     )
-    p1.circle(
+    p1.scatter(
         time,
         qc_suspect,
         size=4,
@@ -59,7 +59,7 @@ def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0
         color="orange",
         alpha=0.7,
     )
-    p1.circle(
+    p1.scatter(
         time,
         qc_fail,
         size=6,
@@ -67,7 +67,7 @@ def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0
         color="red",
         alpha=1.0,
     )
-    p1.circle(
+    p1.scatter(
         time,
         qc_notrun,
         size=6,
@@ -84,11 +84,14 @@ def bokeh_multi_plot(stream, results, title, **kwargs):
         "merge_tools": True,
         "toolbar_location": "below",
         "sizing_mode": "scale_width",
-        "plot_width": 600,
-        "plot_height": 200,
         "ncols": 2,
         **kwargs,
     }
+
+    if "plot_width" in kwargs:
+        kwargs.pop("plot_width")
+    if "plot_height" in kwargs:
+        kwargs.pop("plot_height")
 
     plots = list(bokeh_multi_var(stream, results, title))
     return gridplot(plots, **kwargs)
@@ -115,11 +118,14 @@ def bokeh_plot_collected_results(results, **kwargs):
         "merge_tools": True,
         "toolbar_location": "below",
         "sizing_mode": "scale_width",
-        "plot_width": 600,
-        "plot_height": 200,
         "ncols": 2,
         **kwargs,
     }
+
+    if "plot_width" in kwargs:
+        kwargs.pop("plot_width")
+    if "plot_height" in kwargs:
+        kwargs.pop("plot_height")
 
     plots = [bokeh_plot_collected_result(r) for r in results if r.data.any() and r.results.any()]
     return gridplot(plots, **kwargs)
@@ -138,7 +144,7 @@ def bokeh_plot_collected_result(cr):
     qc_fail = np.ma.masked_where(cr.results != flag_fail, cr.data)
 
     p1.line(cr.tinp, cr.data, legend_label="data", color="#A6CEE3")
-    p1.circle(
+    p1.scatter(
         cr.tinp,
         qc_notrun,
         size=3,
@@ -146,7 +152,7 @@ def bokeh_plot_collected_result(cr):
         color="gray",
         alpha=0.2,
     )
-    p1.circle(
+    p1.scatter(
         cr.tinp,
         qc_pass,
         size=4,
@@ -154,7 +160,7 @@ def bokeh_plot_collected_result(cr):
         color="green",
         alpha=0.5,
     )
-    p1.circle(
+    p1.scatter(
         cr.tinp,
         qc_suspect,
         size=4,
@@ -162,7 +168,7 @@ def bokeh_plot_collected_result(cr):
         color="orange",
         alpha=0.7,
     )
-    p1.circle(
+    p1.scatter(
         cr.tinp,
         qc_fail,
         size=6,
@@ -170,7 +176,7 @@ def bokeh_plot_collected_result(cr):
         color="red",
         alpha=1.0,
     )
-    p1.circle(
+    p1.scatter(
         cr.tinp,
         qc_notrun,
         size=3,

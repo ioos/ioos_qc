@@ -206,7 +206,9 @@ class NumpyStream:
     def time(self):
         return self.tinp
 
-    def data(self):
+    def data(self, stream_id=None):
+        if stream_id is not None and isinstance(self.inp, dict) and stream_id in self.inp:
+            return self.inp[stream_id]
         return self.inp
 
     def run(self, config: Config):  # noqa: C901, PLR0912
