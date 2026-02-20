@@ -89,9 +89,9 @@ def bokeh_multi_plot(stream, results, title, **kwargs):
     }
 
     if "plot_width" in kwargs:
-        kwargs.pop("plot_width")
+        kwargs["width"] = kwargs.pop("plot_width")
     if "plot_height" in kwargs:
-        kwargs.pop("plot_height")
+        kwargs["height"] = kwargs.pop("plot_height")
 
     plots = list(bokeh_multi_var(stream, results, title))
     return gridplot(plots, **kwargs)
@@ -99,11 +99,15 @@ def bokeh_multi_plot(stream, results, title, **kwargs):
 
 def bokeh_multi_var(stream, results, title):
     for vname, qcobj in results.items():
+        data_stream = stream.data(vname)
+        if isinstance(data_stream, dict) and vname in data_stream:
+            data_stream = data_stream[vname]
+
         for modu, tests in qcobj.items():
             for testname in tests:
                 plt = bokeh_plot_var(
                     stream.time(),
-                    stream.data(vname),
+                    data_stream,
                     vname,
                     qcobj,
                     title,
@@ -123,9 +127,9 @@ def bokeh_plot_collected_results(results, **kwargs):
     }
 
     if "plot_width" in kwargs:
-        kwargs.pop("plot_width")
+        kwargs["width"] = kwargs.pop("plot_width")
     if "plot_height" in kwargs:
-        kwargs.pop("plot_height")
+        kwargs["height"] = kwargs.pop("plot_height")
 
     plots = [bokeh_plot_collected_result(r) for r in results if r.data.any() and r.results.any()]
     return gridplot(plots, **kwargs)
