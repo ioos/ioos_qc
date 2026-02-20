@@ -206,7 +206,7 @@ class NumpyStream:
     def time(self):
         return self.tinp
 
-    def data(self):
+    def data(self, stream_id):  # noqa: ARG002
         return self.inp
 
     def run(self, config: Config):  # noqa: C901, PLR0912
