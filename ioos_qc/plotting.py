@@ -88,11 +88,6 @@ def bokeh_multi_plot(stream, results, title, **kwargs):
         **kwargs,
     }
 
-    if "plot_width" in kwargs:
-        kwargs["width"] = kwargs.pop("plot_width")
-    if "plot_height" in kwargs:
-        kwargs["height"] = kwargs.pop("plot_height")
-
     plots = list(bokeh_multi_var(stream, results, title))
     return gridplot(plots, **kwargs)
 
@@ -125,11 +120,6 @@ def bokeh_plot_collected_results(results, **kwargs):
         "ncols": 2,
         **kwargs,
     }
-
-    if "plot_width" in kwargs:
-        kwargs["width"] = kwargs.pop("plot_width")
-    if "plot_height" in kwargs:
-        kwargs["height"] = kwargs.pop("plot_height")
 
     plots = [bokeh_plot_collected_result(r) for r in results if r.data.any() and r.results.any()]
     return gridplot(plots, **kwargs)
