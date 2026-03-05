@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from datetime import datetime
     from numbers import Real
-    from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -806,11 +805,10 @@ def flat_line_test(
 
 
 def timing_gap_test(
-    times: Sequence[Union[str, datetime]],
-    max_time_interval: Union[int, float],
+    times: Sequence[str | datetime],
+    max_time_interval: float,
 ) -> np.ma.MaskedArray:
-    """
-    Checks that observations arrive within the expected time window (Test 1).
+    """Checks that observations arrive within the expected time window (Test 1).
 
     Checks the time difference between consecutive observations. If the gap
     exceeds ``max_time_interval``, the later observation is flagged FAIL.
@@ -837,6 +835,7 @@ def timing_gap_test(
     References
     ----------
     U.S. IOOS QARTOD Glider Manual, Test 1, p.10
+
     """
     times = np.asarray(times, dtype="datetime64[ns]")
     flags = np.full(times.size, QartodFlags.GOOD, dtype="uint8")
