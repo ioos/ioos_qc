@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from ioos_qc import qartod
+from ioos_qc.qartod import QartodFlags
 
 L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
@@ -2092,3 +2093,51 @@ class QartodUtilsTests(unittest.TestCase):
             primary_flags,
             np.array([1, 3, 3, 4, 3, 1, 2, 9]),
         )
+
+
+class QartodTimingGapTest(unittest.TestCase):
+
+    def test_gap_within_limit(self):
+        """All gaps within limit should pass."""
+        times = [
+            "2021-01-01T00:00:00",
+            "2021-01-01T01:00:00",
+            "2021-01-01T02:00:00",
+        ]
+        result = qartod.timing_gap_test(times, max_time_interval=3600 * 3)
+        expected = [QartodFlags.UNKNOWN, QartodFlags.GOOD, QartodFlags.GOOD]
+        np.testing.assert_array_equal(result, expected)
+
+    def test_gap_exceeds_limit(self):
+        """Gap exceeding limit should be flagged FAIL."""
+        times = [
+            "2021-01-01T00:00:00",
+            "2021-01-01T01:00:00",
+            "2021-01-01T08:00:00",  # 7 hour gap — should fail
+        ]
+        result = qartod.timing_gap_test(times, max_time_interval=3600 * 3)
+        expected = [QartodFlags.UNKNOWN, QartodFlags.GOOD, QartodFlags.FAIL]
+        np.testing.assert_array_equal(result, expected)
+
+    def test_missing_timestamp(self):
+        """NaT timestamps should be flagged MISSING."""
+        times = np.array(
+            ["2021-01-01T00:00:00", "NaT", "2021-01-01T02:00:00"],
+            dtype="datetime64[ns]",
+        )
+        result = qartod.timing_gap_test(times, max_time_interval=3600 * 3)
+        assert result[1] == QartodFlags.MISSING
+
+    def test_single_observation(self):
+        """Single observation should be flagged UNKNOWN."""
+        result = qartod.timing_gap_test(["2021-01-01T00:00:00"], max_time_interval=3600)
+        assert result[0] == QartodFlags.UNKNOWN
+
+    def test_exact_boundary(self):
+        """Gap exactly equal to max_time_interval should pass."""
+        times = [
+            "2021-01-01T00:00:00",
+            "2021-01-01T01:00:00",  # exactly 3600s
+        ]
+        result = qartod.timing_gap_test(times, max_time_interval=3600)
+        assert result[1] == QartodFlags.GOOD

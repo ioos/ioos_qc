@@ -9,7 +9,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from datetime import datetime
     from numbers import Real
+    from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -801,6 +803,58 @@ def flat_line_test(
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
+
+
+def timing_gap_test(
+    times: Sequence[Union[str, datetime]],
+    max_time_interval: Union[int, float],
+) -> np.ma.MaskedArray:
+    """
+    Checks that observations arrive within the expected time window (Test 1).
+
+    Checks the time difference between consecutive observations. If the gap
+    exceeds ``max_time_interval``, the later observation is flagged FAIL.
+    The first observation is always flagged UNKNOWN since there is no
+    prior value to compare against.
+
+    Parameters
+    ----------
+    times : array-like
+        Sequence of timestamps (datetime, numpy datetime64, or ISO strings),
+        in chronological order.
+    max_time_interval : int or float
+        Maximum allowable gap between consecutive observations, in seconds.
+
+    Returns
+    -------
+    np.ma.MaskedArray
+        Flag array of QartodFlags values:
+        - GOOD (1): gap is within the allowed interval
+        - UNKNOWN (2): first observation (no prior to compare)
+        - FAIL (4): gap exceeds max_time_interval
+        - MISSING (9): NaT or None timestamp
+
+    References
+    ----------
+    U.S. IOOS QARTOD Glider Manual, Test 1, p.10
+    """
+    times = np.asarray(times, dtype="datetime64[ns]")
+    flags = np.full(times.size, QartodFlags.GOOD, dtype="uint8")
+
+    # First point has no prior observation
+    flags[0] = QartodFlags.UNKNOWN
+
+    max_delta = np.timedelta64(int(max_time_interval * 1e9), "ns")
+
+    for i in range(1, len(times)):
+        if np.isnat(times[i]):
+            flags[i] = QartodFlags.MISSING
+        elif np.isnat(times[i - 1]):
+            flags[i] = QartodFlags.UNKNOWN
+        elif (times[i] - times[i - 1]) > max_delta:
+            flags[i] = QartodFlags.FAIL
+
+    return np.ma.MaskedArray(flags)
 
 
 @add_flag_metadata(
