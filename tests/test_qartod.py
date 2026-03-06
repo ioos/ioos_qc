@@ -2096,7 +2096,6 @@ class QartodUtilsTests(unittest.TestCase):
 
 
 class QartodTimingGapTest(unittest.TestCase):
-
     def test_gap_within_limit(self):
         """All gaps within limit should pass."""
         times = [
