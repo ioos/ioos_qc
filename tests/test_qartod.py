@@ -2097,24 +2097,47 @@ class QartodUtilsTests(unittest.TestCase):
 
 class QartodTimingGapTest(unittest.TestCase):
     def test_gap_within_limit(self):
-        """All gaps within limit should pass."""
+        """All gaps within suspect limit should pass."""
         times = [
             "2021-01-01T00:00:00",
             "2021-01-01T01:00:00",
             "2021-01-01T02:00:00",
         ]
-        result = qartod.timing_gap_test(times, max_time_interval=3600 * 3)
+        result = qartod.timing_gap_test(
+            times,
+            suspect_threshold=3600 * 3,
+            fail_threshold=3600 * 6,
+        )
         expected = [QartodFlags.UNKNOWN, QartodFlags.GOOD, QartodFlags.GOOD]
         np.testing.assert_array_equal(result, expected)
 
-    def test_gap_exceeds_limit(self):
-        """Gap exceeding limit should be flagged FAIL."""
+    def test_gap_suspect(self):
+        """Gap exceeding suspect_threshold but within fail_threshold → SUSPECT."""
         times = [
             "2021-01-01T00:00:00",
             "2021-01-01T01:00:00",
-            "2021-01-01T08:00:00",  # 7 hour gap — should fail
+            "2021-01-01T05:00:00",  # 4 hour gap — suspect
         ]
-        result = qartod.timing_gap_test(times, max_time_interval=3600 * 3)
+        result = qartod.timing_gap_test(
+            times,
+            suspect_threshold=3600 * 3,
+            fail_threshold=3600 * 6,
+        )
+        expected = [QartodFlags.UNKNOWN, QartodFlags.GOOD, QartodFlags.SUSPECT]
+        np.testing.assert_array_equal(result, expected)
+
+    def test_gap_exceeds_fail_limit(self):
+        """Gap exceeding fail_threshold should be flagged FAIL."""
+        times = [
+            "2021-01-01T00:00:00",
+            "2021-01-01T01:00:00",
+            "2021-01-01T08:00:00",  # 7 hour gap — fail
+        ]
+        result = qartod.timing_gap_test(
+            times,
+            suspect_threshold=3600 * 3,
+            fail_threshold=3600 * 6,
+        )
         expected = [QartodFlags.UNKNOWN, QartodFlags.GOOD, QartodFlags.FAIL]
         np.testing.assert_array_equal(result, expected)
 
@@ -2124,19 +2147,31 @@ class QartodTimingGapTest(unittest.TestCase):
             ["2021-01-01T00:00:00", "NaT", "2021-01-01T02:00:00"],
             dtype="datetime64[ns]",
         )
-        result = qartod.timing_gap_test(times, max_time_interval=3600 * 3)
+        result = qartod.timing_gap_test(
+            times,
+            suspect_threshold=3600 * 3,
+            fail_threshold=3600 * 6,
+        )
         assert result[1] == QartodFlags.MISSING
 
     def test_single_observation(self):
         """Single observation should be flagged UNKNOWN."""
-        result = qartod.timing_gap_test(["2021-01-01T00:00:00"], max_time_interval=3600)
+        result = qartod.timing_gap_test(
+            ["2021-01-01T00:00:00"],
+            suspect_threshold=3600,
+            fail_threshold=3600 * 3,
+        )
         assert result[0] == QartodFlags.UNKNOWN
 
     def test_exact_boundary(self):
-        """Gap exactly equal to max_time_interval should pass."""
+        """Gap exactly equal to suspect_threshold should pass (GOOD)."""
         times = [
             "2021-01-01T00:00:00",
             "2021-01-01T01:00:00",  # exactly 3600s
         ]
-        result = qartod.timing_gap_test(times, max_time_interval=3600)
+        result = qartod.timing_gap_test(
+            times,
+            suspect_threshold=3600,
+            fail_threshold=3600 * 3,
+        )
         assert result[1] == QartodFlags.GOOD
