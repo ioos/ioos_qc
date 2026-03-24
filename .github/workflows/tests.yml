@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        python-version: [ "3.10", "3.14" ]
         os: [ windows-latest, ubuntu-latest, macos-latest ]
         numba: [true, false]
       fail-fast: false
@@ -33,7 +33,7 @@ jobs:
         environment-name: TEST
         init-shell: bash
         create-args: >-
-          python=${{ matrix.python-version }} pip
+          python=${{ matrix.python-version }} pip python-gil
           --file requirements.txt
           --file requirements-dev.txt
           --channel conda-forge
