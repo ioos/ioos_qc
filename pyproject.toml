@@ -37,7 +37,6 @@ optional-dependencies.test = [
   "dask",
   "pytest",
 ]
-
 urls.documentation = "https://ioos.github.io/ioos_qc"
 urls.homepage = "https://github.com/ioos/ioos_qc"
 urls.repository = "https://github.com/ioos/ioos_qc"
@@ -47,9 +46,7 @@ packages = [
   "ioos_qc",
 ]
 include-package-data = true
-
-[tool.setuptools.dynamic]
-dependencies = { file = [
+dynamic.dependencies = { file = [
   "requirements.txt",
 ] }
 
@@ -68,10 +65,9 @@ ignore = [
   "tests/*",
 ]
 
-[tool.pytest.ini_options]
-addopts = "-s -rxs -v"
-
-filterwarnings = [
+[tool.pytest]
+ini_options.addopts = "-s -rxs -v"
+ini_options.filterwarnings = [
   "error",
   "ignore:The QcConfig object is deprecated",
   "ignore:gliders.pressure_check",
