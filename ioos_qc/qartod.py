@@ -394,7 +394,7 @@ class ClimatologyConfig:
                 # pd.DatetimeIndex object before comparison. The min and max
                 # values are in this period unit already.
                 if m.period in WEEK_PERIODS:
-                    # The weekofyear accessor was depreacated
+                    # The weekofyear accessor was deprecated
                     tinp_copy = pd.Index(
                         tinp.isocalendar().week,
                         dtype="int64",
