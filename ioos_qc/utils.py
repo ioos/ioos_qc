@@ -122,7 +122,7 @@ def load_config_as_dict(
         load_funcs = [
             lambda x: OrderedDict(yaml.load(x)),
             lambda x: OrderedDict(json.loads(x)),
-            lambda x: load_config_from_xarray(x),
+            lambda x: load_config_from_xarray(x),  # noqa: PLW0108
             lambda x: OrderedDict(yaml.load(openf(x))),
             lambda x: OrderedDict(json.loads(openf(x))),
         ]
