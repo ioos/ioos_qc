@@ -407,8 +407,7 @@ class ClimatologyConfig:
                 tinp_copy = tinp
 
             # If a zspan is defined but we don't have z input (zinp), skip this member
-            # Note: `zinp.count()` can return `np.ma.masked` so we also check using isnan
-            if not isnan(m.zspan) and (not zinp.count() or isnan(zinp.any())):
+            if not isnan(m.zspan) and not zinp.count():
                 continue
 
             # Indexes that align with the T
