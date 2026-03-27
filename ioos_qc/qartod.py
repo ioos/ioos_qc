@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from datetime import datetime
     from numbers import Real
 
 import numpy as np
@@ -799,6 +800,73 @@ def flat_line_test(
 
     # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING
+
+    return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="timing_gap_test_quality_flag",
+    long_name="Timing/Gap Test Quality Flag",
+)
+def timing_gap_test(
+    times: Sequence[str | datetime],
+    suspect_threshold: float,
+    fail_threshold: float,
+) -> np.ma.MaskedArray:
+    """Checks that observations arrive within the expected time window (Test 1).
+
+    Checks the time difference between consecutive observations. If the gap
+    exceeds ``suspect_threshold``, the later observation is flagged SUSPECT.
+    If it exceeds ``fail_threshold``, it is flagged FAIL.
+    The first observation is always flagged UNKNOWN since there is no
+    prior value to compare against.
+
+    Parameters
+    ----------
+    times
+        Sequence of timestamps (datetime, numpy datetime64, or ISO strings),
+        in chronological order.
+    suspect_threshold
+        Maximum allowable gap in seconds before flagging SUSPECT.
+    fail_threshold
+        Maximum allowable gap in seconds before flagging FAIL.
+
+    Returns
+    -------
+    np.ma.MaskedArray
+        Flag array of QartodFlags values:
+        - GOOD (1): gap is within suspect_threshold
+        - UNKNOWN (2): first observation (no prior to compare)
+        - SUSPECT (3): gap exceeds suspect_threshold
+        - FAIL (4): gap exceeds fail_threshold
+        - MISSING (9): NaT or None timestamp
+
+    References
+    ----------
+    U.S. IOOS QARTOD Glider Manual, Test 1, p.10
+
+    """
+    tinp = mapdates(np.array(times))
+
+    original_shape = tinp.shape
+    tinp = tinp.flatten()
+
+    flag_arr = np.ma.ones(tinp.size, dtype="uint8")
+
+    # First point has no previous point to compare against
+    flag_arr[0] = QartodFlags.UNKNOWN
+
+    # Flag missing timestamps
+    missing = np.isnat(tinp)
+    flag_arr[missing] = QartodFlags.MISSING
+
+    if tinp.size > 1:
+        gaps = np.diff(
+            tinp.astype("datetime64[s]").astype(np.float64),
+        )
+        with np.errstate(invalid="ignore"):
+            flag_arr[1:][gaps > fail_threshold] = QartodFlags.FAIL
+            flag_arr[1:][(gaps > suspect_threshold) & (gaps <= fail_threshold)] = QartodFlags.SUSPECT
 
     return flag_arr.reshape(original_shape)
 
