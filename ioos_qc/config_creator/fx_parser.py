@@ -159,6 +159,7 @@ def evaluate_stack(s, stats):
 
 def eval_fx(fx, stats):
     """Given fx and stats ('min', 'max', 'mean', 'std') return the result"""
+    exprStack.clear()
     _ = BNF().parse_string(fx, parse_all=True)
     val = evaluate_stack(exprStack[:], stats)
 
