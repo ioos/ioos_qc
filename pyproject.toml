@@ -51,9 +51,25 @@ dynamic.dependencies = { file = [
 ] }
 
 [tool.setuptools_scm]
+tag_regex = "^(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
 write_to = "ioos_qc/_version.py"
 write_to_template = "__version__ = '{version}'"
-tag_regex = "^(?P<prefix>v)?(?P<version>[^\\+]+)(?P<suffix>.*)?$"
+
+[tool.interrogate]
+fail-under = 85
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-module = false
+exclude = [
+  "docs",
+  "tests",
+]
+color = true
+verbose = 1
+quiet = false
 
 [tool.check-manifest]
 ignore = [
@@ -69,22 +85,6 @@ ignore = [
 ini_options.addopts = "-s -rxs -v"
 ini_options.filterwarnings = [
   "error",
-  "ignore:The QcConfig object is deprecated",
   "ignore:gliders.pressure_check",
+  "ignore:The QcConfig object is deprecated",
 ]
-
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = false
-ignore-magic = false
-ignore-semiprivate = false
-ignore-private = false
-ignore-module = false
-fail-under = 85
-exclude = [
-  "docs",
-  "tests",
-]
-verbose = 1
-quiet = false
-color = true
