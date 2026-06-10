@@ -364,7 +364,7 @@ class ClimatologyConfig:
             try:
                 getattr(pd.Timestamp.now(), period)
             except AttributeError as err:
-                msg = 'The period "{period}" is not recognized'
+                msg = f'The period "{period}" is not recognized'
                 raise ValueError(msg) from err
 
         self._members.append(
