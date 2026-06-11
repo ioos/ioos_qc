@@ -73,7 +73,7 @@ master_doc = "index"
 # General information about the project.
 import datetime
 
-year = datetime.datetime.now(tz=datetime.timezone.utc).date().year
+year = datetime.datetime.now(tz=datetime.UTC).date().year
 project = "ioos_qc"
 copyright = f"2022-{year}, IOOS"
 author = "IOOS"

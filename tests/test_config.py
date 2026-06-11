@@ -19,7 +19,7 @@ if packaging.version.parse(
 ) < packaging.version.parse(
     "3.11",
 ):
-    datetime.UTC = datetime.timezone.utc
+    datetime.UTC = datetime.UTC
 
 
 class StreamConfigLoadTest(unittest.TestCase):

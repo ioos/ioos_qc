@@ -129,7 +129,7 @@ def load_config_as_dict(
         for lf in load_funcs:
             try:
                 return lf(source)
-            except BaseException:  # noqa: S112, PERF203, BLE001
+            except BaseException:  # noqa: S112, BLE001
                 continue
 
     elif isinstance(source, io.StringIO):
@@ -141,7 +141,7 @@ def load_config_as_dict(
         for lf in load_funcs:
             try:
                 return lf(source.getvalue())
-            except BaseException:  # noqa: S112, PERF203, BLE001
+            except BaseException:  # noqa: S112, BLE001
                 continue
 
     msg = "Config source is not valid!"
