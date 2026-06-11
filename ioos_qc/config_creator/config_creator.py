@@ -236,7 +236,7 @@ class QcVariableConfig(dict):
         for token in tokens:
             try:
                 _ = float(token)
-            except ValueError as err:  # noqa: PERF203
+            except ValueError as err:
                 if token not in self.allowed_stats and token not in self.allowed_operators and token not in self.allowed_groupings:
                     msg = (
                         f"{token} not allowed in min/max specification in config of {test_name}.\n"
@@ -439,11 +439,11 @@ class QcConfigCreator:
         start_time = datetime.datetime.strptime(
             variable_config["start_time"],
             "%Y-%m-%d",
-        ).replace(tzinfo=datetime.timezone.utc)
+        ).replace(tzinfo=datetime.UTC)
         end_time = datetime.datetime.strptime(
             variable_config["end_time"],
             "%Y-%m-%d",
-        ).replace(tzinfo=datetime.timezone.utc)
+        ).replace(tzinfo=datetime.UTC)
         time_range = slice(start_time, end_time)
         subset = self._get_subset(
             variable_config["variable"],
