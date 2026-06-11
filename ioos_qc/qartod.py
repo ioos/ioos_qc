@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-# Standard library utilities
 import logging
 import warnings
 from collections import namedtuple
@@ -12,17 +11,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from numbers import Real
 
-# Scientific Python
 import numpy as np
 import pandas as pd
 
-# Numba for window_func speed
 try:
     from numba.core.errors import NumbaTypeError
 except ImportError:
     NumbaTypeError = TypeError
 
-# Internal ioos_qc helper utilities
 from ioos_qc.utils import (
     add_flag_metadata,
     great_circle_distance,
