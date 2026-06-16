@@ -67,7 +67,15 @@ There are three main concepts in the ``ioos_qc`` project:
 Configurations
 --------------
 
-Configuration objects represent a collection of quality control tests to run and the parameters for each one. There are three main types of `Config` objects:
+**Loading configuration:** To load any QC configuration (single-stream, multi-context, YAML, JSON, dict, netCDF, etc.), use the ``Config`` class as the single interface:
+
+.. code-block:: python
+
+    from ioos_qc.config import Config
+
+    c = Config("path/to/config.yaml")   # or a dict, JSON string, etc.
+
+Configuration objects represent a collection of quality control tests to run and the parameters for each one. There are two main types of configuration structures that ``Config`` can load:
 
 - ContextConfig_: This defines a collection of ``ConfigTypes`` objects. These can be applied to multiple variables provided in a ``pandas.DataFrame``, ``dask.DataFrame``, ``netCDF4.Dataset``, or ``xarray.Dataset``. Optionally, these configs can be constrained to specific time domains (``windows``) -- and/or spatial domains (``regions``).
 - Config_: A collection of ``ContextConfig`` objects, suitable for configuring a single input dataset to be broken up by region and time window before having QC checks applied.
@@ -133,7 +141,13 @@ Usage
 
 Config
 ~~~~~~
-The highest level and most flexible configuration object is a ``Config``. It can describe quality control configurations for any number of regions, windows and streams.
+
+.. _streamconfig:
+
+The highest level and most flexible configuration object is a ``Config``. Use ``Config`` for all configuration loading (single stream, multiple contexts, files, or in-memory dicts). It can describe quality control configurations for any number of regions, windows and streams.
+
+.. note::
+   If you are looking for ``StreamConfig``: that class does not exist. Use ``Config`` for all configuration loading (e.g. ``from ioos_qc.config import Config``).
 
 
 Usage
@@ -196,7 +210,7 @@ working in a streaming environment you will want to use generator result objects
 Results
 ~~~~~~~
 
-Each yielded result will be a :mod:`StreamConfigResult <ioos_qc.results.StreamConfigResult>` or a :mod:`ContextResult <ioos_qc.results.ContextResult>`, depending on which type of Config_ object was used. Collected results are only ever of one type, a :mod:`CollectedResult <ioos_qc.results.CollectedResult>`, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
+Each yielded result will be a :class:`ContextResult <ioos_qc.results.ContextResult>` (when using a Config_ with any Stream). Collected results are only ever of one type, a :class:`CollectedResult <ioos_qc.results.CollectedResult>`, and only one ``CollectedResult`` will be returned after collecting Results. The benefit of using a ``CollectedResult`` is that it will piece back together all of the different ContextConfig_ objects in a Config_ and return you one result per unique ``stream_id`` and module/test combination.
 
 .. note::
 
@@ -204,7 +218,7 @@ Each yielded result will be a :mod:`StreamConfigResult <ioos_qc.results.StreamCo
 
 .. warning::
 
-    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of :mod:`CollectedResult objects <ioos_qc.results.CollectedResult>` should be used in any applications, including any implementation of Stores_, going forward.
+    Historically, test results were returned in a ``dict`` structure. While this is still supported it **should be considered deprecated**. The individually yielded result objects or a list of :class:`CollectedResult <ioos_qc.results.CollectedResult>` objects should be used in any applications, including any implementation of Stores_, going forward.
 
 
 .. code-block:: python
@@ -572,7 +586,7 @@ Store the QC results in a CF compliant DSG type netCDF file, along with all meta
 ConfigGeneration
 ----------------
 
-A `QcConfigCreator` instance generates a config for `QcConfig` informed by reference datasets, such as climatologies, defined via configuration.
+A `QcConfigCreator` instance generates a config for use with :class:`Config <ioos_qc.config.Config>`, informed by reference datasets such as climatologies, defined via configuration.
 
 CreatorConfig
 ~~~~~~~~~~~~~
@@ -738,10 +752,10 @@ Like CreatorConfig, QcVaribleConfig performs checks on the configuration to ensu
     }
 
 
-Create config for QcConfig
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create config for Config
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Finally, the `QcConfigCreator` instance (`qccc`) takes the `QcVariableConfig` instance (`vc`) and returns a config that can then be used with `QcConfig`.
+Finally, the `QcConfigCreator` instance (`qccc`) takes the `QcVariableConfig` instance (`vc`) and returns a config that can then be used with :class:`Config <ioos_qc.config.Config>` (e.g. ``c = Config(config)``).
 
 .. code-block:: python
     :linenos:
