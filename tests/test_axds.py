@@ -29,8 +29,8 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
     def test_no_bounds(self):
         valid_spans = [
             (
-                np.datetime64("NaT"),
-                np.datetime64("NaT"),
+                np.datetime64("NaT", "ns"),
+                np.datetime64("NaT", "ns"),
             ),
             (
                 None,
@@ -51,7 +51,7 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
         valid_spans = [
             (
                 np.datetime64("2015-01-01T02:00:00"),
-                np.datetime64("NaT"),
+                np.datetime64("NaT", "ns"),
             ),
             (
                 np.datetime64("2015-01-01T02:00:00").astype(datetime),
@@ -71,7 +71,7 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
     def test_chop_end(self):
         valid_spans = [
             (
-                np.datetime64("NaT"),
+                np.datetime64("NaT", "ns"),
                 np.datetime64("2015-01-01T04:00:00"),
             ),
             (
@@ -133,7 +133,7 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
     def test_empty_chop_ends(self):
         valid_span = (
-            np.datetime64("NaT"),
+            np.datetime64("NaT", "ns"),
             np.datetime64("2015-01-01T04:00:00"),
         )
 
@@ -143,7 +143,7 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
             step=np.timedelta64(1, "h"),
             dtype=np.datetime64,
         )
-        times[0:2] = np.datetime64("NaT")
+        times[0:2] = np.datetime64("NaT", "ns")
 
         npt.assert_array_equal(
             axds.valid_range_test(
@@ -155,8 +155,8 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
 
     def test_all_empty(self):
         valid_span = (
-            np.datetime64("NaT"),
-            np.datetime64("NaT"),
+            np.datetime64("NaT", "ns"),
+            np.datetime64("NaT", "ns"),
         )
 
         times = np.arange(
@@ -165,7 +165,7 @@ class AxdsValidTimeBoundsTest(unittest.TestCase):
             step=np.timedelta64(1, "h"),
             dtype=np.datetime64,
         )
-        times[:] = np.datetime64("NaT")
+        times[:] = np.datetime64("NaT", "ns")
 
         npt.assert_array_equal(
             axds.valid_range_test(
