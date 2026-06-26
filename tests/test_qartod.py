@@ -2097,38 +2097,45 @@ class QartodUtilsTests(unittest.TestCase):
 class QartodImpossibleDateTest(unittest.TestCase):
     def setUp(self):
         """Define the data that we're going to pass into the following tests.
-        
+
         Within the class, these data will live as attributes of 'self'."""
         #   As we defined them before.
-        times = ['2026-01-12T23:05:14.000000000','2026-01-12T23:05:15.000000000','2026-01-12T23:05:16.000000000','2026-01-12T23:05:17.000000000']
+        times = [
+            "2026-01-12T23:05:14.000000000",
+            "2026-01-12T23:05:15.000000000",
+            "2026-01-12T23:05:16.000000000",
+            "2026-01-12T23:05:17.000000000",
+        ]
         self.data_good = np.array(times, dtype="datetime64")
         self.data_bad = self.data_good.copy()
         self.data_bad[1] = np.datetime64("2088-01-12T23:05:16.000000000")
+
     def test_error_bad_datetime(self):
-        dt = np.array("2026-13-91T00:00:00.000")    #   the function will attempt to convet this to datetime64
+        dt = np.array("2026-13-91T00:00:00.000")  #   the function will attempt to convet this to datetime64
         self.assertRaises(
             ValueError,
             qartod.impossible_date_test,
             tinp=dt,
-        )   #   This is a type of assertion that checks for errors
+        )  #   This is a type of assertion that checks for errors
         dt = np.array("2026-12-00T38:00:00.000")
         self.assertRaises(
             ValueError,
             qartod.impossible_date_test,
-            tinp = dt,
+            tinp=dt,
         )
+
     def test_all_nat(self):
         dt = np.full(4, np.datetime64("NaT"))
-        flags = qartod.impossible_date_test(tinp = dt)
+        flags = qartod.impossible_date_test(tinp=dt)
         assert all(flags == 9)
+
     def test_future_year(self):
         """Uses data_bad, which has an entry set well in the future."""
-        flags = qartod.impossible_date_test(tinp = self.data_bad)
-        assert 4 in flags   #   This is a more typical assertion. Here, we expect there to be a bad entry in the flags.
+        flags = qartod.impossible_date_test(tinp=self.data_bad)
+        assert 4 in flags  #   This is a more typical assertion. Here, we expect there to be a bad entry in the flags.
         assert flags[1] == 4
         assert type(flags) == np.ma.core.MaskedArray
+
     def test_span_good(self):
-        flags = qartod.impossible_date_test(tinp = self.data_good, fail_span=("2012-01-01T00:00:00.000", "2027-01-01T00:00:00.000"))
+        flags = qartod.impossible_date_test(tinp=self.data_good, fail_span=("2012-01-01T00:00:00.000", "2027-01-01T00:00:00.000"))
         assert all(flags == 1)
-
-
