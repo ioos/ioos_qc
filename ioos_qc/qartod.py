@@ -1134,7 +1134,7 @@ def time_gap_test(
     flag_arr[valid & (diff_time > fail_span)] = QartodFlags.FAIL
 
     #   Handle the first point
-    if tinp.mask[1]:
+    if tinp.mask[1] & ~tinp.mask[0]:
         flag_arr[0] = QartodFlags.UNKNOWN
     else:
         flag_arr[0] = flag_arr[1]
