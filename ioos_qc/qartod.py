@@ -995,6 +995,10 @@ def density_inversion_test(
     return flag_arr
 
 
+@add_flag_metadata(
+    standard_name="impossible_date_test_flag",
+    long_name="Impossible Date Test Flag",
+)
 def impossible_date_test(
     tinp: Sequence[Real],
     fail_span: tuple[Real, Real] | None = None,
@@ -1042,6 +1046,10 @@ def impossible_date_test(
     return flag_arr.reshape(original_shape)
 
 
+@add_flag_metadata(
+    standard_name="data_reception_test_flag",
+    long_name="Data Reception Test Flag",
+)
 def data_reception_test(
     tinp: Sequence[Real],
     fail_span: Real = 6,
@@ -1091,6 +1099,10 @@ def data_reception_test(
     return flag_arr.reshape(original_shape)
 
 
+@add_flag_metadata(
+    standard_name="time_gap_test_flag",
+    long_name="Time Gap Test Flag",
+)
 def time_gap_test(
     tinp: Sequence[Real],
     fail_span: Real = 2,
