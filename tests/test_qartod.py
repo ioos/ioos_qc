@@ -2168,10 +2168,10 @@ class QartodDataReceptionTest(unittest.TestCase):
         #   `from_time = None` default test
         now = np.datetime64("now")  #   UTC
         new_times = np.array([
-            now - 4*(60*60),
-            now - 3*(60*60),
-            now - 2*(60*60),
-            now - (60*60),  #   1 hour before current time
+            now - np.timedelta64(4, "h"),
+            now - np.timedelta64(3, "h"),
+            now - np.timedelta64(2, "h"),
+            now - np.timedelta64(1, "h"),
         ])
         flags = qartod.data_reception_test(new_times)
         assert all(flags == 1)
