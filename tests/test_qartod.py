@@ -2139,3 +2139,46 @@ class QartodImpossibleDateTest(unittest.TestCase):
     def test_span_good(self):
         flags = qartod.impossible_date_test(tinp=self.data_good, fail_span=("2012-01-01T00:00:00.000", "2027-01-01T00:00:00.000"))
         assert all(flags == 1)
+
+class QartodDataReceptionTest(unittest.TestCase):
+    def setUp(self):
+        times = [
+            "2026-01-12T23:05:14.000000000",
+            "2026-01-12T23:05:15.000000000",
+            "2026-01-12T23:05:16.000000000",
+            "2026-01-12T23:05:17.000000000",
+        ]
+        self.data_good = np.array(times, dtype="datetime64")    #   Shouldn't return any flags
+        self.data_bad = self.data_good.copy()
+        self.data_bad = np.append(
+            self.data_bad,
+            np.datetime64("2026-02-12T23:05:17.000000000")
+        ) #   Add a point that is a day later
+    
+    def test_all_nat(self):
+        dt = np.full(4, np.datetime64("NaT"))
+        flags = qartod.impossible_date_test(tinp=dt)
+        assert all(flags == 9)
+
+    def test_none_bad(self):
+        #   Should all be good if the `from_time` param is set within the default 6 hours away
+        flags = qartod.data_reception_test(self.data_good, from_time="2026-01-12T23:10:00.000000000")
+        assert all(flags == 1)
+
+        #   `from_time = None` default test
+        now = np.datetime64("now")  #   UTC
+        new_times = np.array([
+            now - 4*(60*60),
+            now - 3*(60*60),
+            now - 2*(60*60),
+            now - (60*60),  #   1 hour before current time
+        ])
+        flags = qartod.data_reception_test(new_times)
+        assert all(flags == 1)
+        assert type(flags) == np.ma.core.MaskedArray
+
+    def test_some_bad(self):
+        flags = qartod.data_reception_test(self.data_bad, from_time="2026-02-12T23:10:00.000000000")
+        assert flags[-1] == 1
+        assert all(flags[0:3] == 4)  #   Should be bad, as they are more than 6 hours from the last point
+        assert type(flags) == np.ma.core.MaskedArray
