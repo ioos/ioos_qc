@@ -2182,3 +2182,52 @@ class QartodDataReceptionTest(unittest.TestCase):
         assert flags[-1] == 1
         assert all(flags[0:3] == 4)  #   Should be bad, as they are more than 6 hours from the last point
         assert type(flags) == np.ma.core.MaskedArray
+
+class QartodTimeGapTest(unittest.TestCase):
+    def setUp(self):
+        times = [
+            "2026-01-12T23:05:14.000000000",
+            "2026-01-12T23:05:15.000000000",
+            "2026-01-12T23:05:16.000000000",
+            "2026-01-12T23:05:17.000000000",
+        ]
+        self.data_good = np.array(times, dtype="datetime64")
+        self.data_bad = self.data_good.copy()
+        self.data_bad = np.append(
+            self.data_bad,
+            np.datetime64("2026-02-12T23:05:17.000000000")
+        )
+
+    def test_all_nat(self):
+        dt = np.full(4, np.datetime64("NaT"))
+        flags = qartod.time_gap_test(tinp=dt)
+        assert all(flags == 9)
+
+    def test_good(self):
+        #   default 2 hours
+        flags = qartod.time_gap_test(self.data_good)
+        assert all(flags == 1)
+        assert type(flags) == np.ma.core.MaskedArray
+
+        #   non-default tolerance
+        flags = qartod.time_gap_test(self.data_good, fail_span=0.5)
+        assert all(flags == 1)
+
+    def test_bad(self):
+        #   Data gap on last point
+        flags = qartod.time_gap_test(self.data_bad)
+        assert flags[-1] == 4
+        assert type(flags) == np.ma.core.MaskedArray
+
+        #   Another run where bad_data[1] is flagged as a gap (shift all points), assert that flag[0] == flag[1]
+        self.data_bad[1:-1] += np.timedelta64(3, "h")
+        flags = qartod.time_gap_test(self.data_bad, fail_span=2.5)
+        assert all(flags[2:4] == 1)
+        assert flags[-1] == 4   #   last point should still be a gap
+        assert flags[1] == 4    #   second point should be a gap, following the shift
+        assert flags[0] == flags[1]
+
+        #   And test if the second point is NaT - the first and third points should be flagged as UNKNOWN
+        self.data_bad[1] = np.datetime64("NaT")
+        flags = qartod.time_gap_test(self.data_bad, fail_span=2.5)
+        assert all(flags.data == [2, 9, 2, 1, 4])
