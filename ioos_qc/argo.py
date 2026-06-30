@@ -152,3 +152,39 @@ def speed_test(
     flag_arr[dist.mask] = QartodFlags.MISSING
 
     return flag_arr.reshape(original_shape)
+
+@add_flag_metadata(
+    standard_name="duplicate_timestamp_test_quality_flag",
+    long_name="Duplicate Timestamp Test Quality Flag",
+)
+def duplicate_timestamp_test(
+    tinp: Sequence[N],
+) -> np.ma.core.MaskedArray:
+    """
+    This test flags duplicate timestamps in the provided array.
+
+    If duplicate timestamps are found, they are flagged as SUSPECT.
+
+    Parameters
+    ----------
+    tinp
+        Time input data as a numeric numpy array or list of real numbers.
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input `tinp`.
+    """
+    original_shape = tinp.shape
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    flag_arr = np.ma.ones(tinp.size, dtype="uint8") #   Init to 1
+
+    tinp.mask = np.isnat(tinp.data)
+    flag_arr[tinp.mask] = QartodFlags.MISSING  #   Init missing timestamps to the missing flag
+    valid = ~tinp.mask
+
+    _, inverse, counts = np.unique(tinp, return_inverse=True, return_counts=True)
+    duplicate_mask = counts[inverse] > 1
+    flag_arr[valid & duplicate_mask] = QartodFlags.SUSPECT
+
+    return flag_arr.reshape(original_shape)
