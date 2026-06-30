@@ -1050,6 +1050,8 @@ def data_reception_test(
     """
     This test checks for data timestamps to be within a certain amount of time of present.
 
+    For most use cases, this test is intended for data centers or streams.
+
     Timestamps that are further away in time from the `from_time` variable than that designated
     by `fail_span` are flagged as FAIL. Data points that are newer than `from_time` are not considered
     for this test and are passed through as GOOD. Any missing and masked data is flagged as UNKNOWN.
