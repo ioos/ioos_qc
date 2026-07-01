@@ -2094,6 +2094,20 @@ class QartodUtilsTests(unittest.TestCase):
         )
 
 
+@pytest.mark.parametrize(
+    "testname",
+    [
+        qartod.impossible_date_test,
+        qartod.data_reception_test,
+        qartod.time_gap_test,
+    ],
+)
+def test_all_nat(testname):
+    dt = np.full(4, np.datetime64("NaT"))
+    flags = testname(tinp=dt)
+    assert np.all(flags == 9)
+
+
 class QartodImpossibleDateTest(unittest.TestCase):
     def setUp(self):
         """Define the data that we're going to pass into the following tests.
@@ -2124,11 +2138,6 @@ class QartodImpossibleDateTest(unittest.TestCase):
             tinp=dt,
         )
 
-    def test_all_nat(self):
-        dt = np.full(4, np.datetime64("NaT"))
-        flags = qartod.impossible_date_test(tinp=dt)
-        assert all(flags == 9)
-
     def test_future_year(self):
         """Uses data_bad, which has an entry set well in the future."""
         flags = qartod.impossible_date_test(tinp=self.data_bad)
@@ -2152,11 +2161,6 @@ class QartodDataReceptionTest(unittest.TestCase):
         self.data_good = np.array(times, dtype="datetime64")  #   Shouldn't return any flags
         self.data_bad = self.data_good.copy()
         self.data_bad = np.append(self.data_bad, np.datetime64("2026-02-12T23:05:17.000000000"))  #   Add a point that is a day later
-
-    def test_all_nat(self):
-        dt = np.full(4, np.datetime64("NaT"))
-        flags = qartod.impossible_date_test(tinp=dt)
-        assert all(flags == 9)
 
     def test_none_bad(self):
         #   Should all be good if the `from_time` param is set within the default 6 hours away
@@ -2195,11 +2199,6 @@ class QartodTimeGapTest(unittest.TestCase):
         self.data_good = np.array(times, dtype="datetime64")
         self.data_bad = self.data_good.copy()
         self.data_bad = np.append(self.data_bad, np.datetime64("2026-02-12T23:05:17.000000000"))
-
-    def test_all_nat(self):
-        dt = np.full(4, np.datetime64("NaT"))
-        flags = qartod.time_gap_test(tinp=dt)
-        assert all(flags == 9)
 
     def test_good(self):
         #   default 2 hours
