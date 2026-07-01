@@ -2092,3 +2092,139 @@ class QartodUtilsTests(unittest.TestCase):
             primary_flags,
             np.array([1, 3, 3, 4, 3, 1, 2, 9]),
         )
+
+
+@pytest.mark.parametrize(
+    "testname",
+    [
+        qartod.impossible_date_test,
+        qartod.data_reception_test,
+        qartod.time_gap_test,
+    ],
+)
+def test_all_nat(testname):
+    dt = np.full(4, np.datetime64("NaT"))
+    flags = testname(tinp=dt)
+    assert np.all(flags == 9)
+
+
+class QartodImpossibleDateTest(unittest.TestCase):
+    def setUp(self):
+        """Define the data that we're going to pass into the following tests.
+
+        Within the class, these data will live as attributes of 'self'."""
+        #   As we defined them before.
+        times = [
+            "2026-01-12T23:05:14.000000000",
+            "2026-01-12T23:05:15.000000000",
+            "2026-01-12T23:05:16.000000000",
+            "2026-01-12T23:05:17.000000000",
+        ]
+        self.data_good = np.array(times, dtype="datetime64")
+        self.data_bad = self.data_good.copy()
+        self.data_bad[1] = np.datetime64("2088-01-12T23:05:16.000000000")
+
+    def test_error_bad_datetime(self):
+        dt = np.array("2026-13-91T00:00:00.000")  #   the function will attempt to convet this to datetime64
+        self.assertRaises(
+            ValueError,
+            qartod.impossible_date_test,
+            tinp=dt,
+        )  #   This is a type of assertion that checks for errors
+        dt = np.array("2026-12-00T38:00:00.000")
+        self.assertRaises(
+            ValueError,
+            qartod.impossible_date_test,
+            tinp=dt,
+        )
+
+    def test_future_year(self):
+        """Uses data_bad, which has an entry set well in the future."""
+        flags = qartod.impossible_date_test(tinp=self.data_bad)
+        assert 4 in flags  #   This is a more typical assertion. Here, we expect there to be a bad entry in the flags.
+        assert flags[1] == 4
+        assert type(flags) == np.ma.core.MaskedArray
+
+    def test_span_good(self):
+        flags = qartod.impossible_date_test(tinp=self.data_good, fail_span=("2012-01-01T00:00:00.000", "2027-01-01T00:00:00.000"))
+        assert all(flags == 1)
+
+
+class QartodDataReceptionTest(unittest.TestCase):
+    def setUp(self):
+        times = [
+            "2026-01-12T23:05:14.000000000",
+            "2026-01-12T23:05:15.000000000",
+            "2026-01-12T23:05:16.000000000",
+            "2026-01-12T23:05:17.000000000",
+        ]
+        self.data_good = np.array(times, dtype="datetime64")  #   Shouldn't return any flags
+        self.data_bad = self.data_good.copy()
+        self.data_bad = np.append(self.data_bad, np.datetime64("2026-02-12T23:05:17.000000000"))  #   Add a point that is a day later
+
+    def test_none_bad(self):
+        #   Should all be good if the `from_time` param is set within the default 6 hours away
+        flags = qartod.data_reception_test(self.data_good, from_time="2026-01-12T23:10:00.000000000")
+        assert all(flags == 1)
+
+        #   `from_time = None` default test
+        now = np.datetime64("now")  #   UTC
+        new_times = np.array(
+            [
+                now - np.timedelta64(4, "h"),
+                now - np.timedelta64(3, "h"),
+                now - np.timedelta64(2, "h"),
+                now - np.timedelta64(1, "h"),
+            ]
+        )
+        flags = qartod.data_reception_test(new_times)
+        assert all(flags == 1)
+        assert type(flags) == np.ma.core.MaskedArray
+
+    def test_some_bad(self):
+        flags = qartod.data_reception_test(self.data_bad, from_time="2026-02-12T23:10:00.000000000")
+        assert flags[-1] == 1
+        assert all(flags[0:3] == 4)  #   Should be bad, as they are more than 6 hours from the last point
+        assert type(flags) == np.ma.core.MaskedArray
+
+
+class QartodTimeGapTest(unittest.TestCase):
+    def setUp(self):
+        times = [
+            "2026-01-12T23:05:14.000000000",
+            "2026-01-12T23:05:15.000000000",
+            "2026-01-12T23:05:16.000000000",
+            "2026-01-12T23:05:17.000000000",
+        ]
+        self.data_good = np.array(times, dtype="datetime64")
+        self.data_bad = self.data_good.copy()
+        self.data_bad = np.append(self.data_bad, np.datetime64("2026-02-12T23:05:17.000000000"))
+
+    def test_good(self):
+        #   default 2 hours
+        flags = qartod.time_gap_test(self.data_good)
+        assert all(flags == 1)
+        assert type(flags) == np.ma.core.MaskedArray
+
+        #   non-default tolerance
+        flags = qartod.time_gap_test(self.data_good, fail_span=0.5)
+        assert all(flags == 1)
+
+    def test_bad(self):
+        #   Data gap on last point
+        flags = qartod.time_gap_test(self.data_bad)
+        assert flags[-1] == 4
+        assert type(flags) == np.ma.core.MaskedArray
+
+        #   Another run where bad_data[1] is flagged as a gap (shift all points), assert that flag[0] == flag[1]
+        self.data_bad[1:-1] += np.timedelta64(3, "h")
+        flags = qartod.time_gap_test(self.data_bad, fail_span=2.5)
+        assert all(flags[2:4] == 1)
+        assert flags[-1] == 4  #   last point should still be a gap
+        assert flags[1] == 4  #   second point should be a gap, following the shift
+        assert flags[0] == flags[1]
+
+        #   And test if the second point is NaT - the first and third points should be flagged as UNKNOWN
+        self.data_bad[1] = np.datetime64("NaT")
+        flags = qartod.time_gap_test(self.data_bad, fail_span=2.5)
+        assert all(flags.data == [2, 9, 2, 1, 4])

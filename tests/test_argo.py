@@ -184,3 +184,23 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         pressure = np.array([0.0, 2.0, 3.0], dtype="float32")
         flags = gliders.pressure_check(pressure)
         npt.assert_array_equal(flags, np.array([1, 1, 1]))
+
+
+class ArgoDuplicateTimeTest(unittest.TestCase):
+    def test_all(self):
+        data = np.array(
+            [
+                "2026-01-12T23:05:14.000000000",
+                "NaT",
+                "2026-01-13T02:05:16.000000000",
+                "2026-01-13T02:05:17.000000000",
+                "2026-02-12T23:05:17.000000000",
+                "2026-01-12T23:05:14.000000000",
+            ],
+            dtype="datetime64[ns]",
+        )
+        flags = argo.duplicate_timestamp_test(data)
+        assert flags[0] == flags[-1] == 3
+        assert flags[1] == 9
+        assert all(flags[2:4] == 1)
+        assert type(flags == np.ma.core.MaskedArray)

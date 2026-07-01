@@ -993,3 +993,165 @@ def density_inversion_test(
     flag_arr[is_missing] = QartodFlags.MISSING
     flag_arr[1:][is_missing[:-1]] = QartodFlags.MISSING
     return flag_arr
+
+
+@add_flag_metadata(
+    standard_name="impossible_date_test_flag",
+    long_name="Impossible Date Test Flag",
+)
+def impossible_date_test(
+    tinp: Sequence[Real],
+    fail_span: tuple[Real, Real] | None = None,
+) -> np.ma.core.MaskedArray:
+    """
+    This test confirms that the date and time for the data are reasonable.
+
+    Given an array of time data, this test breaks the data down into a series of sub-tests.
+    These tests are similar to those outlined in test 1.2 of the GTSPP RTQC Manual (IOC, 2010).
+    * The year is either present or in the past.
+    * (Optional) The time data is within a user-defined tolerance.
+    Data deemed to have failed any or all of these tests are flagged as FAIL. Any missing and masked data is flagged as UNKNOWN.
+
+    Parameters
+    ----------
+    tinp
+        Time input data as a numeric numpy array or list of real numbers.
+    fail_span
+        2-tuple range which to flag outside data as FAIL. [optional]
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input `tinp`.
+    """
+    #   Init
+    original_shape = tinp.shape
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"
+
+    tinp.mask = np.isnat(tinp.data)
+    flag_arr[tinp.mask] = QartodFlags.MISSING  #   Init missing timestamps to the missing flag
+    valid = ~tinp.mask  #   Define where the data point are not missing, such that we can index them and keep those flags.
+
+    #   Check for time travelers
+    now = np.datetime64("now")
+    flag_arr[valid & (tinp.data > now)] = QartodFlags.FAIL
+
+    #   Span test
+    if fail_span is not None:
+        #   Convert if not already
+        low, high = np.datetime64(fail_span[0]), np.datetime64(fail_span[1])
+        flag_arr[valid & ((tinp.data < low) | (tinp.data > high))] = QartodFlags.FAIL
+
+    return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="data_reception_test_flag",
+    long_name="Data Reception Test Flag",
+)
+def data_reception_test(
+    tinp: Sequence[Real],
+    fail_span: Real = 6,
+    from_time: Real | None = None,
+) -> np.ma.core.MaskedArray:
+    """
+    This test checks for data timestamps to be within a certain amount of time of present.
+
+    For most use cases, this test is intended for data centers or streams.
+
+    Timestamps that are further away in time from the `from_time` variable than that designated
+    by `fail_span` are flagged as FAIL. Data points that are newer than `from_time` are not considered
+    for this test and are passed through as GOOD. Any missing and masked data is flagged as UNKNOWN.
+
+    Parameters
+    ----------
+    tinp
+        Time input data as a numeric numpy array or list of real numbers.
+    fail_span
+        A numeric value in hours which, if data is older than, is flagged as FAIL.
+    from_time
+        A timestamp which, if defined, is used to anchor measurements against. Defaults to current date and time. [optional]
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input `tinp`.
+    """
+    #   Init
+    if from_time == None:
+        from_time = np.datetime64("now")
+    else:
+        from_time = np.datetime64(from_time)
+
+    original_shape = tinp.shape
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"
+
+    tinp.mask = np.isnat(tinp.data)
+    flag_arr[tinp.mask] = QartodFlags.MISSING  #   Init missing timestamps to the missing flag
+    valid = ~tinp.mask  #   Define where the data point are not missing, such that we can index them and keep those flags.
+
+    fail_span = np.timedelta64(int(fail_span * 3600), "s")
+    diff_time = from_time - tinp.data
+    flag_arr[valid & (diff_time > fail_span)] = QartodFlags.FAIL
+
+    return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="time_gap_test_flag",
+    long_name="Time Gap Test Flag",
+)
+def time_gap_test(
+    tinp: Sequence[Real],
+    fail_span: Real = 2,
+) -> np.ma.core.MaskedArray:
+    """
+    This test checks for gaps in the data time that exceed a specific threshold.
+
+    The data `tinp` is differentiated and those changes in time are compared against the time threshold
+    `fail_span`. If the difference in time between points exceeds the value of `fail_span`, the following
+    data point is flagged as FAIL. The first point inherits the flag of the second point, unless the
+    second point is UNKNOWN or MISSING. Any missing and masked data is flagged as UNKNOWN.
+
+    Parameters
+    ----------
+    tinp
+        Time input data as a numeric numpy array or list of real numbers.
+    fail_span
+        A numeric value for time duration in hours which, if timestamps jump by more than between points, flags following data point as FAIL.
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input `tinp`.
+    """
+
+    original_shape = tinp.shape
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"
+
+    tinp.mask = np.isnat(tinp.data)
+    flag_arr[tinp.mask] = QartodFlags.MISSING  #   Init missing timestamps to the missing flag
+    valid = ~tinp.mask
+
+    diff_time = np.ma.zeros(tinp.size, dtype="timedelta64[ns]")  #   Guarantee that the array is the same size
+    diff_time[1:] = tinp.data[1:] - tinp.data[:-1]
+
+    #   NaT testing - guarantee that the previous entry isn't NaT
+    prev_valid = np.r_[False, valid[:-1]]
+    pair_valid = valid & prev_valid
+    diff_time.mask = np.isnat(diff_time.data)
+
+    fail_span = np.timedelta64(int(fail_span * 3600), "s")
+    flag_arr[pair_valid & (diff_time > fail_span)] = QartodFlags.FAIL
+    flag_arr[valid & diff_time.mask] = QartodFlags.UNKNOWN  #   Fix points following NaTs
+
+    #   Handle the first point - if second point is NaT but first point is not
+    if tinp.mask[1] & ~tinp.mask[0]:
+        flag_arr[0] = QartodFlags.UNKNOWN
+    else:
+        flag_arr[0] = flag_arr[1]
+
+    return flag_arr.reshape(original_shape)
