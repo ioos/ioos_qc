@@ -153,6 +153,7 @@ def speed_test(
 
     return flag_arr.reshape(original_shape)
 
+
 @add_flag_metadata(
     standard_name="duplicate_timestamp_test_quality_flag",
     long_name="Duplicate Timestamp Test Quality Flag",
@@ -177,7 +178,7 @@ def duplicate_timestamp_test(
     """
     original_shape = tinp.shape
     tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
-    flag_arr = np.ma.ones(tinp.size, dtype="uint8") #   Init to 1
+    flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to 1
 
     tinp.mask = np.isnat(tinp.data)
     flag_arr[tinp.mask] = QartodFlags.MISSING  #   Init missing timestamps to the missing flag

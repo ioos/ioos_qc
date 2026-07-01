@@ -188,14 +188,16 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
 
 class ArgoDuplicateTimeTest(unittest.TestCase):
     def test_all(self):
-        data = np.array([
-            '2026-01-12T23:05:14.000000000',
-            'NaT',
-            '2026-01-13T02:05:16.000000000',
-            '2026-01-13T02:05:17.000000000',
-            '2026-02-12T23:05:17.000000000',
-            '2026-01-12T23:05:14.000000000'],
-            dtype="datetime64[ns]"
+        data = np.array(
+            [
+                "2026-01-12T23:05:14.000000000",
+                "NaT",
+                "2026-01-13T02:05:16.000000000",
+                "2026-01-13T02:05:17.000000000",
+                "2026-02-12T23:05:17.000000000",
+                "2026-01-12T23:05:14.000000000",
+            ],
+            dtype="datetime64[ns]",
         )
         flags = argo.duplicate_timestamp_test(data)
         assert flags[0] == flags[-1] == 3

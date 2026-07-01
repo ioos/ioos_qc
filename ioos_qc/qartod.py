@@ -1138,7 +1138,7 @@ def time_gap_test(
 
     diff_time = np.ma.zeros(tinp.size, dtype="timedelta64[ns]")  #   Guarantee that the array is the same size
     diff_time[1:] = tinp.data[1:] - tinp.data[:-1]
-    
+
     #   NaT testing - guarantee that the previous entry isn't NaT
     prev_valid = np.r_[False, valid[:-1]]
     pair_valid = valid & prev_valid
@@ -1146,7 +1146,7 @@ def time_gap_test(
 
     fail_span = np.timedelta64(int(fail_span * 3600), "s")
     flag_arr[pair_valid & (diff_time > fail_span)] = QartodFlags.FAIL
-    flag_arr[valid & diff_time.mask] = QartodFlags.UNKNOWN #   Fix points following NaTs
+    flag_arr[valid & diff_time.mask] = QartodFlags.UNKNOWN  #   Fix points following NaTs
 
     #   Handle the first point - if second point is NaT but first point is not
     if tinp.mask[1] & ~tinp.mask[0]:
