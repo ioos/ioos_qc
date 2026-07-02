@@ -161,8 +161,7 @@ def speed_test(
 def duplicate_timestamp_test(
     tinp: Sequence[N],
 ) -> np.ma.core.MaskedArray:
-    """
-    Flags duplicate timestamps in the provided array.
+    """Flags duplicate timestamps in the provided array.
 
     If duplicate timestamps are found, they are flagged as SUSPECT.
 
@@ -175,6 +174,7 @@ def duplicate_timestamp_test(
     -------
     flag_arr
         A masked array of flag values equal in size to that of the input `tinp`.
+
     """
     original_shape = tinp.shape
     tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
