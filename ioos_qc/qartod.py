@@ -859,7 +859,7 @@ def attenuated_signal_test(  # noqa: PLR0913
     # check_func: Applied to a flattened numpy array when no `time_period` is supplied
     # These are split for performance reasons
     if check_type == "std":
-        window_func = lambda x: x.std()  # noqa: E731
+        window_func = lambda x: x.std(ddof=0)  # noqa: E731  (match np.ma.std population SD)
         check_func = np.ma.std
     elif check_type == "range":
 

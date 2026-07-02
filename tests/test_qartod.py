@@ -1727,6 +1727,44 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
             expected=expected,
         )
 
+    def test_attenuated_signal_std_windowed_matches_unwindowed(self):
+        # The windowed (test_period) and unwindowed "std" paths must agree once
+        # the windowed path has seen the same data as the unwindowed path (the
+        # whole series). A threshold strictly between the population std
+        # (ddof=0, ~1.1180) and the sample std (ddof=1, ~1.2910) of [1, 2, 3, 4]
+        # used to flag SUSPECT unwindowed but PASS windowed once the rolling
+        # window covered the full series, purely because of a ddof mismatch
+        # between np.ma.std (unwindowed) and pandas .std() (windowed).
+        signal = np.array([1, 2, 3, 4])
+        times = np.array(
+            [np.datetime64("2019-01-01") + np.timedelta64(i, "D") for i in range(signal.size)],
+        )
+
+        # Unwindowed: always computed over the whole series.
+        self._run_test(
+            times=times,
+            signal=signal,
+            suspect_threshold=1.2,
+            fail_threshold=0.5,
+            check_type="std",
+            expected=np.array([3, 3, 3, 3]),
+        )
+
+        # Windowed over a period covering the entire series, requiring all 4
+        # observations before computing (min_obs=4) so the windowed path only
+        # evaluates once it has the same data as the unwindowed path above.
+        # The last point must therefore match the unwindowed result (3).
+        self._run_test(
+            times=times,
+            signal=signal,
+            suspect_threshold=1.2,
+            fail_threshold=0.5,
+            check_type="std",
+            expected=np.array([2, 2, 2, 3]),
+            test_period=100 * 86400,
+            min_obs=4,
+        )
+
     def test_attenuated_signal_range(self):
         # range less than fail threshold
         signal = np.array([10, 20, 30, 40])
