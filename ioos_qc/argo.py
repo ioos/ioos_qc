@@ -162,7 +162,7 @@ def duplicate_timestamp_test(
     tinp: Sequence[N],
 ) -> np.ma.core.MaskedArray:
     """
-    This test flags duplicate timestamps in the provided array.
+    Flags duplicate timestamps in the provided array.
 
     If duplicate timestamps are found, they are flagged as SUSPECT.
 

@@ -1004,7 +1004,7 @@ def impossible_date_test(
     fail_span: tuple[Real, Real] | None = None,
 ) -> np.ma.core.MaskedArray:
     """
-    This test confirms that the date and time for the data are reasonable.
+    Confirms that the date and time for the data are reasonable.
 
     Given an array of time data, this test breaks the data down into a series of sub-tests.
     These tests are similar to those outlined in test 1.2 of the GTSPP RTQC Manual (IOC, 2010).
@@ -1056,7 +1056,7 @@ def data_reception_test(
     from_time: Real | None = None,
 ) -> np.ma.core.MaskedArray:
     """
-    This test checks for data timestamps to be within a certain amount of time of present.
+    Checks for data timestamps to be within a certain amount of time of present.
 
     For most use cases, this test is intended for data centers or streams.
 
@@ -1108,7 +1108,7 @@ def time_gap_test(
     fail_span: Real = 2,
 ) -> np.ma.core.MaskedArray:
     """
-    This test checks for gaps in the data time that exceed a specific threshold.
+    Checks for gaps in the data time that exceed a specific threshold.
 
     The data `tinp` is differentiated and those changes in time are compared against the time threshold
     `fail_span`. If the difference in time between points exceeds the value of `fail_span`, the following
