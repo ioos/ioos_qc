@@ -1003,8 +1003,7 @@ def impossible_date_test(
     tinp: Sequence[Real],
     fail_span: tuple[Real, Real] | None = None,
 ) -> np.ma.core.MaskedArray:
-    """
-    Confirms that the date and time for the data are reasonable.
+    """Confirms that the date and time for the data are reasonable.
 
     Given an array of time data, this test breaks the data down into a series of sub-tests.
     These tests are similar to those outlined in test 1.2 of the GTSPP RTQC Manual (IOC, 2010).
@@ -1023,6 +1022,7 @@ def impossible_date_test(
     -------
     flag_arr
         A masked array of flag values equal in size to that of the input `tinp`.
+
     """
     #   Init
     original_shape = tinp.shape
@@ -1055,8 +1055,7 @@ def data_reception_test(
     fail_span: Real = 6,
     from_time: Real | None = None,
 ) -> np.ma.core.MaskedArray:
-    """
-    Checks for data timestamps to be within a certain amount of time of present.
+    """Checks for data timestamps to be within a certain amount of time of present.
 
     For most use cases, this test is intended for data centers or streams.
 
@@ -1077,12 +1076,10 @@ def data_reception_test(
     -------
     flag_arr
         A masked array of flag values equal in size to that of the input `tinp`.
+
     """
     #   Init
-    if from_time == None:
-        from_time = np.datetime64("now")
-    else:
-        from_time = np.datetime64(from_time)
+    from_time = np.datetime64("now") if from_time is None else np.datetime64(from_time)
 
     original_shape = tinp.shape
     tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
@@ -1107,8 +1104,7 @@ def time_gap_test(
     tinp: Sequence[Real],
     fail_span: Real = 2,
 ) -> np.ma.core.MaskedArray:
-    """
-    Checks for gaps in the data time that exceed a specific threshold.
+    """Checks for gaps in the data time that exceed a specific threshold.
 
     The data `tinp` is differentiated and those changes in time are compared against the time threshold
     `fail_span`. If the difference in time between points exceeds the value of `fail_span`, the following
@@ -1126,8 +1122,8 @@ def time_gap_test(
     -------
     flag_arr
         A masked array of flag values equal in size to that of the input `tinp`.
-    """
 
+    """
     original_shape = tinp.shape
     tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
     flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"

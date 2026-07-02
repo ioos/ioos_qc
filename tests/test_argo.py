@@ -186,7 +186,7 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         npt.assert_array_equal(flags, np.array([1, 1, 1]))
 
 
-class ArgoDuplicateTimeTest(unittest.TestCase):
+class ArgoDuplicateTimeTest:
     def test_all(self):
         data = np.array(
             [
