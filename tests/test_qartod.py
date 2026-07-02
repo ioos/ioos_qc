@@ -2225,6 +2225,7 @@ class QartodTimeGapTest(unittest.TestCase):
         assert flags[0] == flags[1]
 
         #   And test if the second point is NaT - the first and third points should be flagged as UNKNOWN
-        self.data_bad[1] = np.datetime64("NaT")
+        assert self.data_bad.dtype == np.dtype("datetime64[ns]")
+        self.data_bad[1] = np.datetime64("NaT", "ns")
         flags = qartod.time_gap_test(self.data_bad, fail_span=2.5)
         assert all(flags.data == [2, 9, 2, 1, 4])
