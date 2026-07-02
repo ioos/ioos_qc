@@ -2103,7 +2103,7 @@ class QartodUtilsTests(unittest.TestCase):
     ],
 )
 def test_all_nat(testname):
-    dt = np.full(4, np.datetime64("NaT"))
+    dt = np.full(4, np.datetime64("NaT", "ns"))
     flags = testname(tinp=dt)
     assert np.all(flags == 9)
 
