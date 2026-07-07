@@ -1151,3 +1151,68 @@ def time_gap_test(
         flag_arr[0] = flag_arr[1]
 
     return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="syntax_test_quality_flag",
+    long_name="Syntax Test Quality Flag",
+)
+def syntax_test(
+    inp: Sequence[str],
+    nchar: Real,
+    lentype: str = "char",
+    delimiter: str = None,
+) -> np.ma.core.MaskedArray:
+    """Checks for raw data formatting and flags if data are the incorrect length.
+
+    For an array of raw data (either a single line or rows of messages), it loops through the number of lines
+    and assigns a flag GOOD (1) if nchar equals the specified length of length type `lentype` or flag FAIL (4) if
+    not equal. If a delimeter string is specified, it instead uses the number of items present in line.
+
+    Parameters
+    ----------
+    inp
+        Raw data sequence to be counted.
+    nchar
+        Designated tolerance or number of characters expected for testing.
+    lentype
+        A string designating either "char" or "byte" to clarify unit for counting. Defaults to "char".
+    delimiter
+        A string describing the delimiter in each line, if any. Leave blank if not delimited.
+        
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input.
+
+    Example
+    -------
+    flags = syntax_test()
+
+    """
+    #   Start by finding out the dimensions of the input - it could be a single line of HEX chars or rows of lines of HEX chars
+    original_shape = inp.shape
+    inp = np.ma.asarray(inp, dtype=str).flatten()  #   Type
+    flag_arr = np.ma.ones(inp.size, dtype="uint8")
+
+    lentype = lentype.strip().lower()
+    if lentype not in ("char", "byte"):
+        raise ValueError(f"lentype must be 'char' or 'byte', got: {lentype}")
+
+    for i in range(inp.shape[0]):
+        rec_char = len(inp[i])
+        if lentype == "byte":
+            #   HEX is 2 characters - don't run if odd number
+            if rec_char % 2 != 0:
+                flag_arr[i] = QartodFlags.FAIL
+                continue
+            rec_char = rec_char / 2
+        if delimiter:
+            rec_char = len(inp[i].split(delimiter))
+        #   else it's "char" and we keep the same length
+        if nchar == rec_char:
+            flag_arr[i] = QartodFlags.GOOD
+        else:
+            flag_arr[i] = QartodFlags.FAIL
+
+    return flag_arr.reshape(original_shape)
