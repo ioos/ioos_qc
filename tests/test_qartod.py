@@ -2225,3 +2225,40 @@ class QartodTimeGapTest:
         self.data_bad[1] = np.datetime64("NaT", "ns")
         flags = qartod.time_gap_test(self.data_bad, fail_span=2.5)
         assert all(flags.data == [2, 9, 2, 1, 4])
+
+
+HEX_BASE = "0AEE61154B95811CEF0B8FB3140016FE8107A45F44FFFB6DFF595A386319612EE2C05B7371"
+DELIMITER_TEST = "1,2,3,4,5,6,7,8,9,10,11,12"
+
+
+@pytest.mark.parametrize(
+    "data,nchar,lentype,delimiter,expected",
+    [
+        (HEX_BASE, 74, "char", None, 1),  #   Good char len
+        (HEX_BASE, 73, "char", None, 4),  #   Bad char len
+        (HEX_BASE, 37, "byte", None, 1),
+        (HEX_BASE, 36, "byte", None, 4),
+        (HEX_BASE[:-1], 37, "byte", None, 4),  #   Confirm that the line only runs if even
+        (DELIMITER_TEST, 12, "char", ",", 1),
+        (DELIMITER_TEST, 11, "char", ",", 4),
+    ],
+)
+def test_syntax_lengths(data, nchar, lentype, delimiter, expected):
+    """Iterate through the parametrized scenarios."""
+    flags = qartod.syntax_test(
+        np.array([data]),
+        nchar=nchar,
+        lentype=lentype,
+        delimiter=delimiter,
+    )
+    assert flags[0] == expected
+
+
+def test_syntax_names():
+    assert qartod.syntax_test.long_name == "Syntax Test Quality Flag"  #   Tests the parametrized function names
+    assert qartod.syntax_test.standard_name == "syntax_test_quality_flag"
+
+
+def test_syntax_error():
+    with pytest.raises(ValueError, match=r"lentype must be .*"):
+        qartod.syntax_test(np.array(HEX_BASE), nchar=74, lentype="character")
