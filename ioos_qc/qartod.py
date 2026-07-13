@@ -1161,13 +1161,13 @@ def syntax_test(
     inp: Sequence[str],
     nchar: Real,
     lentype: str = "char",
-    delimiter: str = None,
+    delimiter: str | None = None,
 ) -> np.ma.core.MaskedArray:
     """Checks for raw data formatting and flags if data are the incorrect length.
 
     For an array of raw data (either a single line or rows of messages), it loops through the number of lines
     and assigns a flag GOOD (1) if nchar equals the specified length of length type `lentype` or flag FAIL (4) if
-    not equal. If a delimeter string is specified, it instead uses the number of items present in line.
+    not equal. If a delimiter string is specified, it instead uses the number of items present in line.
 
     Parameters
     ----------
@@ -1179,7 +1179,7 @@ def syntax_test(
         A string designating either "char" or "byte" to clarify unit for counting. Defaults to "char".
     delimiter
         A string describing the delimiter in each line, if any. Leave blank if not delimited.
-        
+
     Returns
     -------
     flag_arr
@@ -1197,7 +1197,8 @@ def syntax_test(
 
     lentype = lentype.strip().lower()
     if lentype not in ("char", "byte"):
-        raise ValueError(f"lentype must be 'char' or 'byte', got: {lentype}")
+        msg = f"lentype must be 'char' or 'byte', got: {lentype}"
+        raise ValueError(msg)
 
     for i in range(inp.shape[0]):
         rec_char = len(inp[i])

@@ -2232,7 +2232,7 @@ DELIMITER_TEST = "1,2,3,4,5,6,7,8,9,10,11,12"
 
 
 @pytest.mark.parametrize(
-    "data,nchar,lentype,delimiter,expected",
+    ("data", "nchar", "lentype", "delimiter", "expected"),
     [
         (HEX_BASE, 74, "char", None, 1),  #   Good char len
         (HEX_BASE, 73, "char", None, 4),  #   Bad char len
