@@ -1189,14 +1189,14 @@ def syntax_test(
     -------
     Not specifying a `lentype`, the test defaults to count characters. A flag value of 1 passes.
 
-    >>> data = np.array(["data,string])
+    >>> data = np.array(["data,string"])
     >>> flags = qartod.syntax_test(data, nchar=11)
     >>> flags
     masked_array(data=[1],
                 mask=False,
         fill_value=np.uint64(999999),
                 dtype=uint8)
-    
+
     For working with HEX ASCII bytes, specify `lentype` to be `byte`.
 
     >>> data2 = np.array(["0AEE61"])
@@ -1216,6 +1216,7 @@ def syntax_test(
         fill_value=np.uint64(999999),
                 dtype=uint8)
     """
+
     #   Start by finding out the dimensions of the input - it could be a single line of HEX chars or rows of lines of HEX chars
     original_shape = inp.shape
     inp = np.ma.asarray(inp, dtype=str).flatten()  #   Type
