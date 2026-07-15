@@ -1172,7 +1172,7 @@ def syntax_test(
     Parameters
     ----------
     inp
-        Raw data sequence to be counted.
+        Raw data sequence to be counted. Must have a `shape` attribute.
     nchar
         Designated tolerance or number of characters expected for testing.
     lentype
@@ -1187,8 +1187,34 @@ def syntax_test(
 
     Example
     -------
-    flags = syntax_test()
+    Not specifying a `lentype`, the test defaults to count characters. A flag value of 1 passes.
 
+    >>> data = np.array(["data,string])
+    >>> flags = qartod.syntax_test(data, nchar=11)
+    >>> flags
+    masked_array(data=[1],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+    
+    For working with HEX ASCII bytes, specify `lentype` to be `byte`.
+
+    >>> data2 = np.array(["0AEE61"])
+    >>> flags = qartod.syntax_test(data2, nchar=3, lentype="byte")
+    >>> flags
+    masked_array(data=[1],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+
+    For the same data, specifying a delimiter now has the test count elements.
+
+    >>> flags = qartod.syntax_test(data, nchar=2, delimiter=",")
+    >>> flags
+    masked_array(data=[1],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
     """
     #   Start by finding out the dimensions of the input - it could be a single line of HEX chars or rows of lines of HEX chars
     original_shape = inp.shape
