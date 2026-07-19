@@ -455,7 +455,7 @@ class QcConfigCreator:
             "min": np.nanmin(subset),
             "max": np.nanmax(subset),
             "mean": np.nanmean(subset),
-            "std": np.nanstd(subset),
+            "std": np.nanstd(subset, ddof=0),
         }
 
     def _get_subset(self, var, bbox, time_slice, depth=0, pad_delta=0.5):
