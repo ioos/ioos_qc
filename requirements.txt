@@ -9,3 +9,4 @@ ruamel.yaml
 scipy
 shapely
 xarray>2022.03
+gsw

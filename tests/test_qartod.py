@@ -105,38 +105,13 @@ class QartodLocationTest(unittest.TestCase):
         with pytest.raises(ValueError, match=match):
             qartod.location_test(lon=70, lat="foo")
 
-        # Wrong type bbox
-        with pytest.raises(TypeError, match="Required: list/tuple, Got:"):
-            qartod.location_test(lon=70, lat=70, bbox="hi")
+        # Different sizes of lat and lon
+        with pytest.raises(ValueError, match="are different sizes"):
+            qartod.location_test(lon=[70, 70], lat = [70])
 
-        # Wrong size bbox
-        with pytest.raises(
-            ValueError,
-            match="Incorrect list/tuple length for",
-        ):
-            qartod.location_test(lon=70, lat=70, bbox=(1, 2))
-
-    def test_location_bbox(self):
-        lon = [80, -78, -71, -79, 500]
-        lat = [None, 50, 59, 10, -60]
-        npt.assert_array_equal(
-            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4]),
-        )
-
-        lon = np.asarray([80, -78, -71, -79, 500], dtype=np.float64)
-        lat = np.asarray([None, 50, 59, 10, -60], dtype=np.float64)
-        npt.assert_array_equal(
-            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4]),
-        )
-
-        lon = dask_arr(np.asarray([80, -78, -71, -79, 500], dtype=np.float64))
-        lat = dask_arr(np.asarray([None, 50, 59, 10, -60], dtype=np.float64))
-        npt.assert_array_equal(
-            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4]),
-        )
+        # Unknown method for getting distance
+        with pytest.raises(ValueError, match="Unknown value for range_method"):
+            qartod.location_test(lon=[70, 71], lat=[20, 20], range_max=1, range_method="something")
 
     def test_location_distance_threshold(self):
         """Tests a user defined distance threshold between successive points."""
@@ -150,6 +125,20 @@ class QartodLocationTest(unittest.TestCase):
         npt.assert_array_equal(
             qartod.location_test(lon, lat, range_max=3000.0),
             np.ma.array([1, 1, 3]),
+        )
+
+        # Test the different methods
+        lon = np.array([16.35126686, 16.35320091, 16.3208847,  16.25503349, 16.0045681 ])
+        lat = np.array([55.57051468, 55.57044983, 55.54106522, 55.49047089, 55.26551819])
+
+        npt.assert_array_equal(
+            qartod.location_test(lon, lat, range_max=7000, range_method="haversine"),
+            np.ma.array([1, 1, 1, 1, 3])
+        )
+
+        npt.assert_array_equal(
+            qartod.location_test(lon, lat, range_max=7000, range_method="wgs84"),
+            np.ma.array([1, 1, 1, 3, 3])
         )
 
 

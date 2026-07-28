@@ -27,6 +27,8 @@ from ioos_qc.utils import (
     mapdates,
 )
 
+import gsw
+
 L = logging.getLogger(__name__)
 
 
