@@ -109,50 +109,50 @@ def qartod_compare(
 def location_test(
     lon: Sequence[Real],
     lat: Sequence[Real],
-    bbox: tuple[Real, Real, Real, Real] = (-180, -90, 180, 90),
     range_max: Real | None = None,
+    range_method: str = "haversine",
 ) -> np.ma.core.MaskedArray:
     """Checks that a location is within reasonable bounds.
 
-    Checks that longitude and latitude are within reasonable bounds defaulting
-    to lon = [-180, 180] and lat = [-90, 90].  Optionally, check for a maximum
-    range parameter in great circle distance defaulting to meters which can
-    also use a unit from the quantities library. Missing and masked data is
-    flagged as UNKNOWN.
+    Checks that longitude and latitude are within reasonable bounds of
+    lon = [-180, 180] and lat = [-90, 90]. Points outside of these bounds
+    are flagged as FAIL.
+    
+    Optionally, check for a maximum range parameter in great circle 
+    distance (meters) between points. If this amount is exceeded, data
+    are flagged as SUSPECT. If this range is specified, it defaults to the
+    'haversine' algorithm for quick distance estimates.
+
+    Missing data are flagged as MISSING. All other points are flagged as
+    PASS.
+
+    Note that this test returns flags based on both latitude and longitude
+    but does not flag the individual streams.
 
     Parameters
     ----------
     lon
-        Longitudes as a numeric numpy array or a list of numbers.
+        Longitudes as a numeric numpy array or list of numbers.
     lat
-        Latitudes as a numeric numpy array or a list of numbers.
-    bbox
-        A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
+        Latitudes as a numperic numpy array or list of numbers.
     range_max
-        Maximum allowed range expressed in geodesic curve distance (meters).
-
+        The maximum allowed distance between points as expressed in meters [optional].
+    range_method
+        Algorithm 'haversine' or 'wgs84` for calculating distance between points.
+        Defaults to `haversine` for speed. Choose `wgs84` for higher accuracy [optional].
+    
     Returns
     -------
     flag_arr
         A masked array of flag values equal in size to that of the input.
-
     """
-    bboxnt = namedtuple("BBOX", "minx miny maxx maxy")  # noqa: PYI024
-    if bbox is not None:
-        if not isfixedlength(bbox, 4):
-            msg = f"{bbox=}, expected 4."
-            raise ValueError(msg)
-        bbox = bboxnt(*bbox)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
-        lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
+    lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
+    lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
 
     if lon.shape != lat.shape:
-        msg = f"Lon ({lon.shape}) and lat ({lat.shape}) are different shapes"
         raise ValueError(
-            msg,
+            f"Longitude ({lon.shape}) and latitude ({lat.shape}) are different sizes."
         )
 
     # Save original shape
@@ -160,27 +160,34 @@ def location_test(
     lon = lon.flatten()
     lat = lat.flatten()
 
-    # Start with everything as passing (1)
+    # Initialize flags as all passing, to be overwritten as the tests continue
     flag_arr = np.ma.ones(lon.size, dtype="uint8")
 
-    # If either lon or lat are masked we just set the flag to MISSING
-    mloc = lon.mask & lat.mask
+    # If *either* lat or lon are masked, set the flag to MISSING for the point
+    mloc = lon.mask | lat.mask
     flag_arr[mloc] = QartodFlags.MISSING
 
-    # If there is only one masked value fail the location test
+    # Reassign points where only one of lat/lon are missing to FAIL
     mismatch = lon.mask != lat.mask
     flag_arr[mismatch] = QartodFlags.FAIL
 
+    # Optional check for distance between points
     if range_max is not None and lon.size > 1:
-        # Calculating the great_distance between each point
-        # Flag suspect any distance over range_max
-        d = great_circle_distance(lat, lon)
+        if range_method.lower() == "wgs84":
+            # High accuracy at the cost of speed
+            d = great_circle_distance(lat, lon)
+        elif range_method.lower() == "haversine":
+            # High speed at the cost of accuracy
+            d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
+        else:
+            raise ValueError(
+                f"Unknown value for range_method: '{range_method}'."
+                "Expected 'wgs84' or 'haversine'."
+            )
         flag_arr[d > range_max] = QartodFlags.SUSPECT
 
-    # Ignore warnings when comparing NaN values even though they are masked
-    # https://github.com/numpy/numpy/blob/master/doc/release/1.8.0-notes.rst#runtime-warnings-when-comparing-nan-numbers
-    with np.errstate(invalid="ignore"):
-        flag_arr[(lon < bbox.minx) | (lat < bbox.miny) | (lon > bbox.maxx) | (lat > bbox.maxy)] = QartodFlags.FAIL
+    # All points that are otherwise impossible are flagged as FAIL to overwrite results from optional checks.
+    flag_arr[(np.abs(lat) > 90) | (np.abs(lon) > 180)] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
 
