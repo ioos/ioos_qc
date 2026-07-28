@@ -107,7 +107,7 @@ class QartodLocationTest(unittest.TestCase):
 
         # Different sizes of lat and lon
         with pytest.raises(ValueError, match="are different sizes"):
-            qartod.location_test(lon=[70, 70], lat = [70])
+            qartod.location_test(lon=[70, 70], lat=[70])
 
         # Unknown method for getting distance
         with pytest.raises(ValueError, match="Unknown value for range_method"):
@@ -128,17 +128,17 @@ class QartodLocationTest(unittest.TestCase):
         )
 
         # Test the different methods
-        lon = np.array([16.35126686, 16.35320091, 16.3208847,  16.25503349, 16.0045681 ])
+        lon = np.array([16.35126686, 16.35320091, 16.3208847, 16.25503349, 16.0045681])
         lat = np.array([55.57051468, 55.57044983, 55.54106522, 55.49047089, 55.26551819])
 
         npt.assert_array_equal(
             qartod.location_test(lon, lat, range_max=7000, range_method="haversine"),
-            np.ma.array([1, 1, 1, 1, 3])
+            np.ma.array([1, 1, 1, 1, 3]),
         )
 
         npt.assert_array_equal(
             qartod.location_test(lon, lat, range_max=7000, range_method="wgs84"),
-            np.ma.array([1, 1, 1, 3, 3])
+            np.ma.array([1, 1, 1, 3, 3]),
         )
 
 
