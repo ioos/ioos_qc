@@ -20,3 +20,4 @@ __pycache__
 build/
 docs/source/_build
 ioos_qc/_version.py
+.coverage
