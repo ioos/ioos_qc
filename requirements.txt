@@ -10,3 +10,4 @@ scipy
 shapely
 xarray>2022.03
 gsw
+roaring-landmask

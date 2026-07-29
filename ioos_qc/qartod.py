@@ -20,6 +20,7 @@ except ImportError:
     NumbaTypeError = TypeError
 
 import gsw
+from roaring_landmask import RoaringLandmask
 
 from ioos_qc.utils import (
     add_flag_metadata,
@@ -191,6 +192,73 @@ def location_test(
     flag_arr[(np.abs(lat) > 90) | (np.abs(lon) > 180)] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="location_on_land_quality_flag",
+    long_name="Location on Land Quality Flag"
+)
+def location_on_land_test(
+    lon: Sequence[Real],
+    lat: Sequence[Real],
+) -> np.ma.core.MaskedArray:
+    """Checks that the location is not on land.
+    
+    Checks that the coordinates given in latitude and 
+    longitude are not on land using the University of Hawaii
+    GSHHG database.
+
+    https://www.soest.hawaii.edu/pwessel/gshhg/
+
+    Coordinates identified to be on land are flagged as FAIL.
+    Otherwise, flags are returned as PASS.
+
+    Parameters
+    ----------
+    lon
+        Longitudes as a numeric numpy array or list of numbers.
+    lat
+        Latitudes as a numperic numpy array or list of numbers.
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values.
+
+    Example
+    -------
+    Given 5 points, where indexes 0 and 3 are on land:
+    
+    >>> lat = np.array([61.4, 0, 38.045286,  38.244164,  29.282811])
+    >>> lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
+    >>> flags = location_on_land_test(lon=lon, lat=lat)
+    >>> flags
+    masked_array(data=[4, 1, 1, 4, 1],
+             mask=[False, False, False, False, False],
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+    
+    For full CF datasets in Xarray:
+    >>> flags = location_on_land_test(lon=data.LONGITUDE, lat=data.LATITUDE)
+    >>> flags
+    masked_array(data=[1, 1, 1, ..., 1, 1, 1],
+             mask=[False, False, False, ..., False, False, False],
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    """
+
+    landmask = RoaringLandmask.new()
+
+    lon = np.asarray(lon)
+    lat = np.asarray(lat)
+
+    flag_arr = np.ma.ones(lon.size, dtype="uint8")
+
+    on_land = landmask.contains_many(lon, lat)
+    flag_arr.mask = on_land
+    flag_arr[flag_arr.mask] = QartodFlags.FAIL
+    return flag_arr
 
 
 @add_flag_metadata(
