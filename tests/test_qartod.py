@@ -7,6 +7,7 @@ import numpy.testing as npt
 import pandas as pd
 import xarray as xr
 import pytest
+import shapely
 
 from ioos_qc import qartod
 
@@ -153,12 +154,38 @@ lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
 )
 def test_location_on_land(lat, lon, expected_flags):
     flags = qartod.location_on_land_test(lon=lon, lat=lat)
-    # breakpoint()
     assert flags.data.tolist() == expected_flags
 
 def test_location_on_land_names():
     assert qartod.location_on_land_test.standard_name=="location_on_land_quality_flag"
     assert qartod.location_on_land_test.long_name == "Location on Land Quality Flag"
+
+lat = np.array([25.169938,  24.316908,  24.316908,])
+lon = np.array([-78.680106, -78.151764, -77.167128,])
+shape_coords = ((-78.696116, 24.562267),(-77.844899, 23.543749),(-77.506013, 24.707798))
+@pytest.mark.parametrize(
+    ("shape", "lat", "lon", "flag_area", "expected_flags"),
+    [
+        (shape_coords, lat, lon, "outside", [4, 1, 4]),
+        (shape_coords, lat, lon, "inside", [1, 4, 1]),
+        (shapely.Polygon(shape_coords), lat, lon, "outside", [4, 1, 4]),
+        (shapely.Polygon(shape_coords), lat, lon, "inside", [1, 4, 1]),
+    ]
+)
+def test_location_bound(lat, lon, shape, flag_area, expected_flags):
+    flags = qartod.location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area=flag_area)
+    assert flags.data.tolist() == expected_flags
+
+def test_location_bound_default():
+    flags = qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords)
+    assert flags.data.tolist() == [4, 1, 4]
+
+def test_location_bound_errors():
+    with pytest.raises(ValueError, match=r"Polygons require at least 3 points."):
+        qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords[0:2])
+
+    with pytest.raises(ValueError, match=r"Unknown setting for"):
+        qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords, flag_area="I don't know")
 
 
 class QartodGrossRangeTest(unittest.TestCase):
