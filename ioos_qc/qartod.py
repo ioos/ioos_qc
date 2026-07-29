@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 import numpy as np
 import pandas as pd
+import shapely
 
 try:
     from numba.core.errors import NumbaTypeError
@@ -258,6 +259,91 @@ def location_on_land_test(
     on_land = landmask.contains_many(lon, lat)
     flag_arr.mask = on_land
     flag_arr[flag_arr.mask] = QartodFlags.FAIL
+    return flag_arr
+
+
+@add_flag_metadata(
+    standard_name="location_bounds_test_quality_flag",
+    long_name="Location Bounds Test Quality Flag",
+)
+def location_bounds_test(
+        lon: Sequence[Real],
+        lat: Sequence[Real],
+        shape: shapely.Polygon | Sequence[tuple[Real, Real]],
+        flag_area: str = "outside",
+) -> np.ma.MaskedArray:
+    """
+    
+    Parameters
+    ----------
+    lon
+        Longitudes as a numeric numpy array or list of numbers.
+    lat
+        Latitudes as a numperic numpy array or list of numbers.
+    shape
+        A shapely.Polygon object or sequence of tuples defining the geographic bounds for flagging.
+        These shapes are constructed using (lon, lat) pairs.
+    flag_area
+        Instructions for flagging the "inside" or "outside" of the shape, as a string.
+        Defaults to "outside".
+    
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values.
+    
+    Example
+    -------
+    
+    When flagging outside of a designated area, where the first and last point are outside:
+
+    >>> shape = Polygon(((-78.696116, 24.562267),(-77.844899, 23.543749),(-77.506013, 24.707798)))
+    >>> lat = np.array([25.169938,  24.316908,  24.316908,])
+    >>> lon = np.array([-78.680106, -78.151764, -77.167128,])
+    >>> flags = location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area="outside")
+    >>> flags
+    masked_array(data=[4, 1, 4],
+             mask=False,
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    Flagging inside the designated area can be done by changing `flag_area` to 'inside'.
+    
+    >>> flags = location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area="inside")
+    >>> flags
+    masked_array(data=[1, 4, 1],
+             mask=False,
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+    """
+
+    if type(shape) == tuple:
+        if len(shape) < 3:
+            raise ValueError("Polygons require at least 3 points.")
+        shape = shapely.Polygon(shape)
+    
+    #   Turn the other inputs into numpy arrays
+    lon = np.ma.asarray(lon, dtype=float).flatten()
+    lat = np.ma.asarray(lat, dtype=float).flatten()
+
+    #   Init flags to 1
+    flag_arr = np.ma.ones(lon.size, dtype="uint8")
+
+    #   Define the valid points for using the test on
+    nan_mask = (np.isnan(lon) | np.isnan(lat))
+    flag_arr[nan_mask] = QartodFlags.MISSING
+    valid = ~nan_mask
+
+    #   Demarcate what is inside the shape and what is not
+    inside = shapely.contains_xy(shape, lon, lat)
+    if flag_area == "outside":
+        #   flag the areas outside of the shape
+        bad_pts = ~inside
+    elif flag_area=="inside":
+        bad_pts = inside
+    else:
+        raise ValueError(f"Unknown setting for 'flag_area': {flag_area}")
+    flag_arr[bad_pts & valid] = QartodFlags.FAIL
     return flag_arr
 
 
