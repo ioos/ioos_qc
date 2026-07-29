@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
+import xarray as xr
 import pytest
 
 from ioos_qc import qartod
@@ -140,6 +141,24 @@ class QartodLocationTest(unittest.TestCase):
             qartod.location_test(lon, lat, range_max=7000, range_method="wgs84"),
             np.ma.array([1, 1, 1, 3, 3]),
         )
+
+lat = np.array([61.4, 0, 38.045286,  38.244164,  29.282811])
+lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
+@pytest.mark.parametrize(
+    ("lat", "lon", "expected_flags"),
+    [
+        (lat, lon, [4, 1, 1, 4, 1]),
+        (xr.DataArray(lat, dims="NUM_ELEMENTS"), xr.DataArray(lon, dims="NUM_ELEMENTS"), [4, 1, 1, 4, 1])
+    ],
+)
+def test_location_on_land(lat, lon, expected_flags):
+    flags = qartod.location_on_land_test(lon=lon, lat=lat)
+    # breakpoint()
+    assert flags.data.tolist() == expected_flags
+
+def test_location_on_land_names():
+    assert qartod.location_on_land_test.standard_name=="location_on_land_quality_flag"
+    assert qartod.location_on_land_test.long_name == "Location on Land Quality Flag"
 
 
 class QartodGrossRangeTest(unittest.TestCase):
