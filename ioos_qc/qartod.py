@@ -197,15 +197,15 @@ def location_test(
 
 @add_flag_metadata(
     standard_name="location_on_land_quality_flag",
-    long_name="Location on Land Quality Flag"
+    long_name="Location on Land Quality Flag",
 )
 def location_on_land_test(
     lon: Sequence[Real],
     lat: Sequence[Real],
 ) -> np.ma.core.MaskedArray:
     """Checks that the location is not on land.
-    
-    Checks that the coordinates given in latitude and 
+
+    Checks that the coordinates given in latitude and
     longitude are not on land using the University of Hawaii
     GSHHG database.
 
@@ -229,7 +229,7 @@ def location_on_land_test(
     Example
     -------
     Given 5 points, where indexes 0 and 3 are on land:
-    
+
     >>> lat = np.array([61.4, 0, 38.045286,  38.244164,  29.282811])
     >>> lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
     >>> flags = location_on_land_test(lon=lon, lat=lat)
@@ -238,7 +238,7 @@ def location_on_land_test(
              mask=[False, False, False, False, False],
        fill_value=np.uint64(999999),
             dtype=uint8)
-    
+
     For full CF datasets in Xarray:
     >>> flags = location_on_land_test(lon=data.LONGITUDE, lat=data.LATITUDE)
     >>> flags
@@ -248,7 +248,6 @@ def location_on_land_test(
             dtype=uint8)
 
     """
-
     landmask = RoaringLandmask.new()
 
     lon = np.asarray(lon)
@@ -267,14 +266,12 @@ def location_on_land_test(
     long_name="Location Bounds Test Quality Flag",
 )
 def location_bounds_test(
-        lon: Sequence[Real],
-        lat: Sequence[Real],
-        shape: shapely.Polygon | Sequence[tuple[Real, Real]],
-        flag_area: str = "outside",
+    lon: Sequence[Real],
+    lat: Sequence[Real],
+    shape: shapely.Polygon | Sequence[tuple[Real, Real]],
+    flag_area: str = "outside",
 ) -> np.ma.MaskedArray:
-    """
-    
-    Parameters
+    """Parameters
     ----------
     lon
         Longitudes as a numeric numpy array or list of numbers.
@@ -286,15 +283,14 @@ def location_bounds_test(
     flag_area
         Instructions for flagging the "inside" or "outside" of the shape, as a string.
         Defaults to "outside".
-    
-    Returns
+
+    Returns:
     -------
     flag_arr
         A masked array of flag values.
-    
-    Example
+
+    Example:
     -------
-    
     When flagging outside of a designated area, where the first and last point are outside:
 
     >>> shape = Polygon(((-78.696116, 24.562267),(-77.844899, 23.543749),(-77.506013, 24.707798)))
@@ -308,20 +304,23 @@ def location_bounds_test(
             dtype=uint8)
 
     Flagging inside the designated area can be done by changing `flag_area` to 'inside'.
-    
+
     >>> flags = location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area="inside")
     >>> flags
     masked_array(data=[1, 4, 1],
              mask=False,
        fill_value=np.uint64(999999),
             dtype=uint8)
-    """
 
+    """
+    # Minimum number of vertices to make a surface
+    min_size = 3
     if type(shape) == tuple:
-        if len(shape) < 3:
-            raise ValueError("Polygons require at least 3 points.")
+        if len(shape) < min_size:
+            err = "Polygons require at least 3 points."
+            raise ValueError(err)
         shape = shapely.Polygon(shape)
-    
+
     #   Turn the other inputs into numpy arrays
     lon = np.ma.asarray(lon, dtype=float).flatten()
     lat = np.ma.asarray(lat, dtype=float).flatten()
@@ -330,7 +329,7 @@ def location_bounds_test(
     flag_arr = np.ma.ones(lon.size, dtype="uint8")
 
     #   Define the valid points for using the test on
-    nan_mask = (np.isnan(lon) | np.isnan(lat))
+    nan_mask = np.isnan(lon) | np.isnan(lat)
     flag_arr[nan_mask] = QartodFlags.MISSING
     valid = ~nan_mask
 
@@ -339,10 +338,11 @@ def location_bounds_test(
     if flag_area == "outside":
         #   flag the areas outside of the shape
         bad_pts = ~inside
-    elif flag_area=="inside":
+    elif flag_area == "inside":
         bad_pts = inside
     else:
-        raise ValueError(f"Unknown setting for 'flag_area': {flag_area}")
+        err = f"Unknown setting for 'flag_area': {flag_area}"
+        raise ValueError(err)
     flag_arr[bad_pts & valid] = QartodFlags.FAIL
     return flag_arr
 
