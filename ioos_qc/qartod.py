@@ -1215,8 +1215,8 @@ def syntax_test(
                 mask=False,
         fill_value=np.uint64(999999),
                 dtype=uint8)
-    """
 
+    """
     #   Start by finding out the dimensions of the input - it could be a single line of HEX chars or rows of lines of HEX chars
     original_shape = inp.shape
     inp = np.ma.asarray(inp, dtype=str).flatten()  #   Type
