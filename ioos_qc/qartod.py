@@ -198,7 +198,7 @@ def gross_range_test(
 
     Given a 2-tuple of minimum/maximum values, flag data outside of the given
     range as FAIL data.  Optionally also flag data which falls outside of a user
-    defined range as SUSPECT. Missing and masked data is flagged as UNKNOWN.
+    defined range as SUSPECT. Missing and masked data is flagged as MISSING.
 
     Parameters
     ----------
