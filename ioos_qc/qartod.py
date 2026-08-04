@@ -20,9 +20,6 @@ try:
 except ImportError:
     NumbaTypeError = TypeError
 
-import gsw
-from roaring_landmask import RoaringLandmask
-
 from ioos_qc.utils import (
     add_flag_metadata,
     great_circle_distance,
@@ -182,6 +179,8 @@ def location_test(
             d = great_circle_distance(lat, lon)
         elif range_method.lower() == "haversine":
             # High speed at the cost of accuracy
+            import gsw
+
             d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
         else:
             raise ValueError(
@@ -248,6 +247,8 @@ def location_on_land_test(
             dtype=uint8)
 
     """
+    from roaring_landmask import RoaringLandmask
+
     landmask = RoaringLandmask.new()
 
     lon = np.asarray(lon)
