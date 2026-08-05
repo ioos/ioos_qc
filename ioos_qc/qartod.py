@@ -283,7 +283,8 @@ def location_bounds_test(
     the longitude or latitude, the point is flagged as MISSING. Otherwise, the point is
     flagged as PASS.
 
-    Points that fall exactly on a shape's border are considered "inside" the shape.
+    Points that fall exactly on a shape's border are considered "outside" the shape, unless
+    flag_area is set to "inside".
     
     Parameters
     ----------
