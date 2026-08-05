@@ -181,8 +181,11 @@ def location_test(
             d = great_circle_distance(lat, lon)
         elif range_method.lower() == "haversine":
             # High speed at the cost of accuracy
-            import gsw  # noqa: PLC0415
-
+            try:
+                import gsw  # noqa: PLC0415
+            except ImportError as err:
+                msg = "'gsw' is missing from the current environment. See 'extras' dependencies in pyproject.toml"
+                raise ImportError(msg) from err
             d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
         else:
             msg = f"Unknown value for range_method: '{range_method}'.Expected 'wgs84' or 'haversine'."
@@ -250,7 +253,11 @@ def location_on_land_test(
             dtype=uint8)
 
     """
-    from roaring_landmask import RoaringLandmask  # noqa: PLC0415
+    try:
+        from roaring_landmask import RoaringLandmask  # noqa: PLC0415
+    except ImportError as err:
+        msg = "'roaring_landmask' missing from environment. See 'extras' dependencies in pyproject.toml"
+        raise ImportError(msg) from err
 
     landmask = RoaringLandmask.new()
 
