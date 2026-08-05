@@ -1,13 +1,13 @@
 geographiclib
 geojson
+gsw
 h5netcdf
 jsonschema
 numpy>=1.14
 pandas
 pyparsing
+roaring-landmask
 ruamel.yaml
 scipy
 shapely
 xarray>2022.03
-gsw
-roaring-landmask

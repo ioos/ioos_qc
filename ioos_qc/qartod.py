@@ -185,13 +185,14 @@ def location_test(
 
             d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
         else:
-            raise ValueError(
-                f"Unknown value for range_method: '{range_method}'.Expected 'wgs84' or 'haversine'.",
-            )
+            msg = f"Unknown value for range_method: '{range_method}'.Expected 'wgs84' or 'haversine'."
+            raise ValueError(msg)
         flag_arr[d > range_max] = QartodFlags.SUSPECT
 
     # All points that are otherwise impossible are flagged as FAIL to overwrite results from optional checks.
-    flag_arr[(np.abs(lat) > 90) | (np.abs(lon) > 180)] = QartodFlags.FAIL
+    lat_max = 90
+    lon_max = 180
+    flag_arr[(np.abs(lat) > lat_max) | (np.abs(lon) > lon_max)] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
 
@@ -285,7 +286,7 @@ def location_bounds_test(
 
     Points that fall exactly on a shape's border are considered "outside" the shape, unless
     flag_area is set to "inside".
-    
+
     Parameters
     ----------
     lon
@@ -299,7 +300,7 @@ def location_bounds_test(
         Instructions for flagging the "inside" or "outside" of the shape, as a string.
         Defaults to "outside".
 
-    Returns:
+    Returns
     -------
     flag_arr
         A masked array of flag values.
@@ -329,22 +330,25 @@ def location_bounds_test(
 
     """
     #   Check on the shape's properties
-    if type(shape) == tuple:
+    if isinstance(shape, tuple):
         min_size = 3
         if len(shape) < min_size:
             err = "Polygons require at least 3 points."
             raise ValueError(err)
         shape = shapely.Polygon(shape)
-    elif (type(shape) == list):
-        if (len(shape) == 4):
+    elif isinstance(shape, list):
+        bbox_dimension = 4
+        if len(shape) == bbox_dimension:
             #   Attempt to build the legacy `bbox` into a rectangle
             minx, miny, maxx, maxy = shape
-            shape = shapely.Polygon([
-                (minx, miny),
-                (maxx, miny),
-                (maxx, maxy),
-                (minx, maxy),
-            ])
+            shape = shapely.Polygon(
+                [
+                    (minx, miny),
+                    (maxx, miny),
+                    (maxx, maxy),
+                    (minx, maxy),
+                ],
+            )
 
     #   Turn the other inputs into numpy arrays
     lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))

@@ -205,7 +205,6 @@ class ConfigRunTest(unittest.TestCase):
             output["qartod"]["location_bounds_test"],
             location_bounds_expected,
         )
-        
 
     def test_with_empty_config(self):
         self.config["qartod"]["flat_line_test"] = None
