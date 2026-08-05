@@ -151,14 +151,14 @@ class ConfigRunTest(unittest.TestCase):
 
     def test_different_kwargs_run(self):
         config = deepcopy(self.config)
-        config["qartod"]["location_test"] = {
-            "bbox": [-100, -40, 100, 40],
+        config["qartod"]["location_bounds_test"] = {
+            "shape": ((-100, -40), (100, -40), (100, 40), (-100, 40)),
         }
 
         xs = [-101, -100, -99, 0, 99, 100, 101]
         ys = [-41, -40, -39, 0, 39, 40, 41]
         qc = QcConfig(config)
-        r = qc.run(
+        output = qc.run(
             inp=list(range(7)),
             lat=ys,
             lon=xs,
@@ -166,37 +166,46 @@ class ConfigRunTest(unittest.TestCase):
 
         range_expected = np.array([3, 1, 1, 1, 1, 1, 1])
         npt.assert_array_equal(
-            r["qartod"]["gross_range_test"],
+            output["qartod"]["gross_range_test"],
             range_expected,
         )
-        location_expected = np.array([4, 1, 1, 1, 1, 1, 4])
+        location_expected = np.array([4, 4, 1, 1, 1, 4, 4])
         npt.assert_array_equal(
-            r["qartod"]["location_test"],
+            output["qartod"]["location_bounds_test"],
             location_expected,
         )
 
     def test_with_values_in_config(self):
         config = deepcopy(self.config)
         config["qartod"]["location_test"] = {
-            "bbox": [-100, -40, 100, 40],
             "lat": [-41, -40, -39, 0, 39, 40, 41],
             "lon": [-101, -100, -99, 0, 99, 100, 101],
         }
+        config["qartod"]["location_bounds_test"] = {
+            "lat": [-41, -40, -39, 0, 39, 40, 41],
+            "lon": [-101, -100, -99, 0, 99, 100, 101],
+            "shape": ((-100, -40), (100, -40), (100, 40), (-100, 40)),
+        }
         config["qartod"]["gross_range_test"]["inp"] = list(range(7))
-
         qc = QcConfig(config)
-        r = qc.run()
+        output = qc.run()
 
         range_expected = np.array([3, 1, 1, 1, 1, 1, 1])
         npt.assert_array_equal(
-            r["qartod"]["gross_range_test"],
+            output["qartod"]["gross_range_test"],
             range_expected,
         )
-        location_expected = np.array([4, 1, 1, 1, 1, 1, 4])
+        location_expected = np.array([1, 1, 1, 1, 1, 1, 1])
         npt.assert_array_equal(
-            r["qartod"]["location_test"],
+            output["qartod"]["location_test"],
             location_expected,
         )
+        location_bounds_expected = np.array([4, 4, 1, 1, 1, 4, 4])
+        npt.assert_array_equal(
+            output["qartod"]["location_bounds_test"],
+            location_bounds_expected,
+        )
+        
 
     def test_with_empty_config(self):
         self.config["qartod"]["flat_line_test"] = None

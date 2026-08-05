@@ -196,6 +196,9 @@ def test_location_bound_errors():
     with pytest.raises(ValueError, match=r"Unknown setting for"):
         qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords, flag_area="I don't know")
 
+    with pytest.raises(ValueError, match=r"are different sizes."):
+        qartod.location_bounds_test(lon=lon, lat=np.append(lat, 0), shape=shape_coords)
+
 
 class QartodGrossRangeTest(unittest.TestCase):
     def test_gross_range_check(self):
