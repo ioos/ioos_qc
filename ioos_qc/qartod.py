@@ -130,6 +130,9 @@ def location_test(
     Note that this test returns flags based on both latitude and longitude
     but does not flag the individual streams.
 
+    To check flags within a designated area, see the `location_bounds_test`.
+    To check for locations on land, see the `location_on_land_test`.
+
     Parameters
     ----------
     lon
