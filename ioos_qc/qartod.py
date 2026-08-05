@@ -152,9 +152,8 @@ def location_test(
     lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
 
     if lon.shape != lat.shape:
-        raise ValueError(
-            f"Longitude ({lon.shape}) and latitude ({lat.shape}) are different sizes.",
-        )
+        msg = f"Longitude ({lon.shape}) and latitude ({lat.shape}) are different sizes."
+        raise ValueError(msg)
 
     # Save original shape
     original_shape = lon.shape
@@ -272,7 +271,18 @@ def location_bounds_test(
     shape: shapely.Polygon | Sequence[tuple[Real, Real]],
     flag_area: str = "outside",
 ) -> np.ma.MaskedArray:
-    """Parameters
+    """Checks the locations against a defined shape.
+
+    Given vectors of longitude and latitude of equal size, this test will flag inside
+    (flag_area = "inside") or outside (flag_area = "outside") of a designated area (shape).
+
+    Items found to violate this rule are flagged as FAIL. If NaNs are found in either
+    the longitude or latitude, the point is flagged as MISSING. Otherwise, the point is
+    flagged as PASS.
+
+    Points that fall exactly on a shape's border are considered "inside" the shape.
+    
+    Parameters
     ----------
     lon
         Longitudes as a numeric numpy array or list of numbers.
@@ -314,7 +324,7 @@ def location_bounds_test(
             dtype=uint8)
 
     """
-    # Minimum number of vertices to make a surface
+    #   Check on the shape's properties
     min_size = 3
     if type(shape) == tuple:
         if len(shape) < min_size:
@@ -323,8 +333,13 @@ def location_bounds_test(
         shape = shapely.Polygon(shape)
 
     #   Turn the other inputs into numpy arrays
-    lon = np.ma.asarray(lon, dtype=float).flatten()
-    lat = np.ma.asarray(lat, dtype=float).flatten()
+    lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
+    lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
+    if lon.shape != lat.shape:
+        msg = f"Longitude ({lon.shape}) and latitude ({lat.shape}) are different sizes."
+        raise ValueError(msg)
+    lon = lon.flatten()
+    lat = lat.flatten()
 
     #   Init flags to 1
     flag_arr = np.ma.ones(lon.size, dtype="uint8")
