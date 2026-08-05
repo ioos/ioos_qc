@@ -214,11 +214,34 @@ def gross_range_test(
     flag_arr
         A masked array of flag values equal in size to that of the input.
 
+    Examples
+    --------
+    Note that any input `inp` should be a sequence of numerical values that can be converted to numpy.
+
+    >>> flags = gross_range_test(inp=[1, 2, 3, 4, 8], fail_span=(0, 5), suspect_span=(1, 4))
+    >>> flags
+    masked_array(data=[1, 1, 1, 1, 4],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+
     """
-    if not isfixedlength(fail_span, 2):
-        msg = f"{fail_span=}, expected 2"
-        raise ValueError(msg)
-    sspan = span(*sorted(fail_span))
+
+    #   Helper function to guarantee contents of inputs are good
+    #   Sort the span
+    def check_span(name: str, arr: Sequence[Real]) -> span:
+        if not isfixedlength(arr, 2):
+            msg = f"{name}={arr!r}, expected a length-2 sequence"
+            raise ValueError(msg)
+
+        if not all(isinstance(v, Real) for v in arr):
+            msg = f"{name} must contain only numeric values"
+            raise TypeError(msg)
+
+        return span(*sorted(arr))
+
+    #   Fail or "sensor" span
+    sspan = check_span(name="fail_span", arr=fail_span)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -234,10 +257,8 @@ def gross_range_test(
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     if suspect_span is not None:
-        if not isfixedlength(suspect_span, 2):
-            msg = f"{suspect_span=}, expected 2."
-            raise ValueError(msg)
-        uspan = span(*sorted(suspect_span))
+        #   Suspect or "user" span
+        uspan = check_span(name="suspect_span", arr=suspect_span)
         if uspan.minv < sspan.minv or uspan.maxv > sspan.maxv:
             msg = f"Suspect {uspan} must fall within the Fail {sspan}"
             raise ValueError(msg)
