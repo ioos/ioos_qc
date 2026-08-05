@@ -181,7 +181,7 @@ def location_test(
             d = great_circle_distance(lat, lon)
         elif range_method.lower() == "haversine":
             # High speed at the cost of accuracy
-            import gsw
+            import gsw  # noqa: PLC0415
 
             d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
         else:
@@ -250,7 +250,7 @@ def location_on_land_test(
             dtype=uint8)
 
     """
-    from roaring_landmask import RoaringLandmask
+    from roaring_landmask import RoaringLandmask  # noqa: PLC0415
 
     landmask = RoaringLandmask.new()
 
