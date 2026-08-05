@@ -859,7 +859,7 @@ def attenuated_signal_test(  # noqa: PLR0913
     # check_func: Applied to a flattened numpy array when no `time_period` is supplied
     # These are split for performance reasons
     if check_type == "std":
-        window_func = lambda x: x.std()  # noqa: E731
+        window_func = lambda x: x.std(ddof=0)  # noqa: E731
         check_func = np.ma.std
     elif check_type == "range":
 
@@ -1149,5 +1149,98 @@ def time_gap_test(
         flag_arr[0] = QartodFlags.UNKNOWN
     else:
         flag_arr[0] = flag_arr[1]
+
+    return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="syntax_test_quality_flag",
+    long_name="Syntax Test Quality Flag",
+)
+def syntax_test(
+    inp: Sequence[str],
+    nchar: Real,
+    lentype: str = "char",
+    delimiter: str | None = None,
+) -> np.ma.core.MaskedArray:
+    """Checks for raw data formatting and flags if data are the incorrect length.
+
+    For an array of raw data (either a single line or rows of messages), it loops through the number of lines
+    and assigns a flag GOOD (1) if nchar equals the specified length of length type `lentype` or flag FAIL (4) if
+    not equal. If a delimiter string is specified, it instead uses the number of items present in line.
+
+    Parameters
+    ----------
+    inp
+        Raw data sequence to be counted. Must have a `shape` attribute.
+    nchar
+        Designated tolerance or number of characters expected for testing.
+    lentype
+        A string designating either "char" or "byte" to clarify unit for counting. Defaults to "char".
+    delimiter
+        A string describing the delimiter in each line, if any. Leave blank if not delimited.
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input.
+
+    Example
+    -------
+    Not specifying a `lentype`, the test defaults to count characters. A flag value of 1 passes.
+
+    >>> data = np.array(["data,string"])
+    >>> flags = qartod.syntax_test(data, nchar=11)
+    >>> flags
+    masked_array(data=[1],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+
+    For working with HEX ASCII bytes, specify `lentype` to be `byte`.
+
+    >>> data2 = np.array(["0AEE61"])
+    >>> flags = qartod.syntax_test(data2, nchar=3, lentype="byte")
+    >>> flags
+    masked_array(data=[1],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+
+    For the same data, specifying a delimiter now has the test count elements.
+
+    >>> flags = qartod.syntax_test(data, nchar=2, delimiter=",")
+    >>> flags
+    masked_array(data=[1],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+
+    """
+    #   Start by finding out the dimensions of the input - it could be a single line of HEX chars or rows of lines of HEX chars
+    original_shape = inp.shape
+    inp = np.ma.asarray(inp, dtype=str).flatten()  #   Type
+    flag_arr = np.ma.ones(inp.size, dtype="uint8")
+
+    lentype = lentype.strip().lower()
+    if lentype not in ("char", "byte"):
+        msg = f"lentype must be 'char' or 'byte', got: {lentype}"
+        raise ValueError(msg)
+
+    for i in range(inp.shape[0]):
+        rec_char = len(inp[i])
+        if lentype == "byte":
+            #   HEX is 2 characters - don't run if odd number
+            if rec_char % 2 != 0:
+                flag_arr[i] = QartodFlags.FAIL
+                continue
+            rec_char = rec_char / 2
+        if delimiter:
+            rec_char = len(inp[i].split(delimiter))
+        #   else it's "char" and we keep the same length
+        if nchar == rec_char:
+            flag_arr[i] = QartodFlags.GOOD
+        else:
+            flag_arr[i] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
