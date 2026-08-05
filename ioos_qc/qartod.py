@@ -329,12 +329,22 @@ def location_bounds_test(
 
     """
     #   Check on the shape's properties
-    min_size = 3
     if type(shape) == tuple:
+        min_size = 3
         if len(shape) < min_size:
             err = "Polygons require at least 3 points."
             raise ValueError(err)
         shape = shapely.Polygon(shape)
+    elif (type(shape) == list):
+        if (len(shape) == 4):
+            #   Attempt to build the legacy `bbox` into a rectangle
+            minx, miny, maxx, maxy = shape
+            shape = shapely.Polygon([
+                (minx, miny),
+                (maxx, miny),
+                (maxx, maxy),
+                (minx, maxy),
+            ])
 
     #   Turn the other inputs into numpy arrays
     lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))

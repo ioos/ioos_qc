@@ -175,6 +175,7 @@ shape_coords = ((-78.696116, 24.562267), (-77.844899, 23.543749), (-77.506013, 2
     [
         (shape_coords, lat, lon, "outside", [4, 1, 4]),
         (shape_coords, lat, lon, "inside", [1, 4, 1]),
+        ([-100, -40, 100, 40], lat, lon, "outside", [1, 1, 1]),
         (shapely.Polygon(shape_coords), lat, lon, "outside", [4, 1, 4]),
         (shapely.Polygon(shape_coords), lat, lon, "inside", [1, 4, 1]),
     ],
