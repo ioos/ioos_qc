@@ -1,5 +1,7 @@
 bokeh
 dask
 erddapy
+gsw
 nco
 pytest
+roaring-landmask
