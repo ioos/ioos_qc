@@ -40,7 +40,7 @@ class BaseStream:
 
 
 class PandasStream:
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         df,
         time=None,
@@ -177,7 +177,7 @@ class PandasStream:
 
 
 class NumpyStream:
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         inp=None,
         time=None,

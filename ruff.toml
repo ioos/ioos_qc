@@ -4,6 +4,7 @@ lint.select = ["ALL"]
 
 lint.ignore = [
   "ANN",  # type annotation
+  "CPY001",  # Missing copyright notice at top of file
   "D100",  # Missing docstring in public module
   "D101",  # Missing docstring in public class
   "D102",  # Missing docstring in public method
