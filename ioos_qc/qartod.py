@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 import numpy as np
 import pandas as pd
+import shapely
 
 try:
     from numba.core.errors import NumbaTypeError
@@ -109,27 +110,40 @@ def qartod_compare(
 def location_test(
     lon: Sequence[Real],
     lat: Sequence[Real],
-    bbox: tuple[Real, Real, Real, Real] = (-180, -90, 180, 90),
     range_max: Real | None = None,
+    range_method: str = "haversine",
 ) -> np.ma.core.MaskedArray:
     """Checks that a location is within reasonable bounds.
 
-    Checks that longitude and latitude are within reasonable bounds defaulting
-    to lon = [-180, 180] and lat = [-90, 90].  Optionally, check for a maximum
-    range parameter in great circle distance defaulting to meters which can
-    also use a unit from the quantities library. Missing and masked data is
-    flagged as UNKNOWN.
+    Checks that longitude and latitude are within reasonable bounds of
+    lon = [-180, 180] and lat = [-90, 90]. Points outside of these bounds
+    are flagged as FAIL.
+
+    Optionally, check for a maximum range parameter in great circle
+    distance (meters) between points. If this amount is exceeded, data
+    are flagged as SUSPECT. If this range is specified, it defaults to the
+    'haversine' algorithm for quick distance estimates.
+
+    Missing data are flagged as MISSING. All other points are flagged as
+    PASS.
+
+    Note that this test returns flags based on both latitude and longitude
+    but does not flag the individual streams.
+
+    To check flags within a designated area, see the `location_bounds_test`.
+    To check for locations on land, see the `location_on_land_test`.
 
     Parameters
     ----------
     lon
-        Longitudes as a numeric numpy array or a list of numbers.
+        Longitudes as a numeric numpy array or list of numbers.
     lat
-        Latitudes as a numeric numpy array or a list of numbers.
-    bbox
-        A length 4 tuple expressed in (minx, miny, maxx, maxy) [optional].
+        Latitudes as a numperic numpy array or list of numbers.
     range_max
-        Maximum allowed range expressed in geodesic curve distance (meters).
+        The maximum allowed distance between points as expressed in meters [optional].
+    range_method
+        Algorithm 'haversine' or 'wgs84` for calculating distance between points.
+        Defaults to `haversine` for speed. Choose `wgs84` for higher accuracy [optional].
 
     Returns
     -------
@@ -137,52 +151,241 @@ def location_test(
         A masked array of flag values equal in size to that of the input.
 
     """
-    bboxnt = namedtuple("BBOX", "minx miny maxx maxy")  # noqa: PYI024
-    if bbox is not None:
-        if not isfixedlength(bbox, 4):
-            msg = f"{bbox=}, expected 4."
-            raise ValueError(msg)
-        bbox = bboxnt(*bbox)
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
-        lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
+    lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
+    lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
 
     if lon.shape != lat.shape:
-        msg = f"Lon ({lon.shape}) and lat ({lat.shape}) are different shapes"
-        raise ValueError(
-            msg,
-        )
+        msg = f"Longitude ({lon.shape}) and latitude ({lat.shape}) are different sizes."
+        raise ValueError(msg)
 
     # Save original shape
     original_shape = lon.shape
     lon = lon.flatten()
     lat = lat.flatten()
 
-    # Start with everything as passing (1)
+    # Initialize flags as all passing, to be overwritten as the tests continue
     flag_arr = np.ma.ones(lon.size, dtype="uint8")
 
-    # If either lon or lat are masked we just set the flag to MISSING
-    mloc = lon.mask & lat.mask
+    # If *either* lat or lon are masked, set the flag to MISSING for the point
+    mloc = lon.mask | lat.mask
     flag_arr[mloc] = QartodFlags.MISSING
 
-    # If there is only one masked value fail the location test
+    # Reassign points where only one of lat/lon are missing to FAIL
     mismatch = lon.mask != lat.mask
     flag_arr[mismatch] = QartodFlags.FAIL
 
+    # Optional check for distance between points
     if range_max is not None and lon.size > 1:
-        # Calculating the great_distance between each point
-        # Flag suspect any distance over range_max
-        d = great_circle_distance(lat, lon)
+        if range_method.lower() == "wgs84":
+            # High accuracy at the cost of speed
+            d = great_circle_distance(lat, lon)
+        elif range_method.lower() == "haversine":
+            # High speed at the cost of accuracy
+            try:
+                import gsw  # noqa: PLC0415
+            except ImportError as err:
+                msg = "'gsw' is missing from the current environment. See 'extras' dependencies in pyproject.toml"
+                raise ImportError(msg) from err
+            d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
+        else:
+            msg = f"Unknown value for range_method: '{range_method}'.Expected 'wgs84' or 'haversine'."
+            raise ValueError(msg)
         flag_arr[d > range_max] = QartodFlags.SUSPECT
 
-    # Ignore warnings when comparing NaN values even though they are masked
-    # https://github.com/numpy/numpy/blob/master/doc/release/1.8.0-notes.rst#runtime-warnings-when-comparing-nan-numbers
-    with np.errstate(invalid="ignore"):
-        flag_arr[(lon < bbox.minx) | (lat < bbox.miny) | (lon > bbox.maxx) | (lat > bbox.maxy)] = QartodFlags.FAIL
+    # All points that are otherwise impossible are flagged as FAIL to overwrite results from optional checks.
+    lat_max = 90
+    lon_max = 180
+    flag_arr[(np.abs(lat) > lat_max) | (np.abs(lon) > lon_max)] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="location_on_land_quality_flag",
+    long_name="Location on Land Quality Flag",
+)
+def location_on_land_test(
+    lon: Sequence[Real],
+    lat: Sequence[Real],
+) -> np.ma.core.MaskedArray:
+    """Checks that the location is not on land.
+
+    Checks that the coordinates given in latitude and
+    longitude are not on land using the University of Hawaii
+    GSHHG database.
+
+    https://www.soest.hawaii.edu/pwessel/gshhg/
+
+    Coordinates identified to be on land are flagged as FAIL.
+    Otherwise, flags are returned as PASS.
+
+    Parameters
+    ----------
+    lon
+        Longitudes as a numeric numpy array or list of numbers.
+    lat
+        Latitudes as a numperic numpy array or list of numbers.
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values.
+
+    Example
+    -------
+    Given 5 points, where indexes 0 and 3 are on land:
+
+    >>> lat = np.array([61.4, 0, 38.045286,  38.244164,  29.282811])
+    >>> lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
+    >>> flags = location_on_land_test(lon=lon, lat=lat)
+    >>> flags
+    masked_array(data=[4, 1, 1, 4, 1],
+             mask=[False, False, False, False, False],
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    For full CF datasets in Xarray:
+    >>> flags = location_on_land_test(lon=data.LONGITUDE, lat=data.LATITUDE)
+    >>> flags
+    masked_array(data=[1, 1, 1, ..., 1, 1, 1],
+             mask=[False, False, False, ..., False, False, False],
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    """
+    try:
+        from roaring_landmask import RoaringLandmask  # noqa: PLC0415
+    except ImportError as err:
+        msg = "'roaring_landmask' missing from environment. See 'extras' dependencies in pyproject.toml"
+        raise ImportError(msg) from err
+
+    landmask = RoaringLandmask.new()
+
+    lon = np.asarray(lon)
+    lat = np.asarray(lat)
+
+    flag_arr = np.ma.ones(lon.size, dtype="uint8")
+
+    on_land = landmask.contains_many(lon, lat)
+    flag_arr.mask = on_land
+    flag_arr[flag_arr.mask] = QartodFlags.FAIL
+    return flag_arr
+
+
+@add_flag_metadata(
+    standard_name="location_bounds_test_quality_flag",
+    long_name="Location Bounds Test Quality Flag",
+)
+def location_bounds_test(
+    lon: Sequence[Real],
+    lat: Sequence[Real],
+    shape: shapely.Polygon | Sequence[tuple[Real, Real]],
+    flag_area: str = "outside",
+) -> np.ma.MaskedArray:
+    """Checks the locations against a defined shape.
+
+    Given vectors of longitude and latitude of equal size, this test will flag inside
+    (flag_area = "inside") or outside (flag_area = "outside") of a designated area (shape).
+
+    Items found to violate this rule are flagged as FAIL. If NaNs are found in either
+    the longitude or latitude, the point is flagged as MISSING. Otherwise, the point is
+    flagged as PASS.
+
+    Points that fall exactly on a shape's border are considered "outside" the shape, unless
+    flag_area is set to "inside".
+
+    Parameters
+    ----------
+    lon
+        Longitudes as a numeric numpy array or list of numbers.
+    lat
+        Latitudes as a numperic numpy array or list of numbers.
+    shape
+        A shapely.Polygon object or sequence of tuples defining the geographic bounds for flagging.
+        These shapes are constructed using (lon, lat) pairs.
+    flag_area
+        Instructions for flagging the "inside" or "outside" of the shape, as a string.
+        Defaults to "outside".
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values.
+
+    Example:
+    -------
+    When flagging outside of a designated area, where the first and last point are outside:
+
+    >>> shape = Polygon(((-78.696116, 24.562267),(-77.844899, 23.543749),(-77.506013, 24.707798)))
+    >>> lat = np.array([25.169938,  24.316908,  24.316908,])
+    >>> lon = np.array([-78.680106, -78.151764, -77.167128,])
+    >>> flags = location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area="outside")
+    >>> flags
+    masked_array(data=[4, 1, 4],
+             mask=False,
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    Flagging inside the designated area can be done by changing `flag_area` to 'inside'.
+
+    >>> flags = location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area="inside")
+    >>> flags
+    masked_array(data=[1, 4, 1],
+             mask=False,
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    """
+    #   Check on the shape's properties
+    if isinstance(shape, tuple):
+        min_size = 3
+        if len(shape) < min_size:
+            err = "Polygons require at least 3 points."
+            raise ValueError(err)
+        shape = shapely.Polygon(shape)
+    elif isinstance(shape, list):
+        bbox_dimension = 4
+        if len(shape) == bbox_dimension:
+            #   Attempt to build the legacy `bbox` into a rectangle
+            minx, miny, maxx, maxy = shape
+            shape = shapely.Polygon(
+                [
+                    (minx, miny),
+                    (maxx, miny),
+                    (maxx, maxy),
+                    (minx, maxy),
+                ],
+            )
+
+    #   Turn the other inputs into numpy arrays
+    lon = np.ma.masked_invalid(np.array(lon).astype(np.float64))
+    lat = np.ma.masked_invalid(np.array(lat).astype(np.float64))
+    if lon.shape != lat.shape:
+        msg = f"Longitude ({lon.shape}) and latitude ({lat.shape}) are different sizes."
+        raise ValueError(msg)
+    lon = lon.flatten()
+    lat = lat.flatten()
+
+    #   Init flags to 1
+    flag_arr = np.ma.ones(lon.size, dtype="uint8")
+
+    #   Define the valid points for using the test on
+    nan_mask = np.isnan(lon) | np.isnan(lat)
+    flag_arr[nan_mask] = QartodFlags.MISSING
+    valid = ~nan_mask
+
+    #   Demarcate what is inside the shape and what is not
+    inside = shapely.contains_xy(shape, lon, lat)
+    if flag_area == "outside":
+        #   flag the areas outside of the shape
+        bad_pts = ~inside
+    elif flag_area == "inside":
+        bad_pts = inside
+    else:
+        err = f"Unknown setting for 'flag_area': {flag_area}"
+        raise ValueError(err)
+    flag_arr[bad_pts & valid] = QartodFlags.FAIL
+    return flag_arr
 
 
 @add_flag_metadata(

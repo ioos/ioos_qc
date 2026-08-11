@@ -6,6 +6,8 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pytest
+import shapely
+import xarray as xr
 
 from ioos_qc import qartod
 
@@ -105,38 +107,13 @@ class QartodLocationTest(unittest.TestCase):
         with pytest.raises(ValueError, match=match):
             qartod.location_test(lon=70, lat="foo")
 
-        # Wrong type bbox
-        with pytest.raises(TypeError, match="Required: list/tuple, Got:"):
-            qartod.location_test(lon=70, lat=70, bbox="hi")
+        # Different sizes of lat and lon
+        with pytest.raises(ValueError, match="are different sizes"):
+            qartod.location_test(lon=[70, 70], lat=[70])
 
-        # Wrong size bbox
-        with pytest.raises(
-            ValueError,
-            match="Incorrect list/tuple length for",
-        ):
-            qartod.location_test(lon=70, lat=70, bbox=(1, 2))
-
-    def test_location_bbox(self):
-        lon = [80, -78, -71, -79, 500]
-        lat = [None, 50, 59, 10, -60]
-        npt.assert_array_equal(
-            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4]),
-        )
-
-        lon = np.asarray([80, -78, -71, -79, 500], dtype=np.float64)
-        lat = np.asarray([None, 50, 59, 10, -60], dtype=np.float64)
-        npt.assert_array_equal(
-            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4]),
-        )
-
-        lon = dask_arr(np.asarray([80, -78, -71, -79, 500], dtype=np.float64))
-        lat = dask_arr(np.asarray([None, 50, 59, 10, -60], dtype=np.float64))
-        npt.assert_array_equal(
-            qartod.location_test(lon=lon, lat=lat, bbox=[-80, 40, -70, 60]),
-            np.ma.array([4, 1, 1, 4, 4]),
-        )
+        # Unknown method for getting distance
+        with pytest.raises(ValueError, match="Unknown value for range_method"):
+            qartod.location_test(lon=[70, 71], lat=[20, 20], range_max=1, range_method="something")
 
     def test_location_distance_threshold(self):
         """Tests a user defined distance threshold between successive points."""
@@ -151,6 +128,77 @@ class QartodLocationTest(unittest.TestCase):
             qartod.location_test(lon, lat, range_max=3000.0),
             np.ma.array([1, 1, 3]),
         )
+
+        # Test the different methods
+        lon = np.array([16.35126686, 16.35320091, 16.3208847, 16.25503349, 16.0045681])
+        lat = np.array([55.57051468, 55.57044983, 55.54106522, 55.49047089, 55.26551819])
+
+        npt.assert_array_equal(
+            qartod.location_test(lon, lat, range_max=7000, range_method="haversine"),
+            np.ma.array([1, 1, 1, 1, 3]),
+        )
+
+        npt.assert_array_equal(
+            qartod.location_test(lon, lat, range_max=7000, range_method="wgs84"),
+            np.ma.array([1, 1, 1, 3, 3]),
+        )
+
+
+lat = np.array([61.4, 0, 38.045286, 38.244164, 29.282811])
+lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
+
+
+@pytest.mark.parametrize(
+    ("lat", "lon", "expected_flags"),
+    [
+        (lat, lon, [4, 1, 1, 4, 1]),
+        (xr.DataArray(lat, dims="NUM_ELEMENTS"), xr.DataArray(lon, dims="NUM_ELEMENTS"), [4, 1, 1, 4, 1]),
+    ],
+)
+def test_location_on_land(lat, lon, expected_flags):
+    flags = qartod.location_on_land_test(lon=lon, lat=lat)
+    assert flags.data.tolist() == expected_flags
+
+
+def test_location_on_land_names():
+    assert qartod.location_on_land_test.standard_name == "location_on_land_quality_flag"
+    assert qartod.location_on_land_test.long_name == "Location on Land Quality Flag"
+
+
+lat = np.array([25.169938, 24.316908, 24.316908])
+lon = np.array([-78.680106, -78.151764, -77.167128])
+shape_coords = ((-78.696116, 24.562267), (-77.844899, 23.543749), (-77.506013, 24.707798))
+
+
+@pytest.mark.parametrize(
+    ("shape", "lat", "lon", "flag_area", "expected_flags"),
+    [
+        (shape_coords, lat, lon, "outside", [4, 1, 4]),
+        (shape_coords, lat, lon, "inside", [1, 4, 1]),
+        ([-100, -40, 100, 40], lat, lon, "outside", [1, 1, 1]),
+        (shapely.Polygon(shape_coords), lat, lon, "outside", [4, 1, 4]),
+        (shapely.Polygon(shape_coords), lat, lon, "inside", [1, 4, 1]),
+    ],
+)
+def test_location_bound(lat, lon, shape, flag_area, expected_flags):
+    flags = qartod.location_bounds_test(lon=lon, lat=lat, shape=shape, flag_area=flag_area)
+    assert flags.data.tolist() == expected_flags
+
+
+def test_location_bound_default():
+    flags = qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords)
+    assert flags.data.tolist() == [4, 1, 4]
+
+
+def test_location_bound_errors():
+    with pytest.raises(ValueError, match=r"Polygons require at least 3 points."):
+        qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords[0:2])
+
+    with pytest.raises(ValueError, match=r"Unknown setting for"):
+        qartod.location_bounds_test(lon=lon, lat=lat, shape=shape_coords, flag_area="I don't know")
+
+    with pytest.raises(ValueError, match=r"are different sizes."):
+        qartod.location_bounds_test(lon=lon, lat=np.append(lat, 0), shape=shape_coords)
 
 
 class QartodGrossRangeTest(unittest.TestCase):
