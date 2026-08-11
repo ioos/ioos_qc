@@ -807,7 +807,7 @@ def flat_line_test(
     standard_name="attenuated_signal_test_quality_flag",
     long_name="Attenuated Signal Test Quality Flag",
 )
-def attenuated_signal_test(  # noqa: PLR0913
+def attenuated_signal_test(  # noqa: PLR0913, PLR0917
     inp: Sequence[Real],
     tinp: Sequence[Real],
     suspect_threshold: Real,

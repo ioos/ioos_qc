@@ -8,12 +8,12 @@ L = logging.getLogger(__name__)
 flag_pass, flag_notrun, flag_suspect, flag_fail = 1, 2, 3, 4
 
 
-def bokeh_plot(data, var_name, results, title, module, test_name):  # noqa: PLR0913
+def bokeh_plot(data, var_name, results, title, module, test_name):  # noqa: PLR0913, PLR0917
     plot = bokeh_plot_var(data, var_name, results, title, module, test_name)
     return gridplot([[plot]], sizing_mode="fixed")
 
 
-def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0913
+def bokeh_plot_var(time, data, results, title, module, test_name):  # noqa: PLR0913, PLR0917
     """Method to plot QC results using Bokeh."""
     if module not in results or test_name not in results[module]:
         L.warning(f"No results for test {module}.{test_name} found")

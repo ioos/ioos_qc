@@ -1624,7 +1624,7 @@ class QartodFlatLineTest(unittest.TestCase):
 
 
 class QartodAttenuatedSignalTest(unittest.TestCase):
-    def _run_test(
+    def _run_test(  # noqa: PLR0917
         self,
         times,
         signal,
