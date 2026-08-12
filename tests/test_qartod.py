@@ -301,21 +301,28 @@ PERCENTILE_ARR = np.array(
 @pytest.mark.parametrize(
     ("data", "lo", "hi", "pad", "expected"),
     [
-        (PERCENTILE_ARR, 5, 95, 0.0, [1, 3, 1, 1, 1, 3, 1, 1, 1, 1]),  # Test the default padding
-        (PERCENTILE_ARR, 5, 95, 0.1, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
-        (PERCENTILE_ARR, 20, 95, 0.1, [3, 3, 1, 1, 1, 1, 1, 1, 1, 1]),
-        (PERCENTILE_ARR, 20, 95, 0.5, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
-        (PERCENTILE_ARR, 5, 80, 0.0, [1, 3, 1, 1, 3, 3, 1, 1, 1, 1]),
-        (PERCENTILE_ARR, 5, 80, 0.1, [1, 1, 1, 1, 3, 3, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, None, None, None, [1, 3, 1, 1, 1, 3, 1, 1, 1, 1]),  # Test the default padding
+        (PERCENTILE_ARR, None, None, 0.1, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, 20, None, 0.1, [3, 3, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, 20, None, 0.5, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, None, 80, None, [1, 3, 1, 1, 3, 3, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, None, 80, 0.1, [1, 1, 1, 1, 3, 3, 1, 1, 1, 1]),
     ],
 )
 def test_percentile_range_good(data, hi, lo, pad, expected):
-    flags = qartod.percentile_range_test(
-        data,
-        low_percentile=lo,
-        hi_percentile=hi,
-        pad=pad,
-    )
+
+    #   Add support for None in the parametrized values such that it's easier to see what values
+    #   eahc combo tests
+    kwargs = {}
+    if lo is not None:
+        kwargs["low_percentile"] = lo
+    if hi is not None:
+        kwargs["hi_percentile"] = hi
+    if pad is not None:
+        kwargs["pad"] = pad
+
+    flags = qartod.percentile_range_test(data, **kwargs)
+
     npt.assert_array_equal(
         flags.data,
         expected,
