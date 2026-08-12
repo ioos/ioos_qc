@@ -265,15 +265,16 @@ def gross_range_test(
 
     return flag_arr.reshape(original_shape)
 
+
 @add_flag_metadata(
     standard_name="percentile_range_test_quality_flag",
     long_name="Percentile Range Test Quality Flag",
 )
 def percentile_range_test(
-        inp: Sequence[Real],
-        low_percentile: Real=5,
-        hi_percentile: Real=95,
-        pad: Real=0.0
+    inp: Sequence[Real],
+    low_percentile: Real = 5,
+    hi_percentile: Real = 95,
+    pad: Real = 0.0,
 ) -> np.ma.core.MaskedArray:
     """Checks for statistically abnormal values in the array.
 
@@ -282,13 +283,13 @@ def percentile_range_test(
     for the data if not user-defined. In addition, the user may specify a padding
     value for additional coverage.
 
-    If the point's (value < low_percentile_value - pad) or 
+    If the point's (value < low_percentile_value - pad) or
     (high_percentile value + pad < value) then the point is flagged as SUSPECT.
     Points within the data which are NaN are flagged as MISSING. Otherwise, points
     are flagged as PASS.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     inp
         Input array as a numeric numpy array or list of real numbers.
     low_percentile
@@ -298,12 +299,12 @@ def percentile_range_test(
     pad
         A user-defined, numeric padding value for adding atop the hi/low percentile
         values. Defaults to 0 (optional).
-    
+
     Returns
     -------
     flag_arr
         A masked array of flag values equal in size to that of the input `inp`.
-    
+
     Examples
     --------
     Say we have some values that we are expecting to be clusered around a specific
@@ -317,9 +318,10 @@ def percentile_range_test(
              mask=False,
        fill_value=np.uint64(999999),
             dtype=uint8)
-    
+
     This has flagged the statistically lowest and highest value as SUSPECT with no
     padding specified.
+
     """
     original_shape = inp.shape
     inp = np.ma.asarray(inp, dtype=float).flatten()
