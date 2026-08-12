@@ -312,7 +312,7 @@ PERCENTILE_ARR = np.array(
 def test_percentile_range_good(data, hi, lo, pad, expected):
 
     #   Add support for None in the parametrized values such that it's easier to see what values
-    #   eahc combo tests
+    #   each combo tests
     kwargs = {}
     if lo is not None:
         kwargs["low_percentile"] = lo
