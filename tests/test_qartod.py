@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from ioos_qc import qartod
+from numbers import Real
 
 L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
@@ -278,6 +279,48 @@ class QartodGrossRangeTest(unittest.TestCase):
                 ),
                 result,
             )
+
+
+#   For use in percentile_range_test
+#   Min value is 4.0 (ix=1), max is 6.2 (5)
+PERCENTILE_ARR = np.array(
+    [4.1, 4.0, 4.3, 4.5, 6.1,
+     6.2, 4.3, 4.6, 4.5, 4.4]
+)
+
+
+@pytest.mark.parametrize(
+    ("data", "lo", "hi", "pad", "expected"),
+    [
+        (PERCENTILE_ARR,5,95,0.0,[1,3,1,1,1,3,1,1,1,1]), # Test the default padding
+        (PERCENTILE_ARR,5,95,0.1,[1,1,1,1,1,1,1,1,1,1]),
+        (PERCENTILE_ARR,20,95,0.1,[3,3,1,1,1,1,1,1,1,1]),
+        (PERCENTILE_ARR,20,95,0.5,[1,1,1,1,1,1,1,1,1,1]),
+        (PERCENTILE_ARR,5,80,0.0,[1,3,1,1,3,3,1,1,1,1]),
+        (PERCENTILE_ARR,5,80,0.1,[1,1,1,1,3,3,1,1,1,1]),
+    ],
+)
+def test_percentile_range_good(data, hi, lo, pad, expected):
+    flags = qartod.percentile_range_test(
+        data, low_percentile=lo, hi_percentile=hi, pad=pad
+    )
+    # breakpoint()
+    npt.assert_array_equal(
+        flags.data, expected
+    )
+
+def test_percentile_range_err():
+    "Break the function in as many expected ways as possible"
+    with pytest.raises(TypeError, match=r"'NoneType' and 'int'"):
+        qartod.percentile_range_test(PERCENTILE_ARR, low_percentile=None)
+
+    with pytest.raises(TypeError, match=r"'float' and 'NoneType'"):
+            qartod.percentile_range_test(PERCENTILE_ARR, pad=None)
+    
+
+def test_percentile_range_names():
+    assert qartod.percentile_range_test.long_name == "Percentile Range Test Quality Flag"
+    assert qartod.percentile_range_test.standard_name == "percentile_range_test_quality_flag"
 
 
 class QartodClimatologyPeriodTest(unittest.TestCase):
