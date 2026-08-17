@@ -401,7 +401,7 @@ def gross_range_test(
 
     Given a 2-tuple of minimum/maximum values, flag data outside of the given
     range as FAIL data.  Optionally also flag data which falls outside of a user
-    defined range as SUSPECT. Missing and masked data is flagged as UNKNOWN.
+    defined range as SUSPECT. Missing and masked data is flagged as MISSING.
 
     Parameters
     ----------
@@ -417,11 +417,27 @@ def gross_range_test(
     flag_arr
         A masked array of flag values equal in size to that of the input.
 
+    Examples
+    --------
+    Note that any input `inp` should be a sequence of numerical values that can be converted to numpy.
+
+    >>> flags = gross_range_test(inp=[1, 2, 3, 4, 8], fail_span=(0, 5), suspect_span=(1, 4))
+    >>> flags
+    masked_array(data=[1, 1, 1, 1, 4],
+                mask=False,
+        fill_value=np.uint64(999999),
+                dtype=uint8)
+
     """
-    if not isfixedlength(fail_span, 2):
-        msg = f"{fail_span=}, expected 2"
-        raise ValueError(msg)
-    sspan = span(*sorted(fail_span))
+
+    #   Helper function to guarantee contents of inputs are good
+    #   Sort the span
+    def check_span(arr: Sequence[Real]) -> span:
+        isfixedlength(arr, 2)
+        return span(*sorted(arr))
+
+    #   Fail or "sensor" span
+    sspan = check_span(arr=fail_span)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -437,10 +453,8 @@ def gross_range_test(
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     if suspect_span is not None:
-        if not isfixedlength(suspect_span, 2):
-            msg = f"{suspect_span=}, expected 2."
-            raise ValueError(msg)
-        uspan = span(*sorted(suspect_span))
+        #   Suspect or "user" span
+        uspan = check_span(arr=suspect_span)
         if uspan.minv < sspan.minv or uspan.maxv > sspan.maxv:
             msg = f"Suspect {uspan} must fall within the Fail {sspan}"
             raise ValueError(msg)
@@ -452,6 +466,79 @@ def gross_range_test(
     with np.errstate(invalid="ignore"):
         flag_arr[(inp < sspan.minv) | (inp > sspan.maxv)] = QartodFlags.FAIL
 
+    return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
+    standard_name="percentile_range_test_quality_flag",
+    long_name="Percentile Range Test Quality Flag",
+)
+def percentile_range_test(
+    inp: Sequence[Real],
+    low_percentile: Real = 5,
+    hi_percentile: Real = 95,
+    pad: Real = 0.0,
+) -> np.ma.core.MaskedArray:
+    """Checks for statistically abnormal values in the array.
+
+    Given an array of numeric values, this test identifies abnormal high and low
+    values at statistical percentiles. These default to the 5th and 95th percentiles
+    for the data if not user-defined. In addition, the user may specify a padding
+    value for additional coverage.
+
+    If the point's (value < low_percentile_value - pad) or
+    (high_percentile value + pad < value) then the point is flagged as SUSPECT.
+    Points within the data which are NaN are flagged as MISSING. Otherwise, points
+    are flagged as PASS.
+
+    Parameters
+    ----------
+    inp
+        Input array as a numeric numpy array or list of real numbers.
+    low_percentile
+        A user-defined low-percentile numeric bound, defaults to 5 (optional).
+    hi_percentile
+        A user-defined high-percentile numeric bound, defaults to 95 (optional).
+    pad
+        A user-defined, numeric padding value for adding atop the hi/low percentile
+        values. Defaults to 0 (optional).
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input `inp`.
+
+    Examples
+    --------
+    Say we have some values that we are expecting to be clusered around a specific
+    range and we want to flag potential outliers that exceed the largest values
+    in the data array including a little wiggle room.
+
+    >>> data = np.array([4.1, 4.0, 4.3, 4.5, 6.1, 6.2])
+    >>> flags = percentile_range_test(data)
+    >>> flags
+    masked_array(data=[1, 3, 1, 1, 1, 3],
+             mask=False,
+       fill_value=np.uint64(999999),
+            dtype=uint8)
+
+    This has flagged the statistically lowest and highest value as SUSPECT with no
+    padding specified.
+
+    """
+    original_shape = inp.shape
+    inp = np.ma.asarray(inp, dtype=float).flatten()
+    flag_arr = np.ma.ones(inp.size, dtype="uint8")
+
+    inp.mask = np.isnan(inp.data)
+    flag_arr[inp.mask] = QartodFlags.MISSING
+    valid = ~inp.mask
+
+    low, hi = np.percentile(inp.data[valid], [low_percentile, hi_percentile])
+    bound_low = low - pad
+    bound_hi = hi + pad
+
+    flag_arr[(inp < bound_low) | (inp > bound_hi)] = QartodFlags.SUSPECT
     return flag_arr.reshape(original_shape)
 
 

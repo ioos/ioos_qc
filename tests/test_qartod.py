@@ -328,6 +328,69 @@ class QartodGrossRangeTest(unittest.TestCase):
             )
 
 
+#   For use in percentile_range_test
+#   Min value is 4.0 (ix=1), max is 6.2 (5)
+PERCENTILE_ARR = np.array(
+    [
+        4.1,
+        4.0,
+        4.3,
+        4.5,
+        6.1,
+        6.2,
+        4.3,
+        4.6,
+        4.5,
+        4.4,
+    ],
+)
+
+
+@pytest.mark.parametrize(
+    ("data", "lo", "hi", "pad", "expected"),
+    [
+        (PERCENTILE_ARR, None, None, None, [1, 3, 1, 1, 1, 3, 1, 1, 1, 1]),  # Test the default padding
+        (PERCENTILE_ARR, None, None, 0.1, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, 20, None, 0.1, [3, 3, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, 20, None, 0.5, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, None, 80, None, [1, 3, 1, 1, 3, 3, 1, 1, 1, 1]),
+        (PERCENTILE_ARR, None, 80, 0.1, [1, 1, 1, 1, 3, 3, 1, 1, 1, 1]),
+    ],
+)
+def test_percentile_range_good(data, hi, lo, pad, expected):
+
+    #   Add support for None in the parametrized values such that it's easier to see what values
+    #   each combo tests
+    kwargs = {}
+    if lo is not None:
+        kwargs["low_percentile"] = lo
+    if hi is not None:
+        kwargs["hi_percentile"] = hi
+    if pad is not None:
+        kwargs["pad"] = pad
+
+    flags = qartod.percentile_range_test(data, **kwargs)
+
+    npt.assert_array_equal(
+        flags.data,
+        expected,
+    )
+
+
+def test_percentile_range_err():
+    """Break the function in as many expected ways as possible."""
+    with pytest.raises(TypeError, match=r"'NoneType' and 'int'"):
+        qartod.percentile_range_test(PERCENTILE_ARR, low_percentile=None)
+
+    with pytest.raises(TypeError, match=r"'float' and 'NoneType'"):
+        qartod.percentile_range_test(PERCENTILE_ARR, pad=None)
+
+
+def test_percentile_range_names():
+    assert qartod.percentile_range_test.long_name == "Percentile Range Test Quality Flag"
+    assert qartod.percentile_range_test.standard_name == "percentile_range_test_quality_flag"
+
+
 class QartodClimatologyPeriodTest(unittest.TestCase):
     def _run_test(self, tspan, period):
         cc = qartod.ClimatologyConfig()
