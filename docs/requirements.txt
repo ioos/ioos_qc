@@ -1,5 +1,6 @@
 bokeh
 erddapy
+h5py
 ipykernel
 matplotlib>=3
 nbsphinx
