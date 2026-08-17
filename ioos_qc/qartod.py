@@ -1211,7 +1211,7 @@ def pressure_test(
     pad: float = 0.01,
     assess_floating: bool = False,
     breakout: float = 0.025,
-)-> np.ma.core.MaskedArray:
+) -> np.ma.core.MaskedArray:
     """Checks for for continuous monotonic sequences in the provided data.
 
     Intended for use on the pressure array, `inp`. The input array is differentiated
@@ -1244,7 +1244,7 @@ def pressure_test(
     breakout
         Float representing the required change in the `inp` variable to break
         the assess_floating routine (optional). Defaults to 0.025.
-    
+
     Returns
     -------
     flag_arr
@@ -1281,7 +1281,6 @@ def pressure_test(
     [3 3 3 1 9 1 1 3 1]
 
     """
-
     original_shape = inp.shape
     inp = np.ma.asarray(inp, dtype=float).flatten()
     flag_arr = np.ma.ones(inp.size, dtype="uint8")
@@ -1316,13 +1315,10 @@ def pressure_test(
                 if flag_arr[i] == QartodFlags.SUSPECT:
                     is_floating = True
                     floating_ix[i] = True
+            elif (direction == "down" and val >= breakout) or (direction == "up" and val <= -breakout):
+                is_floating = False
             else:
-                if direction == "down" and val >= breakout:
-                    is_floating = False
-                elif direction =="up" and val <= -breakout:
-                    is_floating = False
-                else:
-                    floating_ix[i] = True
+                floating_ix[i] = True
         flag_arr[valid & floating_ix] = QartodFlags.SUSPECT
 
     return flag_arr.reshape(original_shape)
