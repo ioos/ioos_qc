@@ -1,5 +1,6 @@
 bokeh
 erddapy
+h5py
 ipykernel
 matplotlib>=3
 nbsphinx
@@ -8,4 +9,3 @@ pooch
 pynco
 sphinx
 sphinx-autodoc-typehints
-h5py
