@@ -8,3 +8,4 @@ pooch
 pynco
 sphinx
 sphinx-autodoc-typehints
+h5py
