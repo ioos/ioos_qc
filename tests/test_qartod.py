@@ -2015,12 +2015,12 @@ PRES_ARR = np.array([1, 1.009, 1.02, 2, np.nan, 2.001, 7, 0, 2])
 @pytest.mark.parametrize(
     ("data", "direction", "pad", "assess_floating", "breakout", "expected"),
     [
-        (PRES_ARR,"down",None,None,None,[3,3,1,1,9,1,1,3,1,],),
-        (PRES_ARR,"up",None,None,None,[3,3,3,3,9,1,3,1,3,],),
-        (PRES_ARR,"down",0.0,None,None,[1,1,1,1,9,1,1,3,1],),
-        (PRES_ARR,"down",1,None,None,[3,3,3,3,9,1,1,3,1],),
-        (PRES_ARR,"down",None,True,None,[3,3,3,1,9,1,1,3,1],),
-        (PRES_ARR,"down",None,True,1,[3,3,3,3,9,3,1,3,1],),
+        (PRES_ARR, "down", None, None, None, [3, 3, 1, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "up", None, None, None, [3, 3, 3, 3, 9, 1, 3, 1, 3]),
+        (PRES_ARR, "down", 0.0, None, None, [1, 1, 1, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", 1, None, None, [3, 3, 3, 3, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", None, True, None, [3, 3, 3, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", None, True, 1, [3, 3, 3, 3, 9, 3, 1, 3, 1]),
     ],
 )
 def test_pressure_good(data, direction, pad, assess_floating, breakout, expected):

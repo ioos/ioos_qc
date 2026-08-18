@@ -46,7 +46,7 @@ def pressure_increasing_test(inp: Sequence[N], direction: str = "auto", pres_rev
     pres_reversal
         Float of the user-defined pressure reversal threshold, in dbar (optional).
         Defaults to 20 dbar.
-    
+
     Returns
     -------
     flag_arr
@@ -86,7 +86,7 @@ def pressure_increasing_test(inp: Sequence[N], direction: str = "auto", pres_rev
     else:
         msg = f"'Direction' argument ({direction}) not within defined options for this test."
         raise ValueError(msg)
-    
+
     return flag_arr
 
 

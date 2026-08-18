@@ -128,6 +128,7 @@ class ArgoSpeedTest(unittest.TestCase):
                 fail_threshold=self.fail_threshold,
             )
 
+
 def test_argo_pressure_increasing_names():
     assert argo.pressure_increasing_test.long_name == "Pressure Increasing Test Quality Flag"
     assert argo.pressure_increasing_test.standard_name == "pressure_increasing_test_quality_flag"
@@ -221,6 +222,7 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         with pytest.raises(ValueError, match=r"'Direction' argument*"):
             argo.pressure_increasing_test(np.array([1]), direction="dow n")
             argo.pressure_increasing_test(np.array([1]), direction=3)
+
 
 class ArgoDuplicateTimeTest:
     def test_all(self):
