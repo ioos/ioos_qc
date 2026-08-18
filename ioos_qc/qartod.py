@@ -1202,6 +1202,129 @@ def attenuated_signal_test(  # noqa: PLR0913, PLR0917
 
 
 @add_flag_metadata(
+    standard_name="pressure_test_quality_flag",
+    long_name="Pressure Test Quality Flag",
+)
+def pressure_test(
+    inp: Sequence[Real],
+    direction: str,
+    pad: float = 0.01,
+    assess_floating: bool = False,
+    breakout: float = 0.025,
+) -> np.ma.core.MaskedArray:
+    """Checks for for continuous monotonic sequences in the provided data.
+
+    Intended for use on the pressure array, `inp`. The input array is differentiated
+    and values that do not increase or decrease (specified in `direction`) by at least
+    the tolerance value `pad` are flagged as SUSPECT. Any NaNs found in the input are
+    flagged MISSING. Otherwise, values in the array are flagged as PASS.
+
+    If the input is relatively unchanging (i.e., neutral buoyancy, at rest), these
+    values should fall within the user-designated `pad` parameter. An optional test
+    can be performed by setting `assess_floating` to True, which uses `breakout` as
+    the designated 'breakout' requirement.
+
+    Input arrays should be for a single PROFILE_NUMBER, be it the "downglide" or
+    "upglide" (see the OG1.0 methodology documentation for more information:
+    https://oceangliderscommunity.github.io/OG-format-user-manual/OG_Format.html)
+
+    Parameters
+    ----------
+    inp
+        Data vector to be flagged, as an array-like sequence of real numbers.
+    direction
+        String that declares which direction the glider is going. Options of
+        "down" (pressure increasing), "up" (pressure decreasing)
+    pad
+        Float of "unmoving allowance". If `inp` changes by more than pad, it is
+        considered moving and flagging changes. Defaults to 0.01.
+    assess_floating
+        Bool, specifying whether to run an additional flagging routine (optional)
+        Defaults to False.
+    breakout
+        Float representing the required change in the `inp` variable to break
+        the assess_floating routine (optional). Defaults to 0.025.
+
+    Returns
+    -------
+    flag_arr
+        A masked array of flag values equal in size to that of the input.
+
+    Examples
+    --------
+    >>> arr = np.array([1, 1.009, 1.02, 2, np.nan, 2.001, 7, 0, 2])
+    >>> print(np.diff(arr))
+    [ 0.009  0.011  0.98     nan    nan  4.999 -7.     2.   ]
+
+    When using the default pressure test settings (pad=0.1, float test is off)
+    we expect points to be flagged if they are not exceeding a pres. tolerance.
+    >>> flags = pressure_test(arr, "down")
+    >>> print(flags)
+    [3 3 1 1 9 1 1 3 1]
+
+    Meanwhile, a more strict padding will flag more points
+    >>> flags = pressure_test(arr, "down", pad=0.1)
+    >>> print(flags)
+    [3 3 3 1 9 1 1 3 1]
+
+    To look for a purely monotonic sequence, where pressure is simply
+    increaing/decreasing, remove the padding altogether by setting it to 0.
+    >>> flags = pressure_test(arr, "down", pad=0.0)
+    >>> print(flags)
+    [1 1 1 1 9 1 1 3 1]
+
+    An extra (optional) test can be performed to detect periods where the array
+    is floating or unchanging with a second, stricter tolerance. As per the first
+    example:
+    >>> flags = pressure_test(arr, "down", assess_floating=True)
+    >>> print(flags)
+    [3 3 3 1 9 1 1 3 1]
+
+    """
+    original_shape = inp.shape
+    inp = np.ma.asarray(inp, dtype=float).flatten()
+    flag_arr = np.ma.ones(inp.size, dtype="uint8")
+
+    inp.mask = np.isnan(inp.data)
+    flag_arr[inp.mask] = QartodFlags.MISSING
+    valid = ~inp.mask
+
+    #   Assign first point to be basically unchanging
+    diff_inp = np.ma.zeros(inp.size, dtype=float)
+    diff_inp[1:] = np.diff(inp)
+    if direction == "down":
+        #   Glider is sinking, flag points that are less than 0 w/ pad
+        flag_arr[valid & (diff_inp < pad)] = QartodFlags.SUSPECT
+    elif direction == "up":
+        #   Glider is rising, flag points that are more than 0 w/ pad
+        flag_arr[valid & (diff_inp > -pad)] = QartodFlags.SUSPECT
+    else:
+        msg = f"Missing or unclear definition for `direction`: {direction}.\nShould be 'down' or 'up'."
+        raise ValueError(msg)
+    #   Reassign first point
+    flag_arr[0] = flag_arr[1]
+
+    if assess_floating:
+        #   When a flag is triggered as suspect, set a condition for a tougher breakout padding value.
+        #   Init boolean is(1)/isnot(0) floating array
+        floating_ix = np.zeros(diff_inp.size, dtype=bool)
+
+        is_floating = False
+        for i, val in enumerate(diff_inp):
+            if not is_floating:
+                if flag_arr[i] == QartodFlags.SUSPECT:
+                    is_floating = True
+                    floating_ix[i] = True
+            elif (direction == "down" and val >= breakout) or (direction == "up" and val <= -breakout):
+                is_floating = False
+            else:
+                floating_ix[i] = True
+        flag_arr[valid & floating_ix] = QartodFlags.SUSPECT
+
+    return flag_arr.reshape(original_shape)
+
+
+@add_flag_metadata(
     standard_name="density_inversion_test_flag",
     long_name="Density Inversion Test Flag",
 )

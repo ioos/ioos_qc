@@ -2009,6 +2009,48 @@ class QartodAttenuatedSignalTest(unittest.TestCase):
         )
 
 
+PRES_ARR = np.array([1, 1.009, 1.02, 2, np.nan, 2.001, 7, 0, 2])
+
+
+@pytest.mark.parametrize(
+    ("data", "direction", "pad", "assess_floating", "breakout", "expected"),
+    [
+        (PRES_ARR, "down", None, None, None, [3, 3, 1, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "up", None, None, None, [3, 3, 3, 3, 9, 1, 3, 1, 3]),
+        (PRES_ARR, "down", 0.0, None, None, [1, 1, 1, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", 1, None, None, [3, 3, 3, 3, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", None, True, None, [3, 3, 3, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", None, True, 1, [3, 3, 3, 3, 9, 3, 1, 3, 1]),
+    ],
+)
+def test_pressure_good(data, direction, pad, assess_floating, breakout, expected):
+    kwargs = {}
+    if pad is not None:
+        kwargs["pad"] = pad
+    if assess_floating is not None:
+        kwargs["assess_floating"] = assess_floating
+    if breakout is not None:
+        kwargs["breakout"] = breakout
+
+    flags = qartod.pressure_test(data, direction, **kwargs)
+
+    npt.assert_array_equal(
+        flags.data,
+        expected,
+    )
+
+
+def test_pressure_errors():
+    with pytest.raises(ValueError, match=r"Missing or unclear definition for*"):
+        qartod.pressure_test(np.array([1]), direction="dow n")
+        qartod.pressure_test(np.array([1]), direction=3)
+
+
+def test_pressure_names():
+    assert qartod.pressure_test.long_name == "Pressure Test Quality Flag"
+    assert qartod.pressure_test.standard_name == "pressure_test_quality_flag"
+
+
 class QartodDensityInversionTest(unittest.TestCase):
     def _run_density_inversion_tests(
         self,

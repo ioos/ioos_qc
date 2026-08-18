@@ -17,16 +17,35 @@ L = logging.getLogger(__name__)
     standard_name="pressure_increasing_test_quality_flag",
     long_name="Pressure Increasing Test Quality Flag",
 )
-def pressure_increasing_test(inp):
-    """Returns an array of flag values where each input is flagged with SUSPECT if
-    it does not monotonically increase.
+def pressure_increasing_test(inp: Sequence[N], direction: str = "auto", pres_reversal: float = 20):
+    """Checks for monotonic series of pressure values with user-defined reversal threshold.
 
-    Ref: ARGO QC Manual: 8. Pressure increasing test
+    This differs from qartod.pressure_test, as it keeps a running log of all previous
+    pressure values and compares the min/max against it.
+
+    Flags that fail this test are returned as FAIL, otherwise they are returned as PASS.
+    Data points that are missing for calculations are returned as MISSING.
+
+    'For near-surface profiles, this test should be run from the deepest pressure
+    to the shallowest pressure. For all other profiles, this test should be run from the
+    middle of the profile to the shallowest pressure, and from the middle of the profile
+    to the deepest pressure. The middle of the profile is the pressure at
+    length(profile)/2'
+
+    See Wong et al. 2025 (Argo quality control manual v3.9):
+        http://dx.doi.org/10.13155/33951
 
     Parameters
     ----------
     inp
-        Pressure values as a numeric numpy array or a list of numbers.
+        Sequence of real numbers for the input pressure array, in units of dbar.
+    direction
+        String of AUV direction "up" or "down". "up" indicates going from deep to shallow,
+        or the upcast (optional). For old functionality, select "auto" to estimate the
+        sign of the change in pressure. Defaults to "auto".
+    pres_reversal
+        Float of the user-defined pressure reversal threshold, in dbar (optional).
+        Defaults to 20 dbar.
 
     Returns
     -------
@@ -34,18 +53,41 @@ def pressure_increasing_test(inp):
         A masked array of flag values equal in size to that of the input.
 
     """
-    delta = np.diff(inp)
-    flags = np.ones_like(inp, dtype="uint8") * QartodFlags.GOOD
+    inp = np.ma.asarray(inp, dtype=float)
+    inp.mask = np.isnan(inp.data)
 
-    # Correct for downcast vs upcast by flipping the sign if it's decreasing
-    sign = np.sign(np.mean(delta))
-    if sign < 0:
-        delta = sign * delta
+    flag_arr = np.ma.ones(inp.shape, dtype="uint8")
+    flag_arr[inp.mask] = QartodFlags.MISSING
+    valid = ~inp.mask
+    valid = np.flatnonzero(valid)
 
-    flag_idx = np.where(delta <= 0)[0] + 1
-    flags[flag_idx] = QartodFlags.SUSPECT
+    if direction == "auto":
+        #   Reassign the direction. If sign is positive, press is decreasing so say "down"
+        delta = np.diff(inp)
+        sign = np.sign(np.nanmean(delta))
+        if sign < 0:
+            direction = "up"
+        elif sign > 0:
+            direction = "down"
+    #   Need first valid non-NaN
+    v_0 = valid[0]
+    if direction == "up":
+        min_p = inp[v_0]
+        for i in valid[:1]:
+            if inp[i] >= min_p + pres_reversal:
+                flag_arr[i] = QartodFlags.FAIL
+            min_p = min(min_p, inp[i])
+    elif direction == "down":
+        max_p = inp[v_0]
+        for i in valid[1:]:
+            if inp[i] <= max_p - pres_reversal:
+                flag_arr[i] = QartodFlags.FAIL
+            max_p = max(max_p, inp[i])
+    else:
+        msg = f"'Direction' argument ({direction}) not within defined options for this test."
+        raise ValueError(msg)
 
-    return flags
+    return flag_arr
 
 
 @add_flag_metadata(

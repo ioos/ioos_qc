@@ -129,6 +129,11 @@ class ArgoSpeedTest(unittest.TestCase):
             )
 
 
+def test_argo_pressure_increasing_names():
+    assert argo.pressure_increasing_test.long_name == "Pressure Increasing Test Quality Flag"
+    assert argo.pressure_increasing_test.standard_name == "pressure_increasing_test_quality_flag"
+
+
 class ArgoPressureIncreasingTest(unittest.TestCase):
     def test_pressure_downcast(self):
         # Standard downcast
@@ -136,7 +141,7 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
             [0.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0],
             dtype="float32",
         )
-        flags = argo.pressure_increasing_test(pressure)
+        flags = argo.pressure_increasing_test(pressure, direction="down")
         npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
 
     def test_pressure_upcast(self):
@@ -146,7 +151,35 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
             dtype="float32",
         )
         pressure = pressure[::-1]
-        flags = argo.pressure_increasing_test(pressure)
+        flags = argo.pressure_increasing_test(pressure, direction="up")
+        npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
+
+    def test_press_upcast_w_bad(self):
+        pressure = np.array(
+            [14.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0],
+            dtype="float32",
+        )
+        pressure = pressure[::-1]
+        flags = argo.pressure_increasing_test(pressure, direction="up", pres_reversal=0.0)
+        npt.assert_array_equal(flags, np.array([4, 1, 1, 1, 1, 1, 1, 1]))
+
+    def test_auto_down(self):
+        # Sign should be positive for array - auto should have same results as "down"
+        pressure = np.array(
+            [0.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0],
+            dtype="float32",
+        )
+        flags = argo.pressure_increasing_test(pressure, direction="auto")
+        npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
+
+    def test_auto_down(self):
+        # Sign should be negative for array - auto should have same results as "up"
+        pressure = np.array(
+            [0.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0],
+            dtype="float32",
+        )
+        pressure = pressure[::-1]
+        flags = argo.pressure_increasing_test(pressure, direction="auto")
         npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
 
     def test_pressure_shallow(self):
@@ -155,13 +188,13 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
             [0.0, 2.0, 2.0, 1.99, 2.3, 2.4, 2.4, 2.5],
             dtype="float32",
         )
-        flags = argo.pressure_increasing_test(pressure)
-        npt.assert_array_equal(flags, np.array([1, 1, 3, 3, 1, 1, 3, 1]))
+        flags = argo.pressure_increasing_test(pressure, direction="down", pres_reversal=0)
+        npt.assert_array_equal(flags, np.array([1, 1, 4, 4, 1, 1, 4, 1]))
 
     def test_using_config(self):
         config = {
             "argo": {
-                "pressure_increasing_test": {},
+                "pressure_increasing_test": {"direction": "down", "pres_reversal": 0},
             },
         }
 
@@ -173,7 +206,7 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
             ),
         )
 
-        expected = np.array([1, 1, 3, 3, 1, 1, 3, 1])
+        expected = np.array([1, 1, 4, 4, 1, 1, 4, 1])
         npt.assert_array_equal(
             r["argo"]["pressure_increasing_test"],
             expected,
@@ -184,6 +217,11 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         pressure = np.array([0.0, 2.0, 3.0], dtype="float32")
         flags = gliders.pressure_check(pressure)
         npt.assert_array_equal(flags, np.array([1, 1, 1]))
+
+    def test_fail(self):
+        with pytest.raises(ValueError, match=r"'Direction' argument*"):
+            argo.pressure_increasing_test(np.array([1]), direction="dow n")
+            argo.pressure_increasing_test(np.array([1]), direction=3)
 
 
 class ArgoDuplicateTimeTest:
