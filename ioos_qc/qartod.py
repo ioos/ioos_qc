@@ -923,11 +923,14 @@ def spike_test(
     standard_name="rate_of_change_test_quality_flag",
     long_name="Rate of Change Test Quality Flag",
 )
-def rate_of_change_test(
+def rate_of_change_test(  # noqa: PLR0913, PLR0917
     inp: Sequence[Real],
     tinp: Sequence[Real],
-    threshold: float,
+    threshold: float | None = None,
     fail_threshold: float | None = None,
+    n_dev: float | None = None,
+    tim_dev: Real | None = None,
+    min_periods: int | None = None,
 ) -> np.ma.core.MaskedArray:
     """Checks the first order difference of a series of values to see if
     there are any values exceeding a threshold defined by the inputs.
@@ -954,6 +957,36 @@ def rate_of_change_test(
     fail_threshold
         A float value representing a rate of change over time, in observation units per second.
         Rates exceeding this will be flagged as FAIL.
+    n_dev
+        Number of standard deviations, `N_DEV` in the QARTOD manual. Supply together
+        with `tim_dev` instead of `threshold` to derive the threshold from the data
+        rather than fixing it. Mutually exclusive with `threshold`.
+    tim_dev
+        Length of the trailing window over which the standard deviation is computed,
+        in seconds. `TIM_DEV` in the QARTOD manual, whose example uses a 25 hour
+        window to accommodate diurnal and tidal cycles.
+    min_periods
+        Minimum number of observations in the `tim_dev` window required before a
+        threshold is computed [optional]. Points with fewer observations behind them
+        are left as GOOD, since there is not yet enough history to judge them.
+
+    Notes
+    -----
+    Two ways of choosing the threshold are supported, per the QARTOD Manual for
+    Real-Time Quality Control of In-situ Temperature and Salinity Data, Test 7.
+
+    With `threshold`, the first order difference is divided by the elapsed time and
+    compared against a fixed rate in observation units per second. This is the
+    original behaviour and is unchanged.
+
+    With `n_dev` and `tim_dev`, the manual's codable instruction is used instead::
+
+        If |T(n) - T(n-1)| > N_DEV * SD, flag = 3
+
+    where `SD` is the standard deviation of the observations over the preceding
+    `tim_dev` seconds. Note this compares an absolute difference rather than a rate.
+    The manual states "No fail flag is identified for this test", so `fail_threshold`
+    does not apply in this mode.
 
     Returns
     -------
@@ -961,6 +994,18 @@ def rate_of_change_test(
         A masked array of flag values equal in size to that of the input.
 
     """
+    derived = n_dev is not None or tim_dev is not None
+    if derived:
+        if threshold is not None:
+            msg = "Supply either `threshold` or `n_dev`/`tim_dev`, not both"
+            raise ValueError(msg)
+        if n_dev is None or tim_dev is None:
+            msg = "`n_dev` and `tim_dev` must be supplied together"
+            raise ValueError(msg)
+    elif threshold is None:
+        msg = "Supply either `threshold` or both `n_dev` and `tim_dev`"
+        raise ValueError(msg)
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
@@ -972,21 +1017,46 @@ def rate_of_change_test(
     # Start with everything as passing (1)
     flag_arr = np.ma.ones(inp.size, dtype="uint8")
 
-    # calculate rate of change in units/second
-    roc = np.ma.zeros(inp.size, dtype="float")
-
     tinp = mapdates(tinp).flatten()
-    roc[1:] = np.abs(
-        np.diff(inp) / np.diff(tinp).astype("timedelta64[s]").astype(float),
-    )
 
-    with np.errstate(invalid="ignore"):
-        flag_arr[roc > threshold] = QartodFlags.SUSPECT
+    if derived:
+        # QARTOD Test 7, Example 2: If |T(n) - T(n-1)| > N_DEV * SD, flag = 3.
+        # SD is taken over the preceding tim_dev seconds, so the comparison is
+        # against an absolute difference rather than a rate.
+        diff = np.ma.zeros(inp.size, dtype="float")
+        diff[1:] = np.abs(np.diff(inp))
 
-    # the fail threshold is optional and only required for some use cases
-    if fail_threshold is not None:
+        series = pd.Series(inp.filled(np.nan), index=tinp)
+        # closed="left" excludes the point under test, so a large excursion does
+        # not inflate the standard deviation it is being compared against. The
+        # manual computes SD over "the previous" tim_dev period.
+        sd = series.rolling(
+            f"{tim_dev}s",
+            min_periods=min_periods,
+            closed="left",
+        ).std(ddof=0)
+        limit = n_dev * np.asarray(sd, dtype="float")
+
         with np.errstate(invalid="ignore"):
-            flag_arr[roc > fail_threshold] = QartodFlags.FAIL
+            exceeds = diff > limit
+        # A NaN limit means the window held too little history to judge the point.
+        exceeds &= ~np.isnan(limit)
+        exceeds[0] = False
+        flag_arr[exceeds] = QartodFlags.SUSPECT
+    else:
+        # calculate rate of change in units/second
+        roc = np.ma.zeros(inp.size, dtype="float")
+        roc[1:] = np.abs(
+            np.diff(inp) / np.diff(tinp).astype("timedelta64[s]").astype(float),
+        )
+
+        with np.errstate(invalid="ignore"):
+            flag_arr[roc > threshold] = QartodFlags.SUSPECT
+
+        # the fail threshold is optional and only required for some use cases
+        if fail_threshold is not None:
+            with np.errstate(invalid="ignore"):
+                flag_arr[roc > fail_threshold] = QartodFlags.FAIL
 
     # If the value is masked set the flag to MISSING
     flag_arr[inp.mask] = QartodFlags.MISSING

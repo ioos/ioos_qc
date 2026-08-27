@@ -1440,6 +1440,84 @@ class QartodRateOfChangeTest(unittest.TestCase):
         )
         npt.assert_array_equal(expected, result)
 
+    def test_rate_of_change_n_dev(self):
+        """Threshold derived from the data, per QARTOD Test 7 Example 2:
+        if |T(n) - T(n-1)| > N_DEV * SD, flag = 3.
+        """
+        times = np.arange(
+            "2015-01-01 00:00:00",
+            "2015-01-01 12:00:00",
+            step=np.timedelta64(1, "h"),
+            dtype=np.datetime64,
+        )
+        # steady around 10 with a single large excursion at index 9
+        arr = [10, 10.1, 9.9, 10.05, 9.95, 10.0, 10.1, 9.9, 10.0, 20.0, 10.1, 10.0]
+        expected = [1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1]
+        result = qartod.rate_of_change_test(
+            inp=arr,
+            tinp=times,
+            n_dev=3,
+            tim_dev=6 * 3600,
+            min_periods=3,
+        )
+        npt.assert_array_equal(result, expected)
+
+    def test_rate_of_change_n_dev_excludes_point_under_test(self):
+        """The standard deviation is taken over the *preceding* window. If the
+        point under test were included it would inflate the deviation it is
+        compared against and never be flagged.
+        """
+        times = np.arange(
+            "2015-01-01 00:00:00",
+            "2015-01-01 12:00:00",
+            step=np.timedelta64(1, "h"),
+            dtype=np.datetime64,
+        )
+        arr = [10, 10.1, 9.9, 10.05, 9.95, 10.0, 10.1, 9.9, 10.0, 20.0, 10.1, 10.0]
+        result = qartod.rate_of_change_test(
+            inp=arr,
+            tinp=times,
+            n_dev=3,
+            tim_dev=6 * 3600,
+            min_periods=3,
+        )
+        assert result[9] == qartod.QartodFlags.SUSPECT
+
+    def test_rate_of_change_n_dev_no_fail_flag(self):
+        """The manual states "No fail flag is identified for this test", so the
+        derived mode never raises FAIL however large the excursion.
+        """
+        times = np.arange(
+            "2015-01-01 00:00:00",
+            "2015-01-01 12:00:00",
+            step=np.timedelta64(1, "h"),
+            dtype=np.datetime64,
+        )
+        arr = [10, 10.1, 9.9, 10.05, 9.95, 10.0, 10.1, 9.9, 10.0, 5000.0, 10.1, 10.0]
+        result = qartod.rate_of_change_test(
+            inp=arr,
+            tinp=times,
+            n_dev=3,
+            tim_dev=6 * 3600,
+            min_periods=3,
+        )
+        assert qartod.QartodFlags.FAIL not in result
+
+    def test_rate_of_change_argument_validation(self):
+        times = self.times
+        arr = [1] * len(times)
+        for kwargs in (
+            {"threshold": self.threshold, "n_dev": 3, "tim_dev": 3600},
+            {"n_dev": 3},
+            {"tim_dev": 3600},
+            {},
+        ):
+            with (
+                self.subTest(kwargs=kwargs),
+                pytest.raises(ValueError, match=r"threshold|tim_dev"),
+            ):
+                qartod.rate_of_change_test(inp=arr, tinp=times, **kwargs)
+
     def test_rate_of_change_fail_flag(self):
         """Test of optional fail flag."""
         times = self.times
