@@ -221,6 +221,7 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
     def test_fail(self):
         with pytest.raises(ValueError, match=r"'Direction' argument*"):
             argo.pressure_increasing_test(np.array([1]), direction="dow n")
+        with pytest.raises(ValueError, match=r"'Direction' argument*"):
             argo.pressure_increasing_test(np.array([1]), direction=3)
 
 

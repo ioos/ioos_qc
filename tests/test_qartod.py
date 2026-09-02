@@ -2043,6 +2043,7 @@ def test_pressure_good(data, direction, pad, assess_floating, breakout, expected
 def test_pressure_errors():
     with pytest.raises(ValueError, match=r"Missing or unclear definition for*"):
         qartod.pressure_test(np.array([1]), direction="dow n")
+    with pytest.raises(ValueError, match=r"Missing or unclear definition for*"):
         qartod.pressure_test(np.array([1]), direction=3)
 
 
