@@ -45,7 +45,7 @@ def pressure_increasing_test(inp: Sequence[N], direction: str = "auto", pres_rev
         sign of the change in pressure. Defaults to "auto".
     pres_reversal
         Float of the user-defined pressure reversal threshold, in dbar (optional).
-        Defaults to 20 dbar.
+        Defaults to 20 dbar (see quality control manual above).
 
     Returns
     -------
@@ -73,7 +73,7 @@ def pressure_increasing_test(inp: Sequence[N], direction: str = "auto", pres_rev
     v_0 = valid[0]
     if direction == "up":
         min_p = inp[v_0]
-        for i in valid[:1]:
+        for i in valid[1:]:
             if inp[i] >= min_p + pres_reversal:
                 flag_arr[i] = QartodFlags.FAIL
             min_p = min(min_p, inp[i])

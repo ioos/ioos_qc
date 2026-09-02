@@ -161,7 +161,7 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         )
         pressure = pressure[::-1]
         flags = argo.pressure_increasing_test(pressure, direction="up", pres_reversal=0.0)
-        npt.assert_array_equal(flags, np.array([4, 1, 1, 1, 1, 1, 1, 1]))
+        npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 4]))
 
     def test_auto_down(self):
         # Sign should be positive for array - auto should have same results as "down"
