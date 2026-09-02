@@ -172,7 +172,9 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         flags = argo.pressure_increasing_test(pressure, direction="auto")
         npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
 
-    def test_auto_down(self):
+        npt.assert_array_equal(flags, argo.pressure_increasing_test(pressure, direction="down"))
+
+    def test_auto_up(self):
         # Sign should be negative for array - auto should have same results as "up"
         pressure = np.array(
             [0.0, 2.0, 2.1, 2.12, 2.3, 4.0, 14.2, 20.0],
@@ -181,6 +183,8 @@ class ArgoPressureIncreasingTest(unittest.TestCase):
         pressure = pressure[::-1]
         flags = argo.pressure_increasing_test(pressure, direction="auto")
         npt.assert_array_equal(flags, np.array([1, 1, 1, 1, 1, 1, 1, 1]))
+
+        npt.assert_array_equal(flags, argo.pressure_increasing_test(pressure, direction="up"))
 
     def test_pressure_shallow(self):
         # Shallow profiles should be flagged if it's stuck or decreasing
