@@ -2013,31 +2013,20 @@ PRES_ARR = np.array([1, 1.009, 1.02, 2, np.nan, 2.001, 7, 0, 2])
 
 
 @pytest.mark.parametrize(
-    ("data", "direction", "pad", "assess_floating", "breakout", "expected"),
+    ("data", "direction", "kwargs", "expected"),
     [
-        (PRES_ARR, "down", None, None, None, [3, 3, 1, 1, 9, 1, 1, 3, 1]),
-        (PRES_ARR, "up", None, None, None, [3, 3, 3, 3, 9, 1, 3, 1, 3]),
-        (PRES_ARR, "down", 0.0, None, None, [1, 1, 1, 1, 9, 1, 1, 3, 1]),
-        (PRES_ARR, "down", 1, None, None, [3, 3, 3, 3, 9, 1, 1, 3, 1]),
-        (PRES_ARR, "down", None, True, None, [3, 3, 3, 1, 9, 1, 1, 3, 1]),
-        (PRES_ARR, "down", None, True, 1, [3, 3, 3, 3, 9, 3, 1, 3, 1]),
+        (PRES_ARR, "down", {}, [3, 3, 1, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "up", {}, [3, 3, 3, 3, 9, 1, 3, 1, 3]),
+        (PRES_ARR, "down", {"pad": 0.0}, [1, 1, 1, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", {"pad": 1}, [3, 3, 3, 3, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", {"assess_floating": True}, [3, 3, 3, 1, 9, 1, 1, 3, 1]),
+        (PRES_ARR, "down", {"assess_floating": True, "breakout": 1}, [3, 3, 3, 3, 9, 3, 1, 3, 1]),
     ],
 )
-def test_pressure_good(data, direction, pad, assess_floating, breakout, expected):
-    kwargs = {}
-    if pad is not None:
-        kwargs["pad"] = pad
-    if assess_floating is not None:
-        kwargs["assess_floating"] = assess_floating
-    if breakout is not None:
-        kwargs["breakout"] = breakout
-
+def test_pressure_good(data, direction, kwargs, expected):
     flags = qartod.pressure_test(data, direction, **kwargs)
 
-    npt.assert_array_equal(
-        flags.data,
-        expected,
-    )
+    npt.assert_array_equal(flags.data, expected)
 
 
 def test_pressure_errors():
