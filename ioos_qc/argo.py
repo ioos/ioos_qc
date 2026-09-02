@@ -13,6 +13,30 @@ from ioos_qc.utils import add_flag_metadata, great_circle_distance, mapdates
 L = logging.getLogger(__name__)
 
 
+def _pressure_flag_by_direction(
+    inp: Sequence[N],
+    valid: Sequence[N],
+    flag_arr: Sequence[N],
+    pres_reversal: float,
+    direction: str,
+) -> None:
+    """Flagging logic for pressure_increasing_test based on direction."""
+    tracked_value = inp[valid[0]]
+    if direction == "up":
+        for i in valid[1:]:
+            if inp[i] >= tracked_value + pres_reversal:
+                flag_arr[i] = QartodFlags.FAIL
+            tracked_value = min(tracked_value, inp[i])
+    elif direction == "down":
+        for i in valid[1:]:
+            if inp[i] <= tracked_value - pres_reversal:
+                flag_arr[i] = QartodFlags.FAIL
+            tracked_value = max(tracked_value, inp[i])
+    else:
+        msg = f"'Direction' argument ({direction}) not within defined options for this test."
+        raise ValueError(msg)
+
+
 @add_flag_metadata(
     standard_name="pressure_increasing_test_quality_flag",
     long_name="Pressure Increasing Test Quality Flag",
@@ -69,23 +93,8 @@ def pressure_increasing_test(inp: Sequence[N], direction: str = "auto", pres_rev
             direction = "up"
         elif sign > 0:
             direction = "down"
-    #   Need first valid non-NaN
-    v_0 = valid[0]
-    if direction == "up":
-        min_p = inp[v_0]
-        for i in valid[1:]:
-            if inp[i] >= min_p + pres_reversal:
-                flag_arr[i] = QartodFlags.FAIL
-            min_p = min(min_p, inp[i])
-    elif direction == "down":
-        max_p = inp[v_0]
-        for i in valid[1:]:
-            if inp[i] <= max_p - pres_reversal:
-                flag_arr[i] = QartodFlags.FAIL
-            max_p = max(max_p, inp[i])
-    else:
-        msg = f"'Direction' argument ({direction}) not within defined options for this test."
-        raise ValueError(msg)
+
+    _pressure_flag_by_direction(inp, valid, flag_arr, pres_reversal, direction)
 
     return flag_arr
 
