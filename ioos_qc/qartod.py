@@ -1268,7 +1268,7 @@ def pressure_test(
     [3 3 3 1 9 1 1 3 1]
 
     To look for a purely monotonic sequence, where pressure is simply
-    increaing/decreasing, remove the padding altogether by setting it to 0.
+    increasing/decreasing, remove the padding altogether by setting it to 0.
     >>> flags = pressure_test(arr, "down", pad=0.0)
     >>> print(flags)
     [1 1 1 1 9 1 1 3 1]
