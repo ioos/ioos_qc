@@ -1209,6 +1209,7 @@ def pressure_test(
     inp: Sequence[Real],
     direction: str,
     pad: float = 0.01,
+    *,
     assess_floating: bool = False,
     breakout: float = 0.025,
 ) -> np.ma.core.MaskedArray:
