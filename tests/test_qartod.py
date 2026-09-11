@@ -2169,6 +2169,22 @@ class QartodDensityInversionTest(unittest.TestCase):
         result = [1, 9, 9, 1, 1]
         self._run_density_inversion_tests(density, depth, result)
 
+    def test_density_inversion_len_zero(self):
+        flags = qartod.density_inversion_test(
+            inp = np.arange(0),
+            zinp = np.arange(0)
+        )
+        assert isinstance(flags, np.ma.MaskedArray)
+        assert flags.size == 0
+
+        match = "must be the same shape"
+        with pytest.raises(ValueError, match=match):
+            flags = qartod.density_inversion_test(
+                inp = np.arange(0),
+                zinp = np.arange(1)
+            )
+        
+
     def test_density_inversion_input(self):
         density = [1024, 1024, 1025]
         depth = [1, 2, 3]
