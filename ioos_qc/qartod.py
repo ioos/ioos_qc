@@ -1364,9 +1364,9 @@ def density_inversion_test(
 
     Example
     -------
-    Because this test does not know if the first or second point exeeds is responsible when a change in density
+    Because this test does not know if the first or second point exceeds is responsible when a change in density
     is triggered, it flags both points surrounding said change in density. The same goes for NaN values.
-    
+
     >>> pressure = [0,    5,     10,   15,    20,     25,   20,    15,   10,   5,     0   ]
     >>> sigma0 =   [14.5, 14.52, 15.1, 15.15, np.nan, 15.7, 15.65, 15.0, 16.1, 15.12, 14.5]
     >>> flags = qartod.density_inversion_test(sigma0, pressure, suspect_threshold=0.03, fail_threshold=0.01)
@@ -1384,7 +1384,7 @@ def density_inversion_test(
     masked_array(data=[3, 3, 1, 1, 9, 9, 1, 4, 4, 3, 1],
              mask=False,
        fill_value=999999)
-    
+
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
