@@ -463,6 +463,32 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
         self._run_test((0, 1), "quarter")
 
 
+@pytest.mark.parametrize(
+    ("period", "tspan"),
+    [
+        ("month", (7, 8)),
+        ("dayofyear", (150, 270)),
+        ("quarter", (3, 3)),
+        ("weekofyear", (28, 32)),
+        (None, (np.datetime64("2021-07-01"), np.datetime64("2021-08-01"))),
+    ],
+)
+@pytest.mark.parametrize("array_type", [list, np.asarray, dask_arr])
+@pytest.mark.parametrize("zspan", [(0, 1000), None])
+def test_climatology_period_with_missing_values_and_depths(period, tspan, array_type, zspan):
+    config = qartod.ClimatologyConfig()
+    config.add(tspan=tspan, period=period, vspan=(3.4, 5), fspan=(1, 8), zspan=zspan)
+    values = array_type([4.2, 3, 9, np.nan, 4.2, 4.2, 4.2])
+    times = np.array(["2021-07-16"] * 6 + ["2021-01-01"], dtype="datetime64[ns]")
+    depths = array_type([10, 10, 10, 10, np.nan, 1500, 10])
+
+    results = qartod.climatology_test(config=config, inp=values, tinp=times, zinp=depths)
+
+    # Preserve the positional alignment of missing, out-of-depth, and out-of-season samples.
+    expected = [1, 3, 4, 9, 2, 2, 2] if zspan else [1, 3, 4, 9, 1, 1, 2]
+    npt.assert_array_equal(results, expected)
+
+
 class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
     # Test that we can define climatology periods across the whole year,
     # and test data ranges across several years

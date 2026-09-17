@@ -683,14 +683,8 @@ class ClimatologyConfig:
                 # If a period is defined, extract the attribute from the
                 # pd.DatetimeIndex object before comparison. The min and max
                 # values are in this period unit already.
-                if m.period in WEEK_PERIODS:
-                    # The weekofyear accessor was deprecated
-                    tinp_copy = pd.Index(
-                        tinp.isocalendar().week,
-                        dtype="int64",
-                    )
-                else:
-                    tinp_copy = getattr(tinp, m.period).to_series()
+                # The weekofyear accessor was deprecated.
+                tinp_copy = pd.Index(tinp.isocalendar().week, dtype="int64") if m.period in WEEK_PERIODS else getattr(tinp, m.period)
             else:
                 # If a period isn't defined, make a new Timestamp object
                 # to align with the above name 'tinp_copy'
@@ -719,8 +713,8 @@ class ClimatologyConfig:
                     fill_value=999999,
                 )
 
-            # Combine the T and Z indexes
-            values_idx = t_idx & z_idx
+            # Use only valid samples; masked comparisons must not overwrite MISSING flags.
+            values_idx = np.ma.filled(t_idx & z_idx & ~inp.mask, fill_value=False)
 
             # Failed and suspect data for this value span. Combining fail_idx or
             # suspect_idx with values_idx represents the subsets of data that should be
