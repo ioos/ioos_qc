@@ -1362,6 +1362,29 @@ def density_inversion_test(
     flag_arr
         A masked array of flag values equal in size to that of the input.
 
+    Example
+    -------
+    Because this test does not know if the first or second point exceeds is responsible when a change in density
+    is triggered, it flags both points surrounding said change in density. The same goes for NaN values.
+
+    >>> pressure = [0,    5,     10,   15,    20,     25,   20,    15,   10,   5,     0   ]
+    >>> sigma0 =   [14.5, 14.52, 15.1, 15.15, np.nan, 15.7, 15.65, 15.0, 16.1, 15.12, 14.5]
+    >>> flags = qartod.density_inversion_test(sigma0, pressure, suspect_threshold=0.03, fail_threshold=0.01)
+    >>> flags
+    masked_array(data=[3, 3, 1, 1, 9, 9, 1, 4, 4, 1, 1],
+             mask=False,
+       fill_value=999999)
+
+    Flags are applied in the order PASS, SUSPECT, FAIL, and MISSING. Due to multiple flags being written,
+    it is possible for flags to be overwritten (1 --> 3 --> 4).
+
+    >>> sigma0 =   [14.5, 14.52, 15.1, 15.15, np.nan, 15.7, 15.65, 15.0, 16.1, 16.08, 14.5]
+    >>> flags = qartod.density_inversion_test(sigma0, pressure, suspect_threshold=0.03, fail_threshold=0.01)
+    >>> flags
+    masked_array(data=[3, 3, 1, 1, 9, 9, 1, 4, 4, 3, 1],
+             mask=False,
+       fill_value=999999)
+
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -1388,18 +1411,16 @@ def density_inversion_test(
     delta = np.sign(np.diff(zinp)) * np.diff(inp)
 
     if suspect_threshold is not None:
-        with np.errstate(invalid="ignore"):
-            is_suspect = delta < suspect_threshold
-            if any(is_suspect):
-                flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712 - Previous value
-                flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712 - Reversed value
+        is_suspect = delta < suspect_threshold
+        if any(is_suspect):
+            flag_arr[:-1][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712 - Previous value
+            flag_arr[1:][is_suspect == True] = QartodFlags.SUSPECT  # noqa:E712 - Reversed value
 
     if fail_threshold is not None:
-        with np.errstate(invalid="ignore"):
-            is_fail = delta < fail_threshold
-            if any(is_fail):
-                flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # noqa:E712 - Previous value
-                flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # noqa:E712 - Reversed Value
+        is_fail = delta < fail_threshold
+        if any(is_fail):
+            flag_arr[:-1][is_fail == True] = QartodFlags.FAIL  # noqa:E712 - Previous value
+            flag_arr[1:][is_fail == True] = QartodFlags.FAIL  # noqa:E712 - Reversed Value
 
     # If the value or depth is masked set the flag to MISSING for this record and the following one.
     is_missing = inp.mask | zinp.mask
