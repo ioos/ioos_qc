@@ -7,6 +7,7 @@ from pathlib import Path
 
 import h5netcdf.legacyapi as nc4
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from ioos_qc import utils
@@ -89,3 +90,30 @@ class TestGreatCircle(unittest.TestCase):
         time.perf_counter()
         close = np.isclose(dist[1:-1], dist[2:], atol=1)
         assert close.all()
+
+
+class TestMapDates(unittest.TestCase):
+    def setUp(self):
+        # Across the end of daylight saving time in New York
+        self.utc = pd.date_range("2020-11-01T05:00:00Z", periods=4, freq="30min", tz="UTC")
+        self.expected = np.array(
+            [
+                "2020-11-01T05:00:00",
+                "2020-11-01T05:30:00",
+                "2020-11-01T06:00:00",
+                "2020-11-01T06:30:00",
+            ],
+            dtype="datetime64[ns]",
+        )
+
+    def test_timezone_aware_series_is_converted_to_utc(self):
+        local = pd.Series(self.utc.tz_convert("America/New_York"))
+        np.testing.assert_array_equal(utils.mapdates(local), self.expected)
+
+    def test_timezone_aware_index_is_converted_to_utc(self):
+        local = self.utc.tz_convert("America/New_York")
+        np.testing.assert_array_equal(utils.mapdates(local), self.expected)
+
+    def test_naive_series_is_unchanged(self):
+        naive = pd.Series(self.utc.tz_convert(None))
+        np.testing.assert_array_equal(utils.mapdates(naive), self.expected)
