@@ -2414,3 +2414,18 @@ def test_syntax_names():
 def test_syntax_error():
     with pytest.raises(ValueError, match=r"lentype must be .*"):
         qartod.syntax_test(np.array(HEX_BASE), nchar=74, lentype="character")
+
+
+@pytest.mark.parametrize(
+    "testname",
+    [
+        qartod.impossible_date_test,
+        qartod.data_reception_test,
+        qartod.time_gap_test,
+    ],
+)
+def test_time_tests_accept_list(testname):
+    times = ["2026-01-12T23:05:14", "2026-01-12T23:05:15", "2026-01-12T23:05:16"]
+    expected = testname(tinp=np.array(times, dtype="datetime64[ns]"))
+    flags = testname(tinp=times)
+    np.testing.assert_array_equal(flags, expected)
