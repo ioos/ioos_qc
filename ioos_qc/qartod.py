@@ -1578,11 +1578,13 @@ def time_gap_test(
     flag_arr[pair_valid & (diff_time > fail_span)] = QartodFlags.FAIL
     flag_arr[valid & diff_time.mask] = QartodFlags.UNKNOWN  #   Fix points following NaTs
 
-    #   Handle the first point - if second point is NaT but first point is not
-    if tinp.mask[1] & ~tinp.mask[0]:
-        flag_arr[0] = QartodFlags.UNKNOWN
-    else:
-        flag_arr[0] = flag_arr[1]
+    #   Handle the first point - a missing first point keeps the missing flag, and one without
+    #   a valid following point can't be evaluated
+    if tinp.size and valid[0]:
+        if tinp.size == 1 or tinp.mask[1]:
+            flag_arr[0] = QartodFlags.UNKNOWN
+        else:
+            flag_arr[0] = flag_arr[1]
 
     return flag_arr.reshape(original_shape)
 

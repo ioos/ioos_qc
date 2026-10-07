@@ -2379,6 +2379,29 @@ class QartodTimeGapTest:
         assert all(flags.data == [2, 9, 2, 1, 4])
 
 
+def test_time_gap_short_input():
+    """A single timestamp can't be compared to a following one, and an empty input has no flags."""
+    single = np.array(["2026-01-12T23:05:14"], dtype="datetime64[ns]")
+    flags = qartod.time_gap_test(single)
+    np.testing.assert_array_equal(flags, [qartod.QartodFlags.UNKNOWN])
+
+    empty = np.array([], dtype="datetime64[ns]")
+    assert qartod.time_gap_test(empty).size == 0
+
+
+def test_time_gap_leading_nat():
+    """A missing first timestamp is flagged as MISSING, not given the flag of the second point."""
+    times = np.array(
+        ["NaT", "2026-01-12T23:05:14", "2026-01-12T23:05:15", "2026-01-12T23:05:16"],
+        dtype="datetime64[ns]",
+    )
+    flags = qartod.time_gap_test(times)
+    np.testing.assert_array_equal(
+        flags,
+        [qartod.QartodFlags.MISSING, qartod.QartodFlags.UNKNOWN, qartod.QartodFlags.GOOD, qartod.QartodFlags.GOOD],
+    )
+
+
 HEX_BASE = "0AEE61154B95811CEF0B8FB3140016FE8107A45F44FFFB6DFF595A386319612EE2C05B7371"
 DELIMITER_TEST = "1,2,3,4,5,6,7,8,9,10,11,12"
 
