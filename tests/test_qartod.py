@@ -1049,6 +1049,19 @@ class QartodClimatologyTest(unittest.TestCase):
         )
         npt.assert_array_equal(results, np.ma.array([1, 3]))
 
+    def test_climatology_config_invalid(self):
+        bad_configs = [
+            #   Typo in key name
+            ("Potential typo", {"tspan": (0, 2), "vspan": (10, 20), "period": "month", "fpsan": (0, 30)}),
+            #   Unrecognized period
+            ("not recognized", {"tspan": (0, 2), "vspan": (10, 20), "period": "fortnight"}),
+            #   vspan outside of fspan
+            ("must fall within", {"tspan": (0, 2), "vspan": (10, 20), "fspan": (15, 30), "period": "month"}),
+        ]
+        for match, window in bad_configs:
+            with pytest.raises(ValueError, match=match):
+                qartod.climatology_config([window])
+
 
 class QartodSpikeTest(unittest.TestCase):
     def setUp(self):
