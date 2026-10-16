@@ -2,7 +2,6 @@ import logging
 import unittest
 import warnings
 from types import SimpleNamespace
-from typing import NamedTuple
 
 import numpy as np
 import numpy.testing as npt
@@ -1048,6 +1047,10 @@ class QartodClimatologyTest(unittest.TestCase):
             inp=[11, 21],
         )
         npt.assert_array_equal(results, np.ma.array([1, 3]))
+
+    def test_climatology_config_legacy_members(self):
+        #   Anything with a .members attribute is treated as a legacy ClimatologyConfig
+        assert qartod.climatology_config(SimpleNamespace(members=[])) == []
 
     def test_climatology_config_invalid(self):
         bad_configs = [
