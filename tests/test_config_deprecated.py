@@ -12,7 +12,7 @@ import numpy.testing as npt
 from ruamel.yaml import YAML
 
 from ioos_qc.config import QcConfig
-from ioos_qc.qartod import ClimatologyConfig
+from ioos_qc.qartod import climatology_config
 
 L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
@@ -218,29 +218,32 @@ class ConfigRunTest(unittest.TestCase):
 
 
 class ClimatologyConfigConversionTest(unittest.TestCase):
-    # Verify that we can parse and convert configs into a ClimatologyConfig object
-
+    #   Verify that legacy Climatology objects can convert into validated climatology windows
+    #   20261016 - klankers retired ClimatologyConfig class. `climatology_config` is the new helper function that
+    #   should be backwards compatible.
     def setUp(self):
         # Explicitly defined config
-        self.cc = ClimatologyConfig()
-        self.cc.add(
-            tspan=(np.datetime64("2011-01"), np.datetime64("2011-07")),
-            vspan=(10, 20),
-        )
-        self.cc.add(
-            tspan=(np.datetime64("2011-07"), np.datetime64("2012-01")),
-            vspan=(30, 40),
-        )
-        self.cc.add(
-            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
-            vspan=(50, 60),
-            zspan=(0, 10),
-        )
-        self.cc.add(
-            tspan=(0, 2),
-            vspan=(10, 20),
-            period="month",
-        )
+        self.cc = []
+        self.cc.append({
+            "tspan": (np.datetime64("2011-01"), np.datetime64("2011-07")),
+            "vspan": (10, 20),
+        })
+        self.cc.append({
+            "tspan": (np.datetime64("2011-07"), np.datetime64("2012-01")),
+            "vspan": (30, 40),
+        })
+        self.cc.append({
+            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+            "vspan": (50, 60),
+            "zspan": (0, 10),
+        })
+        self.cc.append({
+            "tspan": (0, 2),
+            "vspan": (10, 20),
+            "period": "month",
+        })
+
+        self.cc = climatology_config(self.cc)
 
         # JSON config, same definition as above
         self.json_config = {
@@ -312,28 +315,28 @@ class ClimatologyConfigConversionTest(unittest.TestCase):
 
     def test_climatology_config_yaml_conversion(self):
         qc = QcConfig(self.yamlfile)
-        yaml_climatology_config = ClimatologyConfig.convert(
+        yaml_climatology_config = climatology_config(
             qc.config["qartod"]["climatology_test"]["config"],
         )
         self._assert_cc_configs_equal(self.cc, yaml_climatology_config)
 
     def test_climatology_json_conversion(self):
         qc = QcConfig(self.json_config)
-        json_climatology_config = ClimatologyConfig.convert(
+        json_climatology_config = climatology_config(
             qc.config["qartod"]["climatology_test"]["config"],
         )
         self._assert_cc_configs_equal(self.cc, json_climatology_config)
 
     def _assert_cc_configs_equal(
         self,
-        c1: ClimatologyConfig,
-        c2: ClimatologyConfig,
+        c1: list[dict],
+        c2: list[dict],
     ):
-        assert len(c1.members) == len(c2.members)
-        for idx in range(len(c1.members)):
-            m1 = c1.members[idx]
-            m2 = c2.members[idx]
-            assert m1.tspan == m2.tspan, f"{idx} tspan did not match"
-            assert m1.vspan == m2.vspan, f"{idx} vspan did not match"
-            assert m1.zspan == m2.zspan, f"{idx} zspan did not match"
-            assert m1.period == m2.period, f"{idx} period did not match"
+        assert len(c1) == len(c2)
+        for idx in range(len(c1)):
+            m1 = c1[idx]
+            m2 = c2[idx]
+            assert m1["tspan"] == m2["tspan"], f"{idx} tspan did not match"
+            assert m1["vspan"] == m2["vspan"], f"{idx} vspan did not match"
+            assert m1["zspan"] == m2["zspan"], f"{idx} zspan did not match"
+            assert m1["period"] == m2["period"], f"{idx} period did not match"

@@ -391,14 +391,15 @@ def test_percentile_range_names():
     assert qartod.percentile_range_test.standard_name == "percentile_range_test_quality_flag"
 
 
+#   Note: Climatology test unit tests could be reworked for consistency with other unit tests in the future.
 class QartodClimatologyPeriodTest(unittest.TestCase):
     def _run_test(self, tspan, period):
-        cc = qartod.ClimatologyConfig()
-        cc.add(
-            vspan=(10, 20),  # range of valid values
-            tspan=tspan,  # jan, feb and march
-            period=period,
-        )
+        cc = []
+        cc.append({
+            "vspan": (10, 20),  # range of valid values
+            "tspan": tspan,     # jan, feb and march
+            "period": period,
+        })
         test_inputs = [
             # in feb, but outside range of valid values
             (
@@ -485,92 +486,92 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
 
     def test_quarterly_periods(self):
         vspan = (10, 20)
-        cc = qartod.ClimatologyConfig()
-        cc.add(
-            tspan=(0, 1),  # Q1
-            period="quarter",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(1, 3),  # Q2-Q3
-            period="quarter",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(3, 4),  # Q4
-            period="quarter",
-            vspan=vspan,
-        )
+        cc = []
+        cc.append({
+            "tspan": (0, 1),  # Q1
+            "period": "quarter",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (1, 3),  # Q2-Q3
+            "period": "quarter",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (3, 4),  # Q4
+            "period": "quarter",
+            "vspan": vspan,
+        })
         self._run_test(cc)
 
     def test_monthly_periods(self):
         vspan = (10, 20)
-        cc = qartod.ClimatologyConfig()
-        cc.add(
-            tspan=(0, 1),  # jan
-            period="month",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(1, 2),  # feb
-            period="month",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(2, 3),  # mar
-            period="month",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(3, 10),  # apr-nov
-            period="month",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(10, 11),  # dec
-            period="month",
-            vspan=vspan,
-        )
+        cc = []
+        cc.append({
+            "tspan": (0, 1),
+            "period": "month",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (1, 2),
+            "period": "month",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (2, 3),
+            "period": "month",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (3, 10),  #    Apr-Nov
+            "period": "month",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (10, 11),
+            "period": "month",
+            "vspan": vspan,
+        })
         self._run_test(cc)
 
     def test_dayofyear_periods(self):
         vspan = (10, 20)
-        cc = qartod.ClimatologyConfig()
-        cc.add(
-            tspan=(0, 1),  # first day of year
-            period="dayofyear",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(1, 363),  # jan 2 thru dec 30
-            period="dayofyear",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(363, 364),  # last day of year
-            period="dayofyear",
-            vspan=vspan,
-        )
+        cc = []
+        cc.append({
+            "tspan": (0, 1),
+            "period": "dayofyear",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (1, 363),
+            "period": "dayofyear",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (363, 364),
+            "period": "dayofyear",
+            "vspan": vspan,
+        })
         self._run_test(cc)
 
     def test_weekofyear_periods(self):
         vspan = (10, 20)
-        cc = qartod.ClimatologyConfig()
-        cc.add(
-            tspan=(0, 1),  # first week of year
-            period="weekofyear",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(1, 50),  # 2nd thru 51st week
-            period="weekofyear",
-            vspan=vspan,
-        )
-        cc.add(
-            tspan=(50, 51),  # last week of year
-            period="weekofyear",
-            vspan=vspan,
-        )
+        cc = []
+        cc.append({
+            "tspan": (0, 1),
+            "period": "weekofyear",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (1, 50),
+            "period": "weekofyear",
+            "vspan": vspan,
+        })
+        cc.append({
+            "tspan": (50, 51),
+            "period": "weekofyear",
+            "vspan": vspan,
+        })
         self._run_test(cc)
 
 
@@ -578,13 +579,13 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
     # Test that the various configuration spans (tspan, vspan, fspan, zspan) are
     # inclusive of both endpoints.
     def setUp(self):
-        self.cc = qartod.ClimatologyConfig()
-        self.cc.add(
-            tspan=(np.datetime64("2019-11-01"), np.datetime64("2020-02-04")),
-            fspan=(40, 70),
-            vspan=(50, 60),
-            zspan=(0, 10),
-        )
+        self.cc = []
+        self.cc.append({
+            "tspan": (np.datetime64("2019-11-01"), np.datetime64("2020-02-04")),
+            "fspan": (40, 70),
+            "vspan": (50, 60),
+            "zspan": (0, 10),
+        })
 
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs, strict=True)
@@ -785,19 +786,17 @@ class QartodClimatologyInclusiveRangesTest(unittest.TestCase):
 
 class QartodClimatologyDepthTest(unittest.TestCase):
     def setUp(self):
-        self.cc = qartod.ClimatologyConfig()
-        # with depths
-        self.cc.add(
-            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
-            vspan=(50, 60),
-            zspan=(0, 10),
-        )
-        # same as above, but different depths
-        self.cc.add(
-            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
-            vspan=(70, 80),
-            zspan=(10, 100),
-        )
+        self.cc = []
+        self.cc.append({
+            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+            "vspan": (50, 60),
+            "zspan": (0, 10),
+        })
+        self.cc.append({
+            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+            "vspan": (70, 80),
+            "zspan": (10, 100),
+        })
 
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs, strict=True)
@@ -851,12 +850,11 @@ class QartodClimatologyDepthTest(unittest.TestCase):
 
 class QartodClimatologyMissingTest(unittest.TestCase):
     def setUp(self):
-        self.cc = qartod.ClimatologyConfig()
-        # different time range, no depth
-        self.cc.add(
-            tspan=(np.datetime64("2021-07"), np.datetime64("2021-09")),
-            vspan=(3.4, 5),
-        )
+        self.cc = []
+        self.cc.append({
+            "tspan": (np.datetime64("2021-07"), np.datetime64("2021-09")),
+            "vspan": (3.4, 5),
+        })
 
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs, strict=True)
@@ -905,31 +903,30 @@ class QartodClimatologyMissingTest(unittest.TestCase):
 
 class QartodClimatologyTest(unittest.TestCase):
     def setUp(self):
-        self.cc = qartod.ClimatologyConfig()
-        self.cc.add(
-            tspan=(np.datetime64("2011-01"), np.datetime64("2011-07")),
-            vspan=(10, 20),
-        )
-        self.cc.add(
-            tspan=(np.datetime64("2011-07"), np.datetime64("2012-01")),
-            vspan=(30, 40),
-        )
-        self.cc.add(
-            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
-            vspan=(40, 50),
-        )
-        # same time range as above, but with depths
-        self.cc.add(
-            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
-            vspan=(50, 60),
-            zspan=(0, 10),
-        )
-        # same as above, but different depths
-        self.cc.add(
-            tspan=(np.datetime64("2012-01"), np.datetime64("2013-01")),
-            vspan=(70, 80),
-            zspan=(10, 100),
-        )
+        self.cc = []
+        self.cc.append({
+            "tspan": (np.datetime64("2011-01"), np.datetime64("2011-07")),
+            "vspan": (10, 20),
+        })
+        self.cc.append({
+            "tspan": (np.datetime64("2011-07"), np.datetime64("2012-01")),
+            "vspan": (30, 40),
+        })
+        self.cc.append({
+            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+            "vspan": (40, 50),
+        })
+        #   Runs with depths
+        self.cc.append({
+            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+            "vspan": (50, 60),
+            "zspan": (0, 10),
+        })
+        self.cc.append({
+            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+            "vspan": (70, 80),
+            "zspan": (10, 100),
+        })
 
     def _run_test(self, test_inputs, expected_result):
         times, values, depths = zip(*test_inputs, strict=True)
