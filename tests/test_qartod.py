@@ -1,6 +1,8 @@
 import logging
 import unittest
 import warnings
+from types import SimpleNamespace
+from typing import NamedTuple
 
 import numpy as np
 import numpy.testing as npt
@@ -1038,6 +1040,14 @@ class QartodClimatologyTest(unittest.TestCase):
         ]
         expected_result = [1, 1, 1, 3, 3, 3]
         self._run_test(test_inputs, expected_result)
+
+    def test_climatology_test_no_zinp(self):
+        results = qartod.climatology_test(
+            config=self.cc,
+            tinp=[np.datetime64("2011-01-02"), np.datetime64("2011-01-02")],
+            inp=[11, 21],
+        )
+        npt.assert_array_equal(results, np.ma.array([1, 3]))
 
 
 class QartodSpikeTest(unittest.TestCase):
