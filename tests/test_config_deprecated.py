@@ -224,24 +224,32 @@ class ClimatologyConfigConversionTest(unittest.TestCase):
     def setUp(self):
         # Explicitly defined config
         self.cc = []
-        self.cc.append({
-            "tspan": (np.datetime64("2011-01"), np.datetime64("2011-07")),
-            "vspan": (10, 20),
-        })
-        self.cc.append({
-            "tspan": (np.datetime64("2011-07"), np.datetime64("2012-01")),
-            "vspan": (30, 40),
-        })
-        self.cc.append({
-            "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
-            "vspan": (50, 60),
-            "zspan": (0, 10),
-        })
-        self.cc.append({
-            "tspan": (0, 2),
-            "vspan": (10, 20),
-            "period": "month",
-        })
+        self.cc.append(
+            {
+                "tspan": (np.datetime64("2011-01"), np.datetime64("2011-07")),
+                "vspan": (10, 20),
+            },
+        )
+        self.cc.append(
+            {
+                "tspan": (np.datetime64("2011-07"), np.datetime64("2012-01")),
+                "vspan": (30, 40),
+            },
+        )
+        self.cc.append(
+            {
+                "tspan": (np.datetime64("2012-01"), np.datetime64("2013-01")),
+                "vspan": (50, 60),
+                "zspan": (0, 10),
+            },
+        )
+        self.cc.append(
+            {
+                "tspan": (0, 2),
+                "vspan": (10, 20),
+                "period": "month",
+            },
+        )
 
         self.cc = climatology_config(self.cc)
 

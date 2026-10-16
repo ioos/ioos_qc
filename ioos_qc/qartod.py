@@ -24,7 +24,6 @@ from ioos_qc.utils import (
     add_flag_metadata,
     great_circle_distance,
     isfixedlength,
-    isnan,
     mapdates,
 )
 
@@ -45,6 +44,7 @@ FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
 span = namedtuple("Span", "minv maxv")  # noqa: PYI024
+
 
 def check_span(arr: Sequence[Real]) -> span:
     """Check that a span has 2 values and return it sorted as a Span(minv, maxv)."""
@@ -683,15 +683,16 @@ def climatology_test(
     original_shape = inp.shape
     inp = inp.flatten()
     zinp = zinp.flatten()
-    tinp = pd.DatetimeIndex(mapdates(tinp).flatten())   #   DatetimeIndex comes with things like .month
+    tinp = pd.DatetimeIndex(mapdates(tinp).flatten())  #   DatetimeIndex comes with things like .month
 
     #   Start with everything UNKNOWN, missing values are MISSING
     flag_arr = np.ma.masked_array(np.full(inp.size, QartodFlags.UNKNOWN, dtype="uint8"))
     flag_arr[inp.mask] = QartodFlags.MISSING
 
     week_periods = ("week", "weekofyear")
+
     def time_component(period):
-        """Helper function for handling iso weeks for a particular window"""
+        """Helper function for handling iso weeks for a particular window."""
         if period is None:
             return tinp
         if period in week_periods:
@@ -718,6 +719,7 @@ def climatology_test(
         )
 
     return flag_arr.reshape(original_shape)
+
 
 @add_flag_metadata(
     standard_name="spike_test_quality_flag",
