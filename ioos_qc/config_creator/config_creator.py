@@ -1,5 +1,5 @@
 import calendar
-import datetime
+import datetime as dt
 import json
 import logging
 from copy import copy
@@ -436,14 +436,14 @@ class QcConfigCreator:
 
     def _get_stats(self, variable_config):
         """Return dict of stats (min, max, mean, std) for given config."""
-        start_time = datetime.datetime.strptime(
+        start_time = dt.dt.strptime(
             variable_config["start_time"],
             "%Y-%m-%d",
-        ).replace(tzinfo=datetime.UTC)
-        end_time = datetime.datetime.strptime(
+        ).replace(tzinfo=dt.UTC)
+        end_time = dt.datetime.strptime(
             variable_config["end_time"],
             "%Y-%m-%d",
-        ).replace(tzinfo=datetime.UTC)
+        ).replace(tzinfo=dt.UTC)
         time_range = slice(start_time, end_time)
         subset = self._get_subset(
             variable_config["variable"],

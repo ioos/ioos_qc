@@ -1,11 +1,9 @@
-import datetime
+import datetime as dt
 import logging
-import sys
 import unittest
 from pathlib import Path
 
 import numpy as np
-import packaging
 import pytest
 import xarray as xr
 
@@ -18,13 +16,6 @@ from ioos_qc.config_creator import (
 L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
 L.addHandler(logging.StreamHandler())
-
-if packaging.version.parse(
-    f"{sys.version_info.major}.{sys.version_info.minor}",
-) < packaging.version.parse(
-    "3.11",
-):
-    datetime.UTC = datetime.UTC
 
 
 class TestCreatorConfig(unittest.TestCase):
@@ -186,8 +177,8 @@ class TestQartodConfigurator(unittest.TestCase):
 
     def test_narr_subset(self):
         var = "air"
-        start_time = datetime.datetime(2020, 1, 29, tzinfo=datetime.UTC)
-        end_time = datetime.datetime(2020, 2, 3, tzinfo=datetime.UTC)
+        start_time = dt.datetime(2020, 1, 29, tzinfo=dt.UTC)
+        end_time = dt.datetime(2020, 2, 3, tzinfo=dt.UTC)
         time_slice = slice(start_time, end_time)
         bbox = [
             -165,
@@ -203,8 +194,8 @@ class TestQartodConfigurator(unittest.TestCase):
 
     def test_ocean_atlas_subset(self):
         var = "salinity"
-        start_time = datetime.datetime(2021, 9, 29, tzinfo=datetime.UTC)
-        end_time = datetime.datetime(2021, 10, 3, tzinfo=datetime.UTC)
+        start_time = dt.datetime(2021, 9, 29, tzinfo=dt.UTC)
+        end_time = dt.datetime(2021, 10, 3, tzinfo=dt.UTC)
         time_slice = slice(start_time, end_time)
         bbox = [
             -165,

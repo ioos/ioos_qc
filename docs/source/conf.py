@@ -71,9 +71,9 @@ source_suffix = [".rst"]
 master_doc = "index"
 
 # General information about the project.
-import datetime
+import datetime as dt
 
-year = datetime.datetime.now(tz=datetime.UTC).date().year
+year = dt.datetime.now(tz=dt.UTC).date().year
 project = "ioos_qc"
 copyright = f"2022-{year}, IOOS"
 author = "IOOS"
