@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 from urllib import request
 
+import cftime
 import h5netcdf.legacyapi as nc
 import xarray as xr
 from nco import Nco
@@ -84,7 +85,7 @@ def ocean_atlas_variable_enhance(output_dir, month) -> None:
     # - force to days since 1970-01-01 for first of each month
     # - makes it easy to use with xarray
     new_time_units = "days since 1970-01-01"
-    num = nc.date2num(month, new_time_units)
+    num = cftime.date2num(month, new_time_units)
     with nc.Dataset(fname, "a") as ncds:
         tvar = ncds.variables["time"]
         tvar[:] = num
@@ -227,7 +228,7 @@ def narr_enhance(output_dir) -> None:
     # midyear is 1996
     time_range = xr.cftime_range(start="1996", end="1996-12-31", freq="MS")
     new_units = "days since 1970-01-01 00:00:00"
-    new_times = nc.date2num(time_range, units=new_units)
+    new_times = cftime.date2num(time_range, units=new_units)
     with nc.Dataset(outfile, "a") as ncd:
         time = ncd.variables["time"]
         time[:] = new_times
@@ -285,4 +286,4 @@ if __name__ == "__main__":
         help="Remove temporary files",
     )
     args = parser.parse_args()
-    main(args.outdir, args.delete)
+    main(output_dir=args.outdir, remove_tmp_files=args.delete)
