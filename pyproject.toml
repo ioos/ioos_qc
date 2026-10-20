@@ -27,6 +27,7 @@ dependencies = [
   "geographiclib",
   "geojson",
   "h5netcdf",
+  "h5py",
   "jsonschema",
   "numpy>=1.14",
   "pandas",
@@ -54,7 +55,6 @@ dev = [
   "pytest",
 ]
 docs = [
-  "h5py",
   "ipykernel",
   "matplotlib>=3",
   "nbsphinx",
