@@ -22,10 +22,13 @@ jobs:
             numba: true
           - os: windows-latest
             python-version: "3.15-dev"
+            numba: false
           - os: macos-latest
             python-version: "3.15-dev"
+            numba: false
           - os: macos-15-intel
             python-version: "3.15-dev"
+            numba: false
         numba: [ false ]
       fail-fast: false
     defaults:
