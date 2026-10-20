@@ -295,7 +295,7 @@ class NetcdfStore:
             ncd = None
             should_close = True
             if isinstance(path_or_ncd, (str, Path)):
-                ncd = nc4.Dataset(str(path_or_ncd), "a")
+                ncd = nc4.Dataset(str(path_or_ncd), "a", backend="pyfive")
             elif isinstance(path_or_ncd, nc4.Dataset):
                 ncd = path_or_ncd
                 should_close = False

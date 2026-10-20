@@ -85,7 +85,7 @@ def ocean_atlas_variable_enhance(output_dir, month) -> None:
     # - makes it easy to use with xarray
     new_time_units = "days since 1970-01-01"
     num = nc.date2num(month, new_time_units)
-    with nc.Dataset(fname, "a") as ncds:
+    with nc.Dataset(fname, "a", backend="pyfive") as ncds:
         tvar = ncds.variables["time"]
         tvar[:] = num
         tvar.units = new_time_units
@@ -228,7 +228,7 @@ def narr_enhance(output_dir) -> None:
     time_range = xr.cftime_range(start="1996", end="1996-12-31", freq="MS")
     new_units = "days since 1970-01-01 00:00:00"
     new_times = nc.date2num(time_range, units=new_units)
-    with nc.Dataset(outfile, "a") as ncd:
+    with nc.Dataset(outfile, "a", backend="pyfive") as ncd:
         time = ncd.variables["time"]
         time[:] = new_times
         time.units = new_units

@@ -53,7 +53,7 @@ class TestReadXarrayConfig(unittest.TestCase):
             "fail_span": [0, 12],
         }
         self.data = list(range(13))
-        with nc4.Dataset(self.fp, "w") as ncd:
+        with nc4.Dataset(self.fp, "w", backend="pyfive") as ncd:
             qc1 = ncd.createVariable("qc1", "b")
             qc1.setncattr("ioos_qc_config", json.dumps(self.config))
             qc1.setncattr("ioos_qc_module", "qartod")
