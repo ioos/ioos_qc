@@ -436,7 +436,7 @@ class QcConfigCreator:
 
     def _get_stats(self, variable_config):
         """Return dict of stats (min, max, mean, std) for given config."""
-        start_time = dt.dt.strptime(
+        start_time = dt.datetime.strptime(
             variable_config["start_time"],
             "%Y-%m-%d",
         ).replace(tzinfo=dt.UTC)
