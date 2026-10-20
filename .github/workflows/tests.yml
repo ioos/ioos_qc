@@ -49,7 +49,7 @@ jobs:
     - name: Install library
       run: |
         pip install --group dev
-        pip install -e .[extras]
+        pip install -e .
 
     - name: numba
       if: ${{ matrix.numba }}
