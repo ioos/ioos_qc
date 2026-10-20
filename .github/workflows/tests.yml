@@ -10,11 +10,19 @@ on:
 
 jobs:
   run:
+    name:  ${{ matrix.os }} ${{ matrix.python-version }} numba=${{ matrix.pyudunits2 }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [ "3.11", "3.14" ]
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        python-version: [ "3.11", "3.15-dev" ]
+        os: [ ubuntu-latest ]
+        include:
+          - os: windows-latest
+            python-version: "3.15-dev"
+          - os: macos-latest
+            python-version: "3.15-dev"
+          - os: macos-15-intel
+            python-version: "3.15-dev"
         numba: [true, false]
       fail-fast: false
     defaults:
@@ -27,25 +35,20 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - name: Setup Micromamba ${{ matrix.python-version }}
-      uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39  # v3.2.1
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       with:
-        environment-name: TEST
-        init-shell: bash
-        create-args: >-
-          python=${{ matrix.python-version }} pip python-gil
-          --file requirements.txt
-          --file requirements-dev.txt
-          --channel conda-forge
+        python-version: ${{ matrix.python-version }}
 
-    - name: Install ioos_qc
+    - name: Install library
       run: |
-        python -m pip install -e . --no-deps --force-reinstall
+        pip install --group dev
+        pip install -e .[extras]
 
     - name: numba
       if: ${{ matrix.numba }}
       run: |
-        micromamba install numba
+        pip install numba
 
     - name: Tests
       run: |

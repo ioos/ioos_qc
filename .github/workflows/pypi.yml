@@ -1,16 +1,13 @@
 name: Publish to PyPI
 
-# no permissions by default
-permissions: {}
-
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   release:
     types:
       - published
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   pypi-publish:
@@ -21,6 +18,7 @@ jobs:
       url: https://pypi.org/p/ioos-qc
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
@@ -35,12 +33,10 @@ jobs:
 
     - name: Get tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-      shell: bash
 
     - name: Install build tools
       run: |
-        python -m pip install --upgrade pip build twine
-      shell: bash
+        python -m pip install --upgrade pip build
 
     - name: Build binary wheel
       run: python -m build --sdist --wheel . --outdir dist
@@ -48,13 +44,14 @@ jobs:
     - name: CheckFiles
       run: |
         ls dist
-      shell: bash
+        python -m pip install --upgrade check-manifest
+        check-manifest --verbose
 
     - name: Test wheels
       run: |
         cd dist && python -m pip install ioos_qc*.whl
+        python -m pip install --upgrade twine
         python -m twine check *
-      shell: bash
 
     - name: Publish a Python distribution to PyPI
       if: success() && github.event_name == 'release'
