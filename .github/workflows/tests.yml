@@ -10,7 +10,7 @@ on:
 
 jobs:
   run:
-    name:  ${{ matrix.os }} ${{ matrix.python-version }} numba=${{ matrix.pyudunits2 }}
+    name:  ${{ matrix.os }} ${{ matrix.python-version }} numba=${{ matrix.numba }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
