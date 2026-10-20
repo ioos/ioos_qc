@@ -10,20 +10,23 @@ on:
 
 jobs:
   run:
-    name:  ${{ matrix.os }} ${{ matrix.python-version }} numba=${{ matrix.numba }}
+    name: ${{ matrix.os }} ${{ matrix.python-version }} numba=${{ matrix.numba }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: [ "3.11", "3.15-dev" ]
         os: [ ubuntu-latest ]
         include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+            numba: true
           - os: windows-latest
             python-version: "3.15-dev"
           - os: macos-latest
             python-version: "3.15-dev"
           - os: macos-15-intel
             python-version: "3.15-dev"
-        numba: [true, false]
+        numba: [ false ]
       fail-fast: false
     defaults:
       run:
