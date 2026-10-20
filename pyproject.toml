@@ -52,7 +52,9 @@ urls.repository = "https://github.com/ioos/ioos_qc"
 dev = [
   "dask",
   "erddapy",
+  "gsw",
   "pytest",
+  "roaring-landmask",
 ]
 docs = [
   "ipykernel",
