@@ -39,8 +39,8 @@ dependencies = [
 optional-dependencies.extras = [
   "bokeh",
   "gsw",
+  "nco",
   "numba",
-  "pynco",
   "roaring-landmask",
 ]
 urls.documentation = "https://ioos.github.io/ioos_qc"
@@ -60,7 +60,6 @@ docs = [
   "nbsphinx",
   "pocean-core>=3",
   "pooch",
-  "pynco",
   "sphinx",
   "sphinx-autodoc-typehints",
   { include-group = "dev" },
