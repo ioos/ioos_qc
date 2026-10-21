@@ -24,6 +24,7 @@ from ioos_qc.utils import (
     add_flag_metadata,
     great_circle_distance,
     isfixedlength,
+    isnan,
     mapdates,
 )
 
@@ -533,6 +534,212 @@ def percentile_range_test(
 
     flag_arr[(inp < bound_low) | (inp > bound_hi)] = QartodFlags.SUSPECT
     return flag_arr.reshape(original_shape)
+
+
+class ClimatologyConfig:
+    """Legacy config object for the climatology test.
+
+    Parameters
+    ----------
+    tspan
+        2-tuple range.
+        If period is defined, then this is a numeric range.
+        If period is not defined, then its a date range.
+    fspan
+        (optional) 2-tuple range of valid values. This is passed in as the fail_span to the gross_range_test.
+    vspan
+        2-tuple range of valid values. This is passed in as the suspect_span to the gross_range test.
+    zspan
+        (optional) Vertical (depth) range, in meters positive down
+    period
+        (optional) The unit the tspan argument is in. Defaults to datetime object
+        but can also be any attribute supported by a pandas Timestamp object.
+
+        See: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html
+
+        Options:
+            * year
+            * week / weekofyear
+            * dayofyear
+            * dayofweek
+            * quarter
+
+    """
+
+    mem = namedtuple(  # noqa: PYI024
+        "window",
+        [
+            "tspan",
+            "fspan",
+            "vspan",
+            "zspan",
+            "period",
+        ],
+    )
+
+    def __init__(self, members=None) -> None:
+        members = members or []
+        self._members = members
+
+    @property
+    def members(self):
+        return self._members
+
+    def values(self, tind: pd.Timestamp, zind=None):
+        """Parameters
+        ----------
+        tind
+            Value to test for inclusion between time bounds
+
+        """
+        span = (None, None)
+        for m in self._members:
+            # If a period is defined, extract the attribute from the
+            # pd.Timestamp object before comparison. The min and max
+            # values are in this period unit already.
+            # If a period isn't defined, make a new Timestamp object
+            # to align with the above name 'tind_copy'
+            tind_copy = getattr(tind, m.period) if m.period is not None else tind
+
+            # If we are between times
+            if tind_copy > m.tspan.minv and tind_copy <= m.tspan.maxv:
+                if not isnan(zind) and not isnan(m.zspan):
+                    # If we are between depths
+                    if zind > m.zspan.minv and zind <= m.zspan.maxv:
+                        span = m.vspan
+                elif isnan(zind) and isnan(m.zspan):
+                    span = m.vspan
+        return span
+
+    def add(
+        self,
+        tspan: tuple[Real, Real],
+        vspan: tuple[Real, Real],
+        fspan: tuple[Real, Real] | None = None,
+        zspan: tuple[Real, Real] | None = None,
+        period: str | None = None,
+    ) -> None:
+        if not isfixedlength(tspan, 2):
+            msg = f"{tspan=}, expected 2."
+            raise ValueError(msg)
+        # If period is defined, tspan is a numeric
+        # if it isn't defined, its a parsable date
+        tspan = span(*sorted(tspan)) if period is not None else span(*sorted([pd.Timestamp(tspan[0]), pd.Timestamp(tspan[1])]))
+
+        if not isfixedlength(vspan, 2):
+            msg = f"{vspan=}, expected 2."
+            raise ValueError(msg)
+        vspan = span(*sorted(vspan))
+
+        if fspan is not None:
+            if not isfixedlength(fspan, 2):
+                msg = f"{fspan=}, expected 2."
+                raise ValueError(msg)
+            fspan = span(*sorted(fspan))
+
+        if zspan is not None:
+            if not isfixedlength(zspan, 2):
+                msg = f"{zspan=}, expected 2."
+                raise ValueError(msg)
+            zspan = span(*sorted(zspan))
+
+        if period is not None:
+            # Test to make sure this is callable on a Timestamp
+            try:
+                getattr(pd.Timestamp.now(), period)
+            except AttributeError as err:
+                msg = f'The period "{period}" is not recognized'
+                raise ValueError(msg) from err
+
+        self._members.append(
+            self.mem(
+                tspan,
+                fspan,
+                vspan,
+                zspan,
+                period,
+            ),
+        )
+
+    def check(self, tinp, inp, zinp):
+        # Start with everything as UNKNOWN (2)
+        flag_arr = np.ma.empty(inp.size, dtype="uint8")
+        flag_arr.fill(QartodFlags.UNKNOWN)
+
+        # If the value is masked set the flag to MISSING
+        flag_arr[inp.mask] = QartodFlags.MISSING
+
+        # Iterate over each member and apply its spans on the input data.
+        # Member spans are applied in order and any data points that fall into
+        # more than one member are flagged by each one.
+        for m in self._members:
+            if m.period is not None:
+                # If a period is defined, extract the attribute from the
+                # pd.DatetimeIndex object before comparison. The min and max
+                # values are in this period unit already.
+                if m.period in WEEK_PERIODS:
+                    # The weekofyear accessor was deprecated
+                    tinp_copy = pd.Index(
+                        tinp.isocalendar().week,
+                        dtype="int64",
+                    )
+                else:
+                    tinp_copy = getattr(tinp, m.period).to_series()
+            else:
+                # If a period isn't defined, make a new Timestamp object
+                # to align with the above name 'tinp_copy'
+                tinp_copy = tinp
+
+            # If a zspan is defined but we don't have z input (zinp), skip this member
+            if not isnan(m.zspan) and not zinp.count():
+                continue
+
+            # Indexes that align with the T
+            t_idx = (tinp_copy >= m.tspan.minv) & (tinp_copy <= m.tspan.maxv)
+
+            # Indexes that align with the Z
+            if not isnan(m.zspan):
+                # Only test non-masked values between the min and max.
+                # Ignore warnings about comparing masked values
+                with np.errstate(invalid="ignore"):
+                    z_idx = (~zinp.mask) & (zinp >= m.zspan.minv) & (zinp <= m.zspan.maxv)
+            else:
+                # If there is no z data in the config, don't try to filter by depth!
+                # Set z_idx to all True to prevent filtering
+                # Must use inp.data to create masked array so that the masked value is ignored when we assign the FAIL, SUSPECT, and GOOD flags
+                z_idx = np.ma.array(
+                    data=~np.isnan(inp.data),
+                    mask=inp.mask,
+                    fill_value=999999,
+                )
+
+            # Combine the T and Z indexes
+            values_idx = t_idx & z_idx
+
+            # Failed and suspect data for this value span. Combining fail_idx or
+            # suspect_idx with values_idx represents the subsets of data that should be
+            # fail and suspect respectively.
+            fail_idx = (inp < m.fspan.minv) | (inp > m.fspan.maxv) if not isnan(m.fspan) else np.zeros(inp.size, dtype=bool)
+
+            suspect_idx = (inp < m.vspan.minv) | (inp > m.vspan.maxv)
+
+            with np.errstate(invalid="ignore"):
+                flag_arr[(values_idx & fail_idx)] = QartodFlags.FAIL
+                flag_arr[(values_idx & ~fail_idx & suspect_idx)] = QartodFlags.SUSPECT
+                flag_arr[(values_idx & ~fail_idx & ~suspect_idx)] = QartodFlags.GOOD
+
+        return flag_arr
+
+    @staticmethod
+    def convert(config):
+        # Create a ClimatologyConfig object if one was not passed in
+        if isinstance(config, ClimatologyConfig):
+            return config
+
+        c = ClimatologyConfig()
+        for climate_config_dict in config:
+            c.add(**climate_config_dict)
+        return c
 
 
 def climatology_config(
