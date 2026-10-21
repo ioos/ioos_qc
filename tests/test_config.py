@@ -1,10 +1,8 @@
-import datetime
+import datetime as dt
 import logging
-import sys
 import unittest
 from functools import partial
 
-import packaging
 from shapely.geometry import GeometryCollection, Point
 
 import ioos_qc
@@ -13,13 +11,6 @@ from ioos_qc.config import Call, Config, Context, tw
 L = logging.getLogger("ioos_qc")
 L.setLevel(logging.INFO)
 L.handlers = [logging.StreamHandler()]
-
-if packaging.version.parse(
-    f"{sys.version_info.major}.{sys.version_info.minor}",
-) < packaging.version.parse(
-    "3.11",
-):
-    datetime.UTC = datetime.UTC
 
 
 class StreamConfigLoadTest(unittest.TestCase):
@@ -135,23 +126,23 @@ class ContextConfigRegionWindowLoadTest(unittest.TestCase):
         self.config = Config(config_str)
         self.context = Context(
             window=tw(
-                starting=datetime.datetime(
+                starting=dt.datetime(
                     2020,
                     1,
                     1,
                     0,
                     0,
                     0,
-                    tzinfo=datetime.UTC,
+                    tzinfo=dt.UTC,
                 ),
-                ending=datetime.datetime(
+                ending=dt.datetime(
                     2020,
                     4,
                     1,
                     0,
                     0,
                     0,
-                    tzinfo=datetime.UTC,
+                    tzinfo=dt.UTC,
                 ),
             ),
         )
@@ -225,16 +216,16 @@ class ContextListConfigLoadTest(unittest.TestCase):
                                     fail_span: [0, 12]
         """
         window = tw(
-            starting=datetime.datetime(
+            starting=dt.datetime(
                 2020,
                 1,
                 1,
                 0,
                 0,
                 0,
-                tzinfo=datetime.UTC,
+                tzinfo=dt.UTC,
             ),
-            ending=datetime.datetime(2020, 4, 1, 0, 0, 0, tzinfo=datetime.UTC),
+            ending=dt.datetime(2020, 4, 1, 0, 0, 0, tzinfo=dt.UTC),
         )
         self.config = Config(config_str)
         self.context1 = Context(

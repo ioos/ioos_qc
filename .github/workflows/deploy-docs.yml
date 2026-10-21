@@ -28,20 +28,15 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
-    - name: Setup Micromamba
-      uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39  # v3.2.1
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       with:
-        environment-name: TEST
-        init-shell: bash
-        create-args: >-
-          python=3 pip
-          --file requirements.txt
-          --file docs/requirements.txt
-          --channel conda-forge
+        python-version: "3.11"
 
-    - name: Install ioos_qc
+    - name: Install library
       run: |
-        python -m pip install -e . --no-deps --force-reinstall
+        pip install --group docs
+        pip install -e .[extras]
 
     - name: Build documentation
       run: >

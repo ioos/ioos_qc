@@ -18,25 +18,55 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 dynamic = [
-  "dependencies",
   "version",
+]
+dependencies = [
+  "geographiclib",
+  "geojson",
+  "h5netcdf",
+  "h5py",
+  "jsonschema",
+  "numpy>=1.14",
+  "pandas",
+  "pyparsing",
+  "ruamel-yaml",
+  "scipy",
+  "shapely",
+  "xarray>2022.3",
 ]
 optional-dependencies.extras = [
   "bokeh",
+  "cftime",
   "gsw",
   "nco",
   "numba",
   "roaring-landmask",
 ]
-optional-dependencies.test = [
-  "dask",
-  "pytest",
-]
 urls.documentation = "https://ioos.github.io/ioos_qc"
 urls.homepage = "https://github.com/ioos/ioos_qc"
 urls.repository = "https://github.com/ioos/ioos_qc"
+
+[dependency-groups]
+dev = [
+  "dask",
+  "erddapy",
+  "gsw",
+  "pytest",
+  "roaring-landmask",
+]
+docs = [
+  "ipykernel",
+  "matplotlib>=3",
+  "nbsphinx",
+  "pocean-core>=3",
+  "pooch",
+  "sphinx",
+  "sphinx-autodoc-typehints",
+  { include-group = "dev" },
+]
 
 [tool.setuptools]
 packages = [
