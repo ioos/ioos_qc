@@ -39,6 +39,7 @@ dependencies = [
 ]
 optional-dependencies.extras = [
   "bokeh",
+  "cftime",
   "gsw",
   "nco",
   "numba",
