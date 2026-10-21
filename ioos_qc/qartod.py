@@ -44,12 +44,13 @@ class QartodFlags:
 FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
-WEEK_PERIODS = [
-    "week",
-    "weekofyear",
-]
-
 span = namedtuple("Span", "minv maxv")  # noqa: PYI024
+
+
+def check_span(arr: Sequence[Real]) -> span:
+    """Check that a span has 2 values and return it sorted as a Span(minv, maxv)."""
+    isfixedlength(arr, 2)
+    return span(*sorted(arr))
 
 
 @add_flag_metadata(
@@ -429,13 +430,6 @@ def gross_range_test(
                 dtype=uint8)
 
     """
-
-    #   Helper function to guarantee contents of inputs are good
-    #   Sort the span
-    def check_span(arr: Sequence[Real]) -> span:
-        isfixedlength(arr, 2)
-        return span(*sorted(arr))
-
     #   Fail or "sensor" span
     sspan = check_span(arr=fail_span)
 
@@ -543,7 +537,7 @@ def percentile_range_test(
 
 
 class ClimatologyConfig:
-    """Objects to hold the config for a Climatology test.
+    """Legacy config object for the climatology test.
 
     Parameters
     ----------
@@ -748,62 +742,189 @@ class ClimatologyConfig:
         return c
 
 
+def climatology_config(
+    config: Sequence[dict],
+) -> list[dict]:
+    """Validate and normalise a climatology configuration.
+
+    Each entry ("window") of the config is a dict with the keys below. The
+    returned list has the same shape, with every span sorted into a
+    `Span(minv, maxv)` namedtuple and missing optional keys set to `None`.
+
+    Note: If the user specifies a legacy `ClimatologyConfig` object, it will also be
+    accepted.
+
+    Parameters
+    ----------
+    config
+        A sequence of dicts, one per climatology window:
+            * `tspan` - 2-tuple time range (inclusive). Dates if `period` is
+                not given, otherwise numbers in units of `period`.
+            * `vspan` - 2-tuple range of valid values. Outside is SUSPECT.
+            * `fspan` - (optional) 2-tuple range. Outside is FAIL. Must contain `vspan`.
+            * `zspan` - (optional) 2-tuple depth range (inclusive), meters positive down.
+            * `period` - (optional) Any `pandas.DatetimeIndex` attribute:
+                month, quarter, dayofyear, dayofweek,
+                year, or week/weekofyear (ISO week).
+
+    Returns
+    -------
+    windows
+        A list of validated window dicts.
+
+    """
+    #   Accept the legacy ClimatologyConfig object (anything with .members) by turning it to
+    #   a dictionary
+    if hasattr(config, "members"):
+        config = [m._asdict() for m in config.members]
+
+    good_args = {"tspan", "vspan", "fspan", "zspan", "period"}
+    windows = []
+    for window in config:
+        #   Typo checking
+        unknown = set(window) - good_args
+        if unknown:
+            msg = f"Potential typo in climatology test: {unknown}"
+            raise ValueError(msg)
+
+        period = window.get("period")
+        if period is not None and not hasattr(pd.Timestamp(0), period):
+            msg = f"The period ({period}) is not recognized. Check input params."
+            raise ValueError(msg)
+
+        #   Check tspan against a period
+        tspan = window["tspan"]
+        if period is None:
+            #   No period means tspan is a pair of dates
+            isfixedlength(tspan, 2)
+            tspan = [pd.Timestamp(t) for t in tspan]
+
+        #   Bulk sanitize the rest of our spans, using .get for the optional params
+        tspan = check_span(tspan)
+        vspan = check_span(window["vspan"])
+        fspan = window.get("fspan")
+        if fspan is not None:
+            fspan = check_span(fspan)
+        zspan = window.get("zspan")
+        if zspan is not None:
+            zspan = check_span(zspan)
+
+        if fspan is not None and (vspan.minv < fspan.minv or vspan.maxv > fspan.maxv):
+            msg = f"vspan {vspan} must fall within fspan {fspan}."
+            raise ValueError(msg)
+
+        windows.append(
+            {"tspan": tspan, "vspan": vspan, "fspan": fspan, "zspan": zspan, "period": period},
+        )
+    return windows
+
+
 @add_flag_metadata(
     standard_name="climatology_test_quality_flag",
     long_name="Climatology Test Quality Flag",
 )
 def climatology_test(
-    config: ClimatologyConfig | Sequence[dict[str, tuple]],
+    config: Sequence[dict],
     inp: Sequence[Real],
     tinp: Sequence[Real],
-    zinp: Sequence[Real],
+    zinp: Sequence[Real] | None = None,
 ) -> np.ma.core.MaskedArray:
-    """Checks that values are within reasonable range bounds and flags as SUSPECT.
+    """Checks that values fall within seasonal (and optionally depth-dependent) ranges.
 
-    Data for which no ClimatologyConfig member exists is marked as UNKNOWN.
+    Each window of the config selects the points that fall within its `tspan`
+    (and `zspan`, if given) and runs the `gross_range_test` on them, using
+    `vspan` as the suspect span and `fspan` (if given) as the fail span.
+    Windows are applied in order, so a point covered by more than one window
+    keeps the flag from the last one.
 
     Parameters
     ----------
     config
-        A ClimatologyConfig object or a list of dicts containing tuples
-        that can be used to create a ClimatologyConfig object. See ClimatologyConfig
-        docs for more info.
+        A sequence of dicts, one per climatology window. See `climatology_config` for the accepted keys.
     inp
         Input data as a numeric numpy array or a list of numbers.
     tinp
         Time data as a sequence of datetime objects compatible with pandas DatetimeIndex.
         This includes numpy datetime64, python datetime objects and pandas Timestamp object.
-        ie. pd.DatetimeIndex([datetime.utcnow(), np.datetime64(), pd.Timestamp.now()])
         If anything else is passed in the format is assumed to be seconds since the unix epoch.
     zinp
-        Z (depth) data, in meters positive down, as a numeric numpy array or a list of numbers.
+        (optional) Z (depth) data, in meters positive down, as a numeric numpy
+        array or a list of numbers. Windows with a `zspan` only flag points with a valid depth.
 
     Returns
     -------
     flag_arr
-        A masked array of flag values equal in size to that of the input.
+        A masked array of flag values equal in size to that of the input (GOOD, UNKNOWN, SUSPECT, FAIL, MISSING).
+
+    Examples
+    --------
+    Define your config for temporal and (optionally) depth ranges. In this example: The winter and spring
+    months for the first 100 m.
+
+    >>> config = [
+    ...     {"tspan": (1, 3), "period": "month", "vspan": (10, 13), "zspan": (0, 100)},
+    ...     {"tspan": (4, 6), "period": "month", "vspan": (11, 14), "fspan": (5, 20), "zspan": (0, 100)},
+    ... ]
+    >>> tinp = ["2024-02-01", "2024-02-01", "2024-05-01", "2024-05-01", "2024-08-01", "2024-02-01"]
+    >>> climatology_test(
+    ...     config,
+    ...     inp=[12, 14, 12, 25, 12, np.nan],
+    ...     tinp=np.array(tinp, dtype="datetime64[ns]"),
+    ...     zinp=[5, 5, 5, 5, 5, 5],
+    ... )
+    masked_array(data=[1, 3, 1, 4, 2, 9],
+                 mask=False,
+           fill_value=np.uint64(999999),
+                dtype=uint8)
 
     """
-    # Create a ClimatologyConfig object if one was not passed in
-    config = ClimatologyConfig.convert(config)
+    windows = climatology_config(config)
 
-    tinp = mapdates(tinp)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         inp = np.ma.masked_invalid(np.array(inp).astype(np.float64))
+        if zinp is None:
+            zinp = np.full(inp.shape, np.nan)
         zinp = np.ma.masked_invalid(np.array(zinp).astype(np.float64))
 
-    # Save original shape
     original_shape = inp.shape
-
-    # We compare using a pandas Timestamp for helper functions like
-    # 'week' and 'dayofyear'. It is surprisingly hard to pull these out
-    # of a plain datetime64 object.
-    tinp = pd.DatetimeIndex(tinp.flatten())
     inp = inp.flatten()
     zinp = zinp.flatten()
+    tinp = pd.DatetimeIndex(mapdates(tinp).flatten())  #   DatetimeIndex comes with things like .month
 
-    flag_arr = config.check(tinp, inp, zinp)
+    #   Start with everything UNKNOWN, missing values are MISSING
+    flag_arr = np.ma.masked_array(np.full(inp.size, QartodFlags.UNKNOWN, dtype="uint8"))
+    flag_arr[inp.mask] = QartodFlags.MISSING
+
+    week_periods = ("week", "weekofyear")
+
+    def time_component(period):
+        """Helper function for handling iso weeks for a particular window."""
+        if period is None:
+            return tinp
+        if period in week_periods:
+            return tinp.isocalendar().week.to_numpy(dtype="int64")
+        return getattr(tinp, period)
+
+    for w in windows:
+        t = time_component(w["period"])
+        idx = np.asarray((t >= w["tspan"].minv) & (t <= w["tspan"].maxv))
+
+        if w["zspan"] is not None:
+            with np.errstate(invalid="ignore"):
+                idx &= ~np.ma.getmaskarray(zinp) & (zinp.data >= w["zspan"].minv) & (zinp.data <= w["zspan"].maxv)
+
+        if not idx.any():
+            continue
+
+        #   No fspan means nothing can FAIL, so use an unbounded fail span
+        fail_span = w["fspan"] or (-np.inf, np.inf)
+        flag_arr[idx] = gross_range_test(
+            inp=inp[idx].filled(np.nan),
+            fail_span=tuple(fail_span),
+            suspect_span=tuple(w["vspan"]),
+        )
+
     return flag_arr.reshape(original_shape)
 
 
