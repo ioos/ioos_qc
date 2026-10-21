@@ -44,6 +44,11 @@ class QartodFlags:
 FLAGS = QartodFlags  # Default name for all check modules
 NOTEVAL_VALUE = QartodFlags.UNKNOWN
 
+WEEK_PERIODS = [
+    "week",
+    "weekofyear",
+]
+
 span = namedtuple("Span", "minv maxv")  # noqa: PYI024
 
 
