@@ -145,6 +145,22 @@ class QartodLocationTest(unittest.TestCase):
         )
 
 
+# Previous Profile Test helper
+def test_profile_number_increments_evenly():
+    profile_number = np.array(
+        [np.nan, np.nan, 1, 1, 1, 2, 2, 3, 3, np.nan],
+    )
+
+    profile_number = profile_number[~np.isnan(profile_number)]
+
+    unique_profiles = np.unique(profile_number)
+
+    npt.assert_array_equal(
+        np.diff(unique_profiles),
+        np.ones(len(unique_profiles) - 1),
+    )
+
+
 lat = np.array([61.4, 0, 38.045286, 38.244164, 29.282811])
 lon = np.array([87.4, 0, 141.287681, 140.838304, -94.779981])
 
