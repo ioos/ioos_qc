@@ -20,13 +20,8 @@ try:
 except ImportError:
     NumbaTypeError = TypeError
 
-from ioos_qc.utils import (
-    add_flag_metadata,
-    great_circle_distance,
-    isfixedlength,
-    isnan,
-    mapdates,
-)
+from ioos_qc.utils import (add_flag_metadata, great_circle_distance,
+                           isfixedlength, isnan, mapdates)
 
 L = logging.getLogger(__name__)
 
@@ -792,10 +787,12 @@ def climatology_config(
             msg = f"Potential typo in climatology test: {unknown}"
             raise ValueError(msg)
 
-        period = window.get("period")
-        if period is not None and not hasattr(pd.Timestamp(0), period):
-            msg = f"The period ({period}) is not recognized. Check input params."
-            raise ValueError(msg)
+            period = window.get("period")
+            #   pandas deprecated Timestamp.dayofyear in favour of day_of_year
+            if period == "dayofyear":
+                    period = "day_of_year"
+            if period is not None and not hasattr(pd.Timestamp(0), period):
+
 
         #   Check tspan against a period
         tspan = window["tspan"]

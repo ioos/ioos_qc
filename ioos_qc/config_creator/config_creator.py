@@ -604,8 +604,8 @@ class QcConfigCreator:
 
         # Get days of year for independent variable
         # - special handling for when time-slice crosses new year
-        doy_start = pd.Timestamp(time_slice.start).dayofyear
-        doy_end = pd.Timestamp(time_slice.stop).dayofyear
+        doy_start = pd.Timestamp(time_slice.start).day_of_year
+        doy_end = pd.Timestamp(time_slice.stop).day_of_year
         if doy_start > doy_end:  # days cross new year
             days = list(range(doy_start, 367)) + list(range(1, doy_end))
             if not calendar.isleap(time_slice.start.year):
