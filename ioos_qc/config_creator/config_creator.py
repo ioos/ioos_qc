@@ -574,7 +574,7 @@ class QcConfigCreator:
             msg = "Maximum of 365 days available for config_creator"
             raise NotImplementedError(msg)
 
-        x = var.time.dt.dayofyear
+        x = var.time.dt.day_of_year
         y = var.data
         min_day, max_day = 1, 366
         if min_day not in x and max_day not in x:
@@ -604,8 +604,8 @@ class QcConfigCreator:
 
         # Get days of year for independent variable
         # - special handling for when time-slice crosses new year
-        doy_start = pd.Timestamp(time_slice.start).dayofyear
-        doy_end = pd.Timestamp(time_slice.stop).dayofyear
+        doy_start = pd.Timestamp(time_slice.start).day_of_year
+        doy_end = pd.Timestamp(time_slice.stop).day_of_year
         if doy_start > doy_end:  # days cross new year
             days = list(range(doy_start, 367)) + list(range(1, doy_end))
             if not calendar.isleap(time_slice.start.year):

@@ -565,8 +565,8 @@ class ClimatologyConfig:
         Options:
             * year
             * week / weekofyear
-            * dayofyear
-            * dayofweek
+            * day_of_year
+            * day_of_week
             * quarter
 
     """
@@ -769,7 +769,7 @@ def climatology_config(
             * `fspan` - (optional) 2-tuple range. Outside is FAIL. Must contain `vspan`.
             * `zspan` - (optional) 2-tuple depth range (inclusive), meters positive down.
             * `period` - (optional) Any `pandas.DatetimeIndex` attribute:
-                month, quarter, dayofyear, dayofweek,
+                month, quarter, day_of_year, day_of_week,
                 year, or week/weekofyear (ISO week).
 
     Returns

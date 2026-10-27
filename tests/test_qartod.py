@@ -461,7 +461,7 @@ class QartodClimatologyPeriodTest(unittest.TestCase):
         self._run_test((0, 12), "weekofyear")
 
     def test_climatology_test_periods_day_of_year(self):
-        self._run_test((0, 90), "dayofyear")
+        self._run_test((0, 90), "day_of_year")
 
     def test_climatology_test_periods_quarter(self):
         self._run_test((0, 1), "quarter")
@@ -553,27 +553,27 @@ class QartodClimatologyPeriodFullCoverageTest(unittest.TestCase):
         )
         self._run_test(cc)
 
-    def test_dayofyear_periods(self):
+    def test_day_of_year_periods(self):
         vspan = (10, 20)
         cc = []
         cc.append(
             {
                 "tspan": (0, 1),
-                "period": "dayofyear",
+                "period": "day_of_year",
                 "vspan": vspan,
             },
         )
         cc.append(
             {
                 "tspan": (1, 363),
-                "period": "dayofyear",
+                "period": "day_of_year",
                 "vspan": vspan,
             },
         )
         cc.append(
             {
                 "tspan": (363, 364),
-                "period": "dayofyear",
+                "period": "day_of_year",
                 "vspan": vspan,
             },
         )
