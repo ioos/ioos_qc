@@ -174,8 +174,9 @@ def isnan(v: Any) -> bool:
 def mapdates(dates):
     """Map dates objects to datetime64[ns]."""
     if hasattr(dates, "dtype") and hasattr(dates.dtype, "tz"):
-        # pandas time objects with a datetime component, remove the timezone
-        return dates.dt.tz_localize(None).astype("datetime64[ns]").to_numpy()
+        # pandas time objects with a timezone, convert to UTC and remove the timezone
+        dates = dates.dt.tz_convert(None) if hasattr(dates, "dt") else dates.tz_convert(None)
+        return dates.to_numpy().astype("datetime64[ns]")
     if hasattr(dates, "dtype") and hasattr(dates, "to_numpy"):
         # pandas time objects without a datetime component
         return dates.to_numpy().astype("datetime64[ns]")
