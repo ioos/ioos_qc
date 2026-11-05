@@ -192,11 +192,11 @@ def location_test(
             except ImportError as err:
                 msg = "'gsw' is missing from the current environment. See 'extras' dependencies in pyproject.toml"
                 raise ImportError(msg) from err
-            d = np.insert(gsw.geostrophy.distance(lat=lat, lon=lon), 0, 0)
+            d = np.insert(gsw.geostrophy.distance(lat=lat.filled(np.nan), lon=lon.filled(np.nan)), 0, 0)
         else:
             msg = f"Unknown value for range_method: '{range_method}'.Expected 'wgs84' or 'haversine'."
             raise ValueError(msg)
-        flag_arr[d > range_max] = QartodFlags.SUSPECT
+        flag_arr[(d > range_max) & (flag_arr == QartodFlags.GOOD)] = QartodFlags.SUSPECT
 
     # All points that are otherwise impossible are flagged as FAIL to overwrite results from optional checks.
     lat_max = 90
