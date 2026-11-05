@@ -253,8 +253,8 @@ class QcVariableConfig(dict):
 class QcConfigCreator:
     """Creates level-0 configuration to create QcQonfig.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     creator_config (QcCreatorConfig)
         Configuration for datasets and variables used to create qc_config.
 
