@@ -30,7 +30,7 @@ repos:
     - id: nb-strip-paths
 
 - repo: https://github.com/tox-dev/pyproject-fmt
-  rev: v2.30.3
+  rev: v2.30.6
   hooks:
     - id: pyproject-fmt
 
@@ -46,7 +46,7 @@ repos:
         - --ignore-words-list=pres,ba,ot
 
 - repo: https://github.com/woodruffw/zizmor-pre-commit
-  rev: v1.31.1
+  rev: v1.32.0
   hooks:
     - id: zizmor
 
