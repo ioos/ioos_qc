@@ -180,11 +180,19 @@ def location_test(
     mismatch = lon.mask != lat.mask
     flag_arr[mismatch] = QartodFlags.FAIL
 
+    # Points that are otherwise impossible, flagged as FAIL at the end
+    lat_max = 90
+    lon_max = 180
+    out_of_bounds = ((np.abs(lat) > lat_max) | (np.abs(lon) > lon_max)).filled(False)
+
     # Optional check for distance between points
     if range_max is not None and lon.size > 1:
+        # Impossible positions can't produce meaningful distances; treat them like missing
+        lat_d = np.where(out_of_bounds, np.nan, lat.filled(np.nan))
+        lon_d = np.where(out_of_bounds, np.nan, lon.filled(np.nan))
         if range_method.lower() == "wgs84":
             # High accuracy at the cost of speed
-            d = great_circle_distance(lat, lon)
+            d = great_circle_distance(lat_d, lon_d)
         elif range_method.lower() == "haversine":
             # High speed at the cost of accuracy
             try:
@@ -192,16 +200,14 @@ def location_test(
             except ImportError as err:
                 msg = "'gsw' is missing from the current environment. See 'extras' dependencies in pyproject.toml"
                 raise ImportError(msg) from err
-            d = np.insert(gsw.geostrophy.distance(lat=lat.filled(np.nan), lon=lon.filled(np.nan)), 0, 0)
+            d = np.insert(gsw.geostrophy.distance(lat=lat_d, lon=lon_d), 0, 0)
         else:
             msg = f"Unknown value for range_method: '{range_method}'.Expected 'wgs84' or 'haversine'."
             raise ValueError(msg)
         flag_arr[(d > range_max) & (flag_arr == QartodFlags.GOOD)] = QartodFlags.SUSPECT
 
     # All points that are otherwise impossible are flagged as FAIL to overwrite results from optional checks.
-    lat_max = 90
-    lon_max = 180
-    flag_arr[(np.abs(lat) > lat_max) | (np.abs(lon) > lon_max)] = QartodFlags.FAIL
+    flag_arr[out_of_bounds] = QartodFlags.FAIL
 
     return flag_arr.reshape(original_shape)
 
