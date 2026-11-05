@@ -234,22 +234,19 @@ class CFNetCDFStore(BaseStore):
                         attrs[column_name]["ioos_qc_region"] = json.dumps(
                             call.region,
                             cls=GeoNumpyDateEncoder,
-                            allow_nan=False,
-                            ignore_nan=True,
+                            allow_nan=True,
                         )
                     if call.window.starting or call.window.ending:
                         attrs[column_name]["ioos_qc_window"] = json.dumps(
                             call.window,
                             cls=GeoNumpyDateEncoder,
-                            allow_nan=False,
-                            ignore_nan=True,
+                            allow_nan=True,
                         )
 
                     qc_varconfig = json.dumps(
                         call.kwargs,
                         cls=GeoNumpyDateEncoder,
-                        allow_nan=False,
-                        ignore_nan=True,
+                        allow_nan=True,
                     )
                     attrs[column_name]["ioos_qc_config"] = qc_varconfig
 
@@ -258,8 +255,7 @@ class CFNetCDFStore(BaseStore):
             attrs["ioos_qc_config"] = json.dumps(
                 config.config,
                 cls=GeoNumpyDateEncoder,
-                allow_nan=False,
-                ignore_nan=True,
+                allow_nan=True,
             )
 
         dsg_kwargs = {
@@ -375,8 +371,7 @@ class NetcdfStore:
                             varconfig = json.dumps(
                                 varconfig,
                                 cls=GeoNumpyDateEncoder,
-                                allow_nan=False,
-                                ignore_nan=True,
+                                allow_nan=True,
                             )
                             v.setncattr("ioos_qc_config", varconfig)
                             v.setncattr(
@@ -384,8 +379,7 @@ class NetcdfStore:
                                 json.dumps(
                                     config.contexts[0].region,
                                     cls=GeoNumpyDateEncoder,
-                                    allow_nan=False,
-                                    ignore_nan=True,
+                                    allow_nan=True,
                                 ),
                             )
                             v.setncattr(
@@ -393,8 +387,7 @@ class NetcdfStore:
                                 json.dumps(
                                     config.contexts[0].window,
                                     cls=GeoNumpyDateEncoder,
-                                    allow_nan=False,
-                                    ignore_nan=True,
+                                    allow_nan=True,
                                 ),
                             )
 
@@ -417,8 +410,7 @@ class NetcdfStore:
                     json.dumps(
                         config.config,
                         cls=GeoNumpyDateEncoder,
-                        allow_nan=False,
-                        ignore_nan=True,
+                        allow_nan=True,
                     ),
                 )
 
