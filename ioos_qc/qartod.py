@@ -252,17 +252,9 @@ def location_on_land_test(
     >>> flags = location_on_land_test(lon=lon, lat=lat)
     >>> flags
     masked_array(data=[4, 1, 1, 4, 1],
-             mask=[False, False, False, False, False],
-       fill_value=np.uint64(999999),
-            dtype=uint8)
-
-    For full CF datasets in Xarray:
-    >>> flags = location_on_land_test(lon=data.LONGITUDE, lat=data.LATITUDE)
-    >>> flags
-    masked_array(data=[1, 1, 1, ..., 1, 1, 1],
-             mask=[False, False, False, ..., False, False, False],
-       fill_value=np.uint64(999999),
-            dtype=uint8)
+                 mask=[False, False, False, False, False],
+           fill_value=np.uint64(999999),
+                dtype=uint8)
 
     """
     try:
@@ -324,7 +316,7 @@ def location_bounds_test(
     flag_arr
         A masked array of flag values.
 
-    Example:
+    Example
     -------
     When flagging outside of a designated area, where the first and last point are outside:
 
