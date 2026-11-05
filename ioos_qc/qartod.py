@@ -183,7 +183,7 @@ def location_test(
     # Points that are otherwise impossible, flagged as FAIL at the end
     lat_max = 90
     lon_max = 180
-    out_of_bounds = ((np.abs(lat) > lat_max) | (np.abs(lon) > lon_max)).filled(False)
+    out_of_bounds = ((np.abs(lat) > lat_max) | (np.abs(lon) > lon_max)).filled(fill_value=False)
 
     # Optional check for distance between points
     if range_max is not None and lon.size > 1:
