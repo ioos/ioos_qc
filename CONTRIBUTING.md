@@ -103,7 +103,8 @@ You will have to do this any time you re-open your prompt.
 Currently there are no packages in this environment, let's change that.
 
 ```sh
-conda install --file requirements.txt --file requirements-dev.txt
+python -m pip install --upgrade pip
+python -m pip install -e . --group dev
 ```
 
 Note that those requirement file names may change depending on the repository.
@@ -133,7 +134,8 @@ You will have to do this any time you re-open your prompt.
 Currently there are no packages in this environment, let's change that.
 
 ```sh
-conda install -y --file requirements.txt --file requirements-dev.txt --file docs/requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -e ".[extras]" --group dev --group docs
 ```
 
 Note that those requirement file names may change depending on the repository.
