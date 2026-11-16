@@ -4,43 +4,19 @@ Development and Testing
 Environment setup
 -----------------
 
+We suggest conda but any Python installer would do as long as the `dev` and `docs` dependency groups are installed.
+Here is an example on how to create and environment for Python 3.14.
+
 Create a conda environment::
 
-    conda create -n ioosqc38 python=3.8
-    conda activate ioosqc38
-    conda install --file requirements.txt --file requirements-dev.txt
+    conda env create --name IOOSQC "python=3.14" pip
+    conda activate IOOSQC
+    pip install --group dev
+    pip install --group docs
+    pip install -e ".[extras]"
 
-Run tests::
+Then run the tests with:
 
-    pytest
+    python -m pytest -s -rxs -v
 
-Docs
------
-
-Build docs::
-
-    conda create -y -n ioosqc38_docs python=3.8
-    conda activate ioosqc38_docs
-    conda install -y --file requirements.txt \
-        --file requirements-dev.txt \
-        --file docs/requirements.txt
-    cd docs
-    make html
-
-Then open a browser to ``build/html/index.html``.
-
-*Note:* If you encounter problems during the build, delete the ``docs/source/examples/.ipynb_checkpoints/`` folder and try again.
-
-Run Jupyter server and edit notebook examples::
-
-    conda activate ioosqc38_docs
-    cd docs/source/examples
-    jupyter notebook
-
-*Note:* If you add or edit the notebook examples, you should save the result with the *output cleared on all cells*.
-This way, ``nbsphinx`` will build the notebook output during the build stage.
-
-Releasing
----------
-
-1. Tag `main` with the version number. That's it.
+When ready, submit a human-made code change via a Pull Request that will run the full test matrix.
