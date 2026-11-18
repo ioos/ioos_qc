@@ -36,3 +36,49 @@ Plan for today:
     * Plot up all the results, reporting the F1 score if there are QC available
 
 At the end of the day, I want to save what I've learned into `docs/design/initial_learning.md`, describing the outcomes of the workflow, notes on usage, and future results.
+
+---
+
+## Day 2 update
+
+We ran an ML processor on our example data, but realised we don't need ML at all for the `gross_range_test`. It's common practice to set the global range limits to a certain number of standard deviations when there is no obvious literature describing the expected annual conditions for the data.
+
+We re-evaluated what we thought would be required:
+* Operators still don't quite know what to set their ranges to for the `gross_range_test`, `climatology_test`, or `spike_test`. These can be satisfied by:
+    * Fail parameters being specified by sensor manufacturers
+    * Suspect parameters being identified statistically from the data
+* Furthermore, the `climatology_test` configuration has historically been very hard to define, and can be daunting for new operators or data access centers.
+    * Can we, using ML clustering methods, identify different periods of time within the data (including "seasonal" or repeating trends)?
+    * Run our statistical bounds during each period and build a climatology configuration through reproducible statistics.
+
+We (including Claude) put together a new module, `build_limits.py`, which seeks to address this:
+* Use clustering to identify different periods by:
+    * a specified number of temporal bins (`method="segments"`, contiguous Ward clustering; ignores annual trends, better for shorter datasets),
+    * shared regimes (`method="regimes"`, k-means; e.g. supporting storms in both winter and summer),
+    * "seasons" (`method="seasonal"`, k-means; annual trends at a specified resolution, pooled over multiple years).
+* Pass in the `auto_thresh` function with a specified number of standard deviations to permit.
+* Generate the climatology config, using terminology consistent with ioos_qc's existing code (`period`, for example, to support `weekofyear`).
+
+We passed it over our previous training set, and it successfully builds statistically reproducible bounds and configs for the `gross_range_test` and `climatology_test`.
+
+Details, results and figures: [initial_learning.md](initial_learning.md).
+
+### Objectives for tomorrow
+
+Continue to refine the code and build some documentation. Ideally, we'll have the following defaults:
+* Cluster my data "seasonally", such that I can build a climatology for every January, or every spring, or every 01-15 to 02-20.
+    * "Seasonal" limits are the best defined for NRT data or streams, where the current time is known. This is most intuitive for people who are not experts in the region.
+* Get averages for those specified ranges with a standard deviation of 3.
+* Return the climatology and support plotting, so the user can see what the configuration looks like.
+* Make `plot_limits` more generic, so a user can more easily visualise premade configurations for the climatology and gross range.
+* Investigate `spike_test`.
+* Run again with a remote participant, submitting data with known storm data.
+* Finalise a Jupyter notebook that can live in the ioos_qc docs to demonstrate the workflow.
+
+### Current state (end of Day 2, for picking up tomorrow)
+
+* Code: `ioos_qc/build_limits.py`, tests in `tests/test_build_limits.py` (18 passing).
+* Current defaults that differ from tomorrow's goals: `method="segments"` (goal: `"seasonal"`) and `n_std=2` in both `auto_thresh` and `climatology_config` (goal: 3).
+* `plot_limits` already accepts any gross range span or climatology config (list of window dicts), including premade ones. It does not yet accept a legacy `ClimatologyConfig` object, a `fail_span` drawn per climatology window, or a config with `zspan` without passing `z`.
+* Practice run: `PYTHONPATH=. python docs/design/scripts/run_belhaven.py` (the `qc` env's installed ioos_qc is not editable).
+* Known existing ioos_qc issue: `qartod.climatology_test` fails on a tz-aware `DatetimeIndex`; pass a pandas Series or naive UTC times.
