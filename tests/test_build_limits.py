@@ -14,6 +14,7 @@ from ioos_qc.build_limits import (
     climatology_config,
     compare_flags,
     find_regimes,
+    gross_range_thresh,
     plot_limits,
 )
 
@@ -36,15 +37,51 @@ def record():
 def test_auto_thresh():
     x = np.array([1.0, 2, 3, 4, 5, np.nan])
     lo, hi = auto_thresh(x)
-    assert lo == pytest.approx(3 - 2 * np.std([1, 2, 3, 4, 5]))
-    assert hi == pytest.approx(3 + 2 * np.std([1, 2, 3, 4, 5]))
-    lo3, hi3 = auto_thresh(x, n_std=3)
-    assert lo3 < lo
-    assert hi3 > hi
+    assert lo == pytest.approx(3 - 3 * np.std([1, 2, 3, 4, 5]))
+    assert hi == pytest.approx(3 + 3 * np.std([1, 2, 3, 4, 5]))
+    lo2, hi2 = auto_thresh(x, n_std=2)
+    assert lo2 > lo
+    assert hi2 < hi
     with pytest.raises(ValueError, match="positive"):
         auto_thresh(x, n_std=0)
     with pytest.raises(ValueError, match="two finite"):
         auto_thresh([np.nan, 1])
+
+
+def test_auto_thresh_dispatches_to_gross_range():
+    x = np.array([1.0, 2, 3, 4, 5, np.nan])
+    assert auto_thresh(x, n_std=2, test="gross_range") == gross_range_thresh(x, n_std=2)
+    assert auto_thresh(x, n_std=3, test="gross_range") == gross_range_thresh(x, n_std=3)
+
+
+def test_auto_thresh_dispatches_multiple_tests():
+    x = np.array([1.0, 2, 3, 4, 5, np.nan])
+    expected = gross_range_thresh(x, n_std=1, include_fail_span=True)
+    assert auto_thresh(
+        x,
+        tests=["gross_range"],
+        options={"gross_range": {"n_std": 1, "include_fail_span": True}},
+    ) == {"gross_range": expected}
+
+
+def test_gross_range_thresh_optional_fail_span():
+    x = np.array([1.0, 2, 3, 4, 5])
+    std = np.std(x)
+    suspect, fail = gross_range_thresh(x, n_std=1, include_fail_span=True)
+    assert suspect == pytest.approx((3 - std, 3 + std))
+    assert fail == pytest.approx((3 - 3 * std, 3 + 3 * std))
+    assert auto_thresh(x, n_std=1, test="gross_range", include_fail_span=True) == (suspect, fail)
+
+
+def test_auto_thresh_rejects_unknown_test():
+    with pytest.raises(ValueError, match="Unknown test 'spike'"):
+        auto_thresh([1, 2, 3], test="spike")
+    with pytest.raises(ValueError, match="Unknown test"):
+        auto_thresh([1, 2, 3], tests=["gross_range", "spike"])
+    with pytest.raises(ValueError, match="duplicate"):
+        auto_thresh([1, 2, 3], tests=["gross_range", "gross_range"])
+    with pytest.raises(ValueError, match="either test or tests"):
+        auto_thresh([1, 2, 3], test="gross_range", tests=["gross_range"])
 
 
 def test_auto_thresh_feeds_gross_range():

@@ -1,8 +1,10 @@
 """Build statistically informed QARTOD limits from data.
 
-* :func:`auto_thresh` returns a *suspect* span (mean ± ``n_std`` standard
-  deviations) for ``qartod.gross_range_test``. Fail spans are deliberately not
-  estimated. They should come from the sensor manufacturer or experts.
+* :func:`auto_thresh` dispatches to a test-specific threshold builder. The
+ ``"gross_range"`` builder returns a *suspect* span (mean ± ``n_std``
+ standard deviations) for ``qartod.gross_range_test``. An optional fail span
+ is available as a fallback when external limits are unavailable; it extends
+ the suspect span by two standard deviations on each side.
 * :func:`find_regimes` uses clustering to split a record into regimes
   (seasons, storms, ...).
 * :func:`climatology_config` runs :func:`auto_thresh` on each regime and
@@ -37,8 +39,9 @@ variable's own units and are clustered unscaled, so distances are physical
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable, Mapping, Sequence
 from itertools import pairwise
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import pandas as pd
@@ -48,7 +51,6 @@ from ioos_qc import qartod
 from ioos_qc.qartod import QartodFlags
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from numbers import Real
 
     from matplotlib.figure import Figure
@@ -62,6 +64,10 @@ DEFAULT_SMOOTH = {"month": 1, "weekofyear": 3, "day_of_year": 15}
 FLAG_NAMES = ("GOOD", "SUSPECT", "FAIL")
 _SCORED = (QartodFlags.GOOD, QartodFlags.SUSPECT, QartodFlags.FAIL)
 _MIN_BIN_SAMPLES = 3
+_Span: TypeAlias = tuple[float, float]
+_GrossRangeThresholds: TypeAlias = _Span | tuple[_Span, _Span]
+_AutoThreshResult: TypeAlias = _GrossRangeThresholds | dict[str, _GrossRangeThresholds]
+_ThresholdBuilder: TypeAlias = Callable[..., _GrossRangeThresholds]
 
 
 # --------------------------------------------------------------------------- #
@@ -168,8 +174,17 @@ def _kmeans(z: np.ndarray, k: int, random_state: int) -> np.ndarray:
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
-def auto_thresh(data: Sequence[Real], n_std: float = 2.0) -> tuple[float, float]:
+def gross_range_thresh(
+    data: Sequence[Real],
+    n_std: float = 3.0,
+    *,
+    include_fail_span: bool = False,
+) -> tuple[float, float] | tuple[tuple[float, float], tuple[float, float]]:
     """Suspect span for ``qartod.gross_range_test``: mean ± ``n_std`` std.
+
+    Optionally also estimate a fallback fail span, extending two additional
+    standard deviations beyond the suspect span on each side. Prefer
+    manufacturer or expert fail limits when available.
 
     Parameters
     ----------
@@ -177,13 +192,19 @@ def auto_thresh(data: Sequence[Real], n_std: float = 2.0) -> tuple[float, float]
         Values of a single variable (e.g. temperature or water level).
         NaN/masked values are ignored.
     n_std
-        Number of standard deviations from the mean.
+        Number of standard deviations from the mean for the suspect span.
+    include_fail_span
+        If true, also return a fail span using ``n_std + 2`` standard
+        deviations. This is a fallback for when external fail limits are
+        unavailable.
 
     Returns
     -------
     tuple
-        ``(lower, upper)`` suspect bounds. Use as
-        ``gross_range_test(data, fail_span=<expert span>, suspect_span=...)``.
+        By default, ``(suspect_lower, suspect_upper)``. If
+        ``include_fail_span`` is true, return
+        ``(suspect_span, fail_span)``, where each span is a ``(lower, upper)``
+        pair.
 
     """
     if n_std <= 0:
@@ -195,7 +216,111 @@ def auto_thresh(data: Sequence[Real], n_std: float = 2.0) -> tuple[float, float]
         msg = "auto_thresh needs at least two finite values."
         raise ValueError(msg)
     mean, std = float(x.mean()), float(x.std())
-    return (mean - n_std * std, mean + n_std * std)
+    suspect_span = (mean - n_std * std, mean + n_std * std)
+    if not include_fail_span:
+        return suspect_span
+    fail_n_std = n_std + 2
+    fail_span = (mean - fail_n_std * std, mean + fail_n_std * std)
+    return suspect_span, fail_span
+
+
+_THRESHOLD_BUILDERS: dict[str, _ThresholdBuilder] = {
+    "gross_range": gross_range_thresh,
+}
+
+
+def _select_threshold_tests(test: str | None, tests: Sequence[str] | None) -> tuple[tuple[str, ...], bool]:
+    if test is not None and tests is not None:
+        msg = "Provide either test or tests, not both."
+        raise ValueError(msg)
+    if tests is None:
+        selected = (test or "gross_range",)
+        multiple = False
+    else:
+        if isinstance(tests, str):
+            msg = "tests must be a sequence of test names, not a string."
+            raise TypeError(msg)
+        selected = tuple(tests)
+        if not selected:
+            msg = "tests must contain at least one test name."
+            raise ValueError(msg)
+        if not all(isinstance(name, str) for name in selected):
+            msg = "Every test name must be a string."
+            raise TypeError(msg)
+        if len(set(selected)) != len(selected):
+            msg = "tests must not contain duplicate names."
+            raise ValueError(msg)
+        multiple = True
+
+    unknown = tuple(name for name in selected if name not in _THRESHOLD_BUILDERS)
+    if unknown:
+        if len(selected) == 1:
+            msg = f"Unknown test {unknown[0]!r}; choose from {tuple(_THRESHOLD_BUILDERS)}."
+        else:
+            msg = f"Unknown tests {unknown!r}; choose from {tuple(_THRESHOLD_BUILDERS)}."
+        raise ValueError(msg)
+    return selected, multiple
+
+
+def _validate_threshold_options(selected: tuple[str, ...], options: Mapping[str, Mapping[str, object]]) -> None:
+    unused_options = set(options) - set(selected)
+    if unused_options:
+        msg = f"Options provided for tests not selected: {tuple(sorted(unused_options))!r}."
+        raise ValueError(msg)
+
+
+def auto_thresh(  # noqa: PLR0913
+    data: Sequence[Real],
+    n_std: float = 3.0,
+    *,
+    test: str | None = None,
+    tests: Sequence[str] | None = None,
+    include_fail_span: bool = False,
+    options: Mapping[str, Mapping[str, object]] | None = None,
+) -> _AutoThreshResult:
+    """Build thresholds for the requested QC test.
+
+    Parameters
+    ----------
+    data
+        Values of a single variable.
+    n_std
+        Number of standard deviations from the mean for ``"gross_range"``.
+    test
+        One threshold method to run. Retained for single-test calls.
+    tests
+        Multiple threshold methods to run. When provided, results are returned
+        in a mapping keyed by test name.
+    include_fail_span
+        For ``"gross_range"``, also estimate a fallback fail span two standard
+        deviations beyond the suspect span.
+    options
+        Optional test-specific keyword arguments, keyed by test name. These
+        override ``n_std`` and ``include_fail_span`` for ``"gross_range"``.
+
+    Returns
+    -------
+    tuple or dict
+        A single test returns its threshold result directly. Multiple tests
+        return a mapping from test name to threshold result.
+
+    """
+    selected, multiple = _select_threshold_tests(test, tests)
+    options = options or {}
+    _validate_threshold_options(selected, options)
+
+    results = {}
+    for name in selected:
+        test_options = dict(options.get(name, {}))
+        if name == "gross_range":
+            test_options = {
+                "n_std": n_std,
+                "include_fail_span": include_fail_span,
+                **test_options,
+            }
+        results[name] = _THRESHOLD_BUILDERS[name](data, **test_options)
+
+    return results if multiple else results[selected[0]]
 
 
 def find_regimes(  # noqa: PLR0913
@@ -397,7 +522,7 @@ def _windows(  # noqa: PLR0913
         units = _period_values(t, period)
         windows = []
         for label, rows in reg.groupby("regime"):
-            vspan = auto_thresh(x[np.isin(units, rows[period])], n_std)
+            vspan = auto_thresh(x[np.isin(units, rows[period])], n_std, test="gross_range")
             # one window per run of consecutive calendar units
             us = np.sort(rows[period].to_numpy())
             run_id = np.concatenate([[0], np.cumsum(np.diff(us) != 1)])
@@ -421,7 +546,7 @@ def _windows(  # noqa: PLR0913
     bounds = {}
     for label in reg["regime"].unique():
         mask = np.logical_or.reduce([in_row[i] for i in np.flatnonzero(reg["regime"] == label)])
-        bounds[label] = auto_thresh(x[mask], n_std)
+        bounds[label] = auto_thresh(x[mask], n_std, test="gross_range")
     return [
         {
             "tspan": (row.start.isoformat(), row.end.isoformat()),
