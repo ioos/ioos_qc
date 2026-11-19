@@ -7,12 +7,14 @@ matplotlib for :func:`plot_limits`; both are imported only when used.
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
 from ioos_qc import qartod
+from ioos_qc.auto_limits import SPIKE_METHODS, _spike_score_series
 from ioos_qc.qartod import QartodFlags
 from ioos_qc.utils import _as_float, _naive_utc, compare_flags
 
@@ -293,18 +295,160 @@ def _plot_confusion(ax, scores: dict) -> None:
     )
 
 
+def _plot_spike_limits(  # noqa: PLR0913
+    plt,
+    *,
+    data: np.ndarray,
+    time: pd.DatetimeIndex,
+    scores: np.ndarray,
+    flags: np.ndarray,
+    limits: Mapping[str, float],
+    method: str,
+    reference: Sequence[int] | None,
+    title: str | None,
+    ylabel: str,
+) -> Figure:
+    has_reference = reference is not None
+    fig = plt.figure(figsize=(14, 7), layout="constrained", facecolor=_SURFACE)
+    gs = fig.add_gridspec(
+        2,
+        2 if has_reference else 1,
+        height_ratios=(2, 1),
+        width_ratios=[3.2, 1] if has_reference else [1],
+    )
+    data_ax = fig.add_subplot(gs[0, 0])
+    score_ax = fig.add_subplot(gs[1, 0], sharex=data_ax)
+    _style(data_ax)
+    _style(score_ax)
+
+    data_ax.plot(time, data, color=_BASELINE, linewidth=0.7, zorder=2, label="Data")
+    for flag, color, marker, name in (
+        (QartodFlags.SUSPECT, _SLOT1, "o", "SUSPECT (new limits)"),
+        (QartodFlags.FAIL, _SLOT2, "X", "FAIL (new limits)"),
+    ):
+        mask = flags == flag
+        if mask.any():
+            data_ax.scatter(
+                time[mask],
+                data[mask],
+                s=14,
+                c=color,
+                marker=marker,
+                linewidths=0,
+                zorder=3,
+                label=f"{name}: {int(mask.sum()):,}",
+            )
+    if reference is not None:
+        ref = _as_float(reference)
+        mask = np.isin(ref, (QartodFlags.SUSPECT, QartodFlags.FAIL))
+        if mask.any():
+            data_ax.scatter(
+                time[mask],
+                data[mask],
+                s=40,
+                facecolors="none",
+                edgecolors=_INK,
+                linewidths=0.9,
+                zorder=4,
+                label=f"Flagged in existing QC: {int(mask.sum()):,}",
+            )
+    data_ax.set_ylabel(ylabel, color=_INK_2, fontsize=9)
+    data_ax.set_title(title or f"spike_test ({method})", fontsize=10, color=_INK, loc="left")
+    data_ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=3, frameon=False, fontsize=8, labelcolor=_INK_2)
+
+    score_ax.plot(time, scores, color=_MUTED, linewidth=0.7, zorder=2, label="Spike score")
+    suspect_threshold = limits["suspect_threshold"]
+    score_ax.axhline(
+        suspect_threshold,
+        color=_SLOT1,
+        linestyle="--",
+        linewidth=1,
+        label=f"Suspect threshold: {suspect_threshold:g}",
+    )
+    if "fail_threshold" in limits:
+        fail_threshold = limits["fail_threshold"]
+        score_ax.axhline(
+            fail_threshold,
+            color=_SLOT2,
+            linestyle="--",
+            linewidth=1,
+            label=f"Fail threshold: {fail_threshold:g}",
+        )
+    score_ax.set_ylabel("Spike score\n(data units)", color=_INK_2, fontsize=9)
+    score_ax.set_xlabel("Time", color=_INK_2, fontsize=9)
+    score_ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.35), ncol=3, frameon=False, fontsize=8, labelcolor=_INK_2)
+
+    if reference is not None:
+        _plot_confusion(fig.add_subplot(gs[:, 1]), compare_flags(reference, flags))
+    return fig
+
+
+def _plot_spike_thresholds(  # noqa: PLR0913
+    plt,
+    *,
+    data: np.ndarray,
+    time: pd.DatetimeIndex,
+    limits: Mapping[str, Mapping[str, Real]],
+    method: str,
+    reference: Sequence[int] | None,
+    title: str | None,
+    ylabel: str,
+) -> Figure:
+    if method not in SPIKE_METHODS:
+        msg = f"Unknown spike method {method!r}; choose from {SPIKE_METHODS}."
+        raise ValueError(msg)
+    if method not in limits or "suspect_threshold" not in limits[method]:
+        msg = f"Spike limits must include a suspect threshold for method {method!r}."
+        raise ValueError(msg)
+
+    method_limits = limits[method]
+    score_series = _spike_score_series(data, method)
+    flags = np.ma.getdata(qartod.spike_test(data, method=method, **method_limits))
+    return _plot_spike_limits(
+        plt,
+        data=data,
+        time=time,
+        scores=score_series,
+        flags=flags,
+        limits=method_limits,
+        method=method,
+        reference=reference,
+        title=title,
+        ylabel=ylabel,
+    )
+
+
+def _gross_range_or_climatology_plot_data(
+    data: np.ndarray,
+    time: pd.DatetimeIndex,
+    limits: tuple[Real, Real] | list[dict],
+    z: np.ndarray | None,
+    fail_span: tuple[Real, Real] | None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, bool]:
+    is_gross_range = not isinstance(limits, list)
+    if is_gross_range:
+        lo = np.full(data.size, float(min(limits)))
+        hi = np.full(data.size, float(max(limits)))
+        flags = qartod.gross_range_test(data, fail_span=fail_span or (-np.inf, np.inf), suspect_span=limits)
+    else:
+        lo, hi = _config_bounds(limits, time, z)
+        flags = qartod.climatology_test(limits, data, pd.Series(time), z)
+    return lo, hi, np.ma.getdata(flags), is_gross_range
+
+
 def plot_limits(  # noqa: PLR0913
     data: Sequence[Real],
     time: Sequence,
-    limits: tuple[Real, Real] | list[dict],
+    limits: tuple[Real, Real] | list[dict] | Mapping[str, Mapping[str, Real]],
     *,
     reference: Sequence[int] | None = None,
     z: Sequence[Real] | None = None,
     fail_span: tuple[Real, Real] | None = None,
+    spike_method: str = "average",
     title: str | None = None,
     ylabel: str = "Value",
 ) -> Figure:
-    """Plot gross range or climatology limits on the data.
+    """Plot gross-range, climatology or spike limits on data.
 
     Parameters
     ----------
@@ -313,7 +457,8 @@ def plot_limits(  # noqa: PLR0913
     limits
         A suspect span ``(lower, upper)`` (gross range test) or a climatology
         config (list of window dicts, e.g. from
-        :func:`ioos_qc.auto_limits.auto_climatology`).
+        :func:`ioos_qc.auto_limits.auto_climatology`), or per-method thresholds
+        from :func:`ioos_qc.auto_limits.spike_thresh`.
     reference
         Existing QC flags for ``data``. If given, a confusion matrix and the F1
         score (flagged = SUSPECT or FAIL) are added.
@@ -321,6 +466,10 @@ def plot_limits(  # noqa: PLR0913
         Depths, if the climatology config uses ``zspan``.
     fail_span
         Gross range only: expert fail span. Without it nothing can FAIL.
+    spike_method
+        For spike thresholds, select ``"average"`` or ``"differential"``.
+        The figure shows data and flags above, and spike scores with their
+        thresholds below.
     title, ylabel
         Labels (include units in ``ylabel``).
 
@@ -339,15 +488,19 @@ def plot_limits(  # noqa: PLR0913
     x = _as_float(data)
     t = _naive_utc(time, x.size)
     zz = None if z is None else _as_float(z)
-    is_gross = not isinstance(limits, list)
-    if is_gross:
-        lo = np.full(x.size, float(min(limits)))
-        hi = np.full(x.size, float(max(limits)))
-        flags = qartod.gross_range_test(x, fail_span=fail_span or (-np.inf, np.inf), suspect_span=limits)
-    else:
-        lo, hi = _config_bounds(limits, t, zz)
-        flags = qartod.climatology_test(limits, x, pd.Series(t), zz)
-    flags = np.ma.getdata(flags)
+    if isinstance(limits, Mapping):
+        return _plot_spike_thresholds(
+            plt,
+            data=x,
+            time=t,
+            limits=limits,
+            method=spike_method,
+            reference=reference,
+            title=title,
+            ylabel=ylabel,
+        )
+
+    lo, hi, flags, is_gross_range = _gross_range_or_climatology_plot_data(x, t, limits, zz, fail_span)
 
     fig = plt.figure(figsize=(14, 5), layout="constrained", facecolor=_SURFACE)
     gs = fig.add_gridspec(1, 2 if reference is not None else 1, width_ratios=[3.2, 1] if reference is not None else [1])
@@ -356,7 +509,7 @@ def plot_limits(  # noqa: PLR0913
     ax.fill_between(t, lo, hi, step="post", color=_BAND, linewidth=0, zorder=0, label="Suspect bounds (inside = GOOD)")
     ax.step(t, lo, where="post", color=_MUTED, linewidth=1, zorder=1)
     ax.step(t, hi, where="post", color=_MUTED, linewidth=1, zorder=1)
-    if is_gross and fail_span is not None:
+    if is_gross_range and fail_span is not None:
         for v in fail_span:
             ax.axhline(v, color=_INK_2, linewidth=1.2, zorder=1)
     ax.plot(t, x, color=_BASELINE, linewidth=0.7, zorder=2, label="Data")
@@ -393,7 +546,7 @@ def plot_limits(  # noqa: PLR0913
             )
     ax.set_ylabel(ylabel, color=_INK_2, fontsize=9)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=3, frameon=False, fontsize=8, labelcolor=_INK_2)
-    kind = "gross_range_test" if is_gross else f"climatology_test ({len(limits)} windows)"
+    kind = "gross_range_test" if is_gross_range else f"climatology_test ({len(limits)} windows)"
     ax.set_title(title or kind, fontsize=10, color=_INK, loc="left")
 
     if reference is not None:

@@ -12,6 +12,7 @@ from ioos_qc.auto_limits import (
     auto_thresh,
     find_regimes,
     gross_range_thresh,
+    spike_thresh,
 )
 from ioos_qc.plotting import plot_limits
 from ioos_qc.utils import compare_flags
@@ -53,13 +54,59 @@ def test_auto_thresh_dispatches_to_gross_range():
 
 
 def test_auto_thresh_dispatches_multiple_tests():
-    x = np.array([1.0, 2, 3, 4, 5, np.nan])
-    expected = gross_range_thresh(x, n_std=1, include_fail_span=True)
+    x = np.random.default_rng(2).normal(size=100)
+    gross_range = gross_range_thresh(x, n_std=1, include_fail_span=True)
+    spike = spike_thresh(x, suspect_k=3, fail_k=6, include_fail_threshold=True)
     assert auto_thresh(
         x,
-        tests=["gross_range"],
-        options={"gross_range": {"n_std": 1, "include_fail_span": True}},
-    ) == {"gross_range": expected}
+        tests=["gross_range", "spike"],
+        options={
+            "gross_range": {"n_std": 1, "include_fail_span": True},
+            "spike": {
+                "suspect_k": 3,
+                "fail_k": 6,
+                "include_fail_threshold": True,
+            },
+        },
+    ) == {"gross_range": gross_range, "spike": spike}
+
+
+def test_spike_thresh_uses_both_qartod_methods_and_skips_missing_triplets():
+    rng = np.random.default_rng(3)
+    x = rng.normal(size=300)
+    x[[41, 128, 237]] = np.nan
+    x[75] += 12
+    x[180] -= 10
+    result = spike_thresh(x, suspect_k=4, fail_k=8, include_fail_threshold=True)
+
+    left, center, right = x[:-2], x[1:-1], x[2:]
+    complete = np.isfinite(left) & np.isfinite(center) & np.isfinite(right)
+    average_scores = np.abs(center[complete] - (left[complete] + right[complete]) / 2)
+    delta_left = center - left
+    delta_right = right - center
+    reversals = complete & (delta_left != 0) & (delta_right != 0) & (np.signbit(delta_left) != np.signbit(delta_right))
+    differential_scores = np.minimum(np.abs(delta_left[reversals]), np.abs(delta_right[reversals]))
+
+    for method, scores in (
+        ("average", average_scores),
+        ("differential", differential_scores),
+    ):
+        median = np.median(scores)
+        scale = 1.4826 * np.median(np.abs(scores - median))
+        assert result[method]["suspect_threshold"] == pytest.approx(median + 4 * scale)
+        assert result[method]["fail_threshold"] == pytest.approx(median + 8 * scale)
+        flags = qartod.spike_test(x, method=method, **result[method])
+        assert flags[41] == qartod.QartodFlags.MISSING
+
+
+def test_spike_thresh_rejects_degenerate_scores():
+    with pytest.raises(ValueError, match="scaled MAD is zero"):
+        spike_thresh(np.zeros(20))
+
+
+def test_spike_thresh_omits_fail_threshold_by_default():
+    result = spike_thresh(np.random.default_rng(4).normal(size=100))
+    assert all(set(method_thresholds) == {"suspect_threshold"} for method_thresholds in result.values())
 
 
 def test_gross_range_thresh_optional_fail_span():
@@ -72,10 +119,10 @@ def test_gross_range_thresh_optional_fail_span():
 
 
 def test_auto_thresh_rejects_unknown_test():
-    with pytest.raises(ValueError, match="Unknown test 'spike'"):
-        auto_thresh([1, 2, 3], test="spike")
-    with pytest.raises(ValueError, match="Unknown test"):
-        auto_thresh([1, 2, 3], tests=["gross_range", "spike"])
+    with pytest.raises(ValueError, match="Unknown test 'not_a_test'"):
+        auto_thresh([1, 2, 3], test="not_a_test")
+    with pytest.raises(ValueError, match="Unknown tests"):
+        auto_thresh([1, 2, 3], tests=["gross_range", "not_a_test"])
     with pytest.raises(ValueError, match="duplicate"):
         auto_thresh([1, 2, 3], tests=["gross_range", "gross_range"])
     with pytest.raises(ValueError, match="either test or tests"):
@@ -182,6 +229,29 @@ def test_plot_limits(record):
     plt.close(fig)
     fig = plot_limits(x, t, auto_climatology(x, t, method="segments", n_regimes=5))
     assert len(fig.axes) == 1
+    plt.close(fig)
+
+
+def test_plot_limits_spike_thresholds(record):
+    mpl = pytest.importorskip("matplotlib")
+    mpl.use("Agg")
+    plt = pytest.importorskip("matplotlib.pyplot")
+    t, x, _ = record
+    thresholds = spike_thresh(x, suspect_k=4, fail_k=8, include_fail_threshold=True)
+
+    fig = plot_limits(x, t, thresholds, spike_method="differential", reference=np.ones(x.size, dtype=np.int64))
+    assert len(fig.axes) == 3
+    assert fig.axes[0].get_title(loc="left") == "spike_test (differential)"
+    legend_labels = {text.get_text() for text in fig.axes[1].get_legend().get_texts()}
+    assert f"Suspect threshold: {thresholds['differential']['suspect_threshold']:g}" in legend_labels
+    assert f"Fail threshold: {thresholds['differential']['fail_threshold']:g}" in legend_labels
+    plt.close(fig)
+
+    suspect_only = spike_thresh(x)
+    fig = plot_limits(x, t, suspect_only)
+    legend_labels = {text.get_text() for text in fig.axes[1].get_legend().get_texts()}
+    assert any(label.startswith("Suspect threshold: ") for label in legend_labels)
+    assert not any(label.startswith("Fail threshold: ") for label in legend_labels)
     plt.close(fig)
 
 
