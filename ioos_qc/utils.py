@@ -6,8 +6,9 @@ import io
 import json
 import logging
 import re
+import warnings
 from collections import OrderedDict
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import date, datetime
 from numbers import Real
 from pathlib import Path
@@ -292,3 +293,75 @@ def great_circle_distance(lat_arr, lon_arr):
     dv = np.vectorize(gc)
     dist[1:] = dv(lat_arr[:-1], lon_arr[:-1], lat_arr[1:], lon_arr[1:])
     return dist
+
+
+def _as_float(data) -> np.ndarray:
+    """Flat float array with masked/invalid values as NaN."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        arr = np.ma.masked_invalid(np.asarray(data, dtype=np.float64))
+    return arr.filled(np.nan).ravel()
+
+
+def _naive_utc(time, n: int) -> pd.DatetimeIndex:
+    """Times as a tz-naive (UTC) DatetimeIndex of length ``n``."""
+    t = pd.DatetimeIndex(pd.to_datetime(time))
+    if t.tz is not None:
+        t = t.tz_convert("UTC").tz_localize(None)
+    if t.size != n:
+        msg = "time must be the same length as data."
+        raise ValueError(msg)
+    return t
+
+
+def compare_flags(reference: Sequence[int], flags: Sequence[int]) -> dict:
+    """Compare new QC flags with existing (reference) flags.
+
+    Only points that are GOOD, SUSPECT or FAIL in both are compared.
+    A point counts as *flagged* if it is SUSPECT or FAIL.
+
+    Returns
+    -------
+    dict
+        ``labels`` (GOOD/SUSPECT/FAIL), ``confusion_matrix`` (rows =
+        reference, columns = new flags, in ``labels`` order),
+        ``tp``/``fp``/``fn``/``tn`` for flagged vs not, ``precision``,
+        ``recall``, ``f1``, ``accuracy``, ``n`` and ``n_excluded``. Undefined
+        ratios are ``None``.
+
+    """
+    from ioos_qc.qartod import QartodFlags  # noqa: PLC0415  (qartod imports utils)
+
+    scored = (QartodFlags.GOOD, QartodFlags.SUSPECT, QartodFlags.FAIL)
+
+    def ratio(a: float, b: float) -> float | None:
+        return None if b == 0 else float(a / b)
+
+    ref = _as_float(reference)
+    new = _as_float(flags)
+    if ref.shape != new.shape:
+        msg = "reference and flags must be the same length."
+        raise ValueError(msg)
+    valid = np.isin(ref, scored) & np.isin(new, scored)
+    cm = np.array([[np.count_nonzero(valid & (ref == a) & (new == b)) for b in scored] for a in scored])
+    tn = int(cm[0, 0])
+    fp = int(cm[0, 1:].sum())
+    fn = int(cm[1:, 0].sum())
+    tp = int(cm[1:, 1:].sum())
+    precision = ratio(tp, tp + fp)
+    recall = ratio(tp, tp + fn)
+    f1 = None if not precision or not recall else 2 * precision * recall / (precision + recall)
+    return {
+        "labels": ["GOOD", "SUSPECT", "FAIL"],
+        "confusion_matrix": cm.tolist(),
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
+        "tn": tn,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "accuracy": ratio(tp + tn, int(cm.sum())),
+        "n": int(cm.sum()),
+        "n_excluded": int((~valid).sum()),
+    }
