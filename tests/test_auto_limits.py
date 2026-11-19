@@ -6,17 +6,15 @@ import pytest
 from scipy.sparse import diags
 
 from ioos_qc import qartod
-from ioos_qc.build_limits import (
-    _circular_smooth,
-    _contiguous_ward,
+from ioos_qc.auto_limits import (
     _period_values,
+    auto_climatology,
     auto_thresh,
-    climatology_config,
-    compare_flags,
     find_regimes,
     gross_range_thresh,
-    plot_limits,
 )
+from ioos_qc.plotting import plot_limits
+from ioos_qc.utils import compare_flags
 
 GOOD, UNKNOWN, SUSPECT, FAIL = 1, 2, 3, 4
 
@@ -103,22 +101,26 @@ def test_segments_find_seasons_and_storm(record):
     assert storm_row["n_bins"].item() == 1
 
 
-def test_contiguous_ward_matches_sklearn():
+def test_segments_ward_matches_sklearn():
     sk = pytest.importorskip("sklearn.cluster")
     rng = np.random.default_rng(1)
-    z = np.concatenate([rng.normal(m, 0.3, (40, 2)) for m in (0, 3, 0, 5)])
-    n = len(z)
+    level = np.concatenate([rng.normal(m, 0.3, 40) for m in (0, 3, 0, 5)])
+    n = level.size
+    # Four identical samples per day: daily level = value, daily spread = 0
+    t = pd.date_range("2024-01-01", periods=4 * n, freq="6h")
+    reg = find_regimes(np.repeat(level, 4), t, method="segments", n_regimes=4)
+    ours = np.repeat(reg["regime"].to_numpy(), reg["n_bins"].to_numpy())
     conn = diags([1.0, 1.0], [-1, 1], shape=(n, n))
+    z = np.column_stack([level, np.zeros(n)])
     ref = sk.AgglomerativeClustering(n_clusters=4, connectivity=conn, linkage="ward").fit_predict(z)
-    ours = _contiguous_ward(z, 4)
     # Same partition (labels may differ)
     assert len(set(zip(ref, ours, strict=True))) == 4
 
 
 @pytest.mark.parametrize("method", ["segments", "regimes", "seasonal"])
-def test_climatology_config_runs_in_qartod(record, method):
+def test_auto_climatology_runs_in_qartod(record, method):
     t, x, _ = record
-    cfg = climatology_config(x, t, method=method, n_regimes=4)
+    cfg = auto_climatology(x, t, method=method, n_regimes=4)
     json.dumps(cfg)  # serialisable
     assert qartod.climatology_config(cfg)
     flags = qartod.climatology_test(cfg, x, pd.Series(t))
@@ -134,7 +136,7 @@ def test_climatology_beats_gross_range_on_seasonal_anomaly(record):
     i = np.flatnonzero((t.month == 1) & (t.year == 2024))[100]
     x[i] = 0.9  # normal in summer, anomalous in winter
     gross = qartod.gross_range_test(x, fail_span=(-10, 10), suspect_span=auto_thresh(x))
-    clim = qartod.climatology_test(climatology_config(x, t, method="seasonal", n_regimes=2), x, pd.Series(t))
+    clim = qartod.climatology_test(auto_climatology(x, t, method="seasonal", n_regimes=2), x, pd.Series(t))
     assert gross[i] == GOOD
     assert clim[i] == SUSPECT
 
@@ -142,13 +144,13 @@ def test_climatology_beats_gross_range_on_seasonal_anomaly(record):
 def test_fail_span_and_zbins(record):
     t, x, _ = record
     z = np.where(np.arange(x.size) % 2, 5.0, 50.0)
-    cfg = climatology_config(x, t, z=z, z_bins=[0, 10, 100], method="seasonal", n_regimes=2, fail_span=(-0.1, 5))
+    cfg = auto_climatology(x, t, z=z, z_bins=[0, 10, 100], method="seasonal", n_regimes=2, fail_span=(-0.1, 5))
     assert {w["zspan"] for w in cfg} == {(0.0, 10.0), (10.0, 100.0)}
     assert all(w["fspan"] == (-0.1, 5.0) and w["vspan"][0] >= -0.1 for w in cfg)
     flags = qartod.climatology_test(cfg, x, pd.Series(t), z)
     assert not (flags == UNKNOWN).any()
     with pytest.raises(ValueError, match="both z and z_bins"):
-        climatology_config(x, t, z=z)
+        auto_climatology(x, t, z=z)
 
 
 def test_compare_flags_known_values():
@@ -175,10 +177,10 @@ def test_plot_limits(record):
     plt = pytest.importorskip("matplotlib.pyplot")
     t, x, storm = record
     ref = np.where(storm, SUSPECT, GOOD)
-    fig = plot_limits(x, t, auto_thresh(x), reference=ref, fail_span=(-1, 3))
+    fig = plot_limits(x, t, auto_thresh(x), reference=ref, fail_span=(-2, 3))
     assert len(fig.axes) == 2
     plt.close(fig)
-    fig = plot_limits(x, t, climatology_config(x, t, method="segments", n_regimes=5))
+    fig = plot_limits(x, t, auto_climatology(x, t, method="segments", n_regimes=5))
     assert len(fig.axes) == 1
     plt.close(fig)
 
@@ -186,7 +188,7 @@ def test_plot_limits(record):
 @pytest.mark.parametrize("period", ["month", "weekofyear", "day_of_year"])
 def test_seasonal_periods(record, period):
     t, x, _ = record
-    cfg = climatology_config(x, t, method="seasonal", period=period, n_regimes=2)
+    cfg = auto_climatology(x, t, method="seasonal", period=period, n_regimes=2)
     assert {w["period"] for w in cfg} == {period}
     json.dumps(cfg)
     assert qartod.climatology_config(cfg)
@@ -206,24 +208,26 @@ def test_smoothing_reduces_fragmentation(record):
     t, x, _ = record
     rng = np.random.default_rng(3)
     noisy = x + rng.normal(0, 0.3, x.size)
-    raw = climatology_config(noisy, t, method="seasonal", period="day_of_year", smooth=1, n_regimes=3)
-    smoothed = climatology_config(noisy, t, method="seasonal", period="day_of_year", n_regimes=3)
+    raw = auto_climatology(noisy, t, method="seasonal", period="day_of_year", smooth=1, n_regimes=3)
+    smoothed = auto_climatology(noisy, t, method="seasonal", period="day_of_year", n_regimes=3)
     assert len(smoothed) < len(raw)
 
 
-def test_circular_smooth_wraps_year_end():
-    units = pd.DataFrame({"level": [10.0] + [0.0] * 10 + [10.0]}, index=range(1, 13))
-    out = _circular_smooth(units, "month", 3)
-    assert out.loc[1, "level"] == pytest.approx(20 / 3)  # Dec, Jan, Feb
-    assert out.loc[12, "level"] == pytest.approx(20 / 3)  # Nov, Dec, Jan
-    assert out.loc[6, "level"] == 0
+def test_seasonal_smoothing_wraps_year_end():
+    # Daily data, four identical samples per day: Jan and Dec at 10, other months at 0
+    t = pd.date_range("2023-01-01", "2023-12-31 18:00", freq="6h")
+    x = np.where(t.month.isin([1, 12]), 10.0, 0.0)
+    reg = find_regimes(x, t, method="seasonal", period="month", smooth=3, n_regimes=2).set_index("month")
+    assert reg.loc[1, "level"] == pytest.approx(20 / 3)  # Dec, Jan, Feb
+    assert reg.loc[12, "level"] == pytest.approx(20 / 3)  # Nov, Dec, Jan
+    assert reg.loc[6, "level"] == 0
 
 
 def test_period_and_smooth_validation(record):
     t, x, _ = record
     with pytest.raises(ValueError, match="only used with method='seasonal'"):
-        climatology_config(x, t, method="segments", period="month")
+        auto_climatology(x, t, method="segments", period="month")
     with pytest.raises(ValueError, match="Unknown period"):
-        climatology_config(x, t, method="seasonal", period="quarter")
+        auto_climatology(x, t, method="seasonal", period="quarter")
     with pytest.raises(ValueError, match="smooth"):
         find_regimes(x, t, method="segments", smooth=3)
