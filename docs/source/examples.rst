@@ -1,3 +1,11 @@
+Configuration walkthroughs
+==========================
+
+.. toctree::
+   :maxdepth: 1
+
+   climatology-config
+
 
 Notebook Examples
 =================
