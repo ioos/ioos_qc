@@ -403,6 +403,13 @@ def _plot_spike_thresholds(  # noqa: PLR0913
 
     method_limits = limits[method]
     score_series = _spike_score_series(data, method)
+    if method == "differential":
+        # Non-reversal points have no score (NaN) so spike_thresh ignores them,
+        # but spike_test treats them as 0. Plot them as 0 too, otherwise an
+        # isolated spike between two NaNs is not drawn by the score line.
+        complete = np.zeros(data.size, dtype=bool)
+        complete[1:-1] = np.isfinite(data[:-2]) & np.isfinite(data[1:-1]) & np.isfinite(data[2:])
+        score_series = np.where(complete & np.isnan(score_series), 0.0, score_series)
     flags = np.ma.getdata(qartod.spike_test(data, method=method, **method_limits))
     return _plot_spike_limits(
         plt,
