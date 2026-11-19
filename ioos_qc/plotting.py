@@ -418,22 +418,22 @@ def _plot_spike_thresholds(  # noqa: PLR0913
     )
 
 
-def _non_spike_plot_data(
+def _gross_range_or_climatology_plot_data(
     data: np.ndarray,
     time: pd.DatetimeIndex,
     limits: tuple[Real, Real] | list[dict],
     z: np.ndarray | None,
     fail_span: tuple[Real, Real] | None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, bool]:
-    is_gross = not isinstance(limits, list)
-    if is_gross:
+    is_gross_range = not isinstance(limits, list)
+    if is_gross_range:
         lo = np.full(data.size, float(min(limits)))
         hi = np.full(data.size, float(max(limits)))
         flags = qartod.gross_range_test(data, fail_span=fail_span or (-np.inf, np.inf), suspect_span=limits)
     else:
         lo, hi = _config_bounds(limits, time, z)
         flags = qartod.climatology_test(limits, data, pd.Series(time), z)
-    return lo, hi, np.ma.getdata(flags), is_gross
+    return lo, hi, np.ma.getdata(flags), is_gross_range
 
 
 def plot_limits(  # noqa: PLR0913
@@ -500,7 +500,7 @@ def plot_limits(  # noqa: PLR0913
             ylabel=ylabel,
         )
 
-    lo, hi, flags, is_gross = _non_spike_plot_data(x, t, limits, zz, fail_span)
+    lo, hi, flags, is_gross_range = _gross_range_or_climatology_plot_data(x, t, limits, zz, fail_span)
 
     fig = plt.figure(figsize=(14, 5), layout="constrained", facecolor=_SURFACE)
     gs = fig.add_gridspec(1, 2 if reference is not None else 1, width_ratios=[3.2, 1] if reference is not None else [1])
@@ -509,7 +509,7 @@ def plot_limits(  # noqa: PLR0913
     ax.fill_between(t, lo, hi, step="post", color=_BAND, linewidth=0, zorder=0, label="Suspect bounds (inside = GOOD)")
     ax.step(t, lo, where="post", color=_MUTED, linewidth=1, zorder=1)
     ax.step(t, hi, where="post", color=_MUTED, linewidth=1, zorder=1)
-    if is_gross and fail_span is not None:
+    if is_gross_range and fail_span is not None:
         for v in fail_span:
             ax.axhline(v, color=_INK_2, linewidth=1.2, zorder=1)
     ax.plot(t, x, color=_BASELINE, linewidth=0.7, zorder=2, label="Data")
@@ -546,7 +546,7 @@ def plot_limits(  # noqa: PLR0913
             )
     ax.set_ylabel(ylabel, color=_INK_2, fontsize=9)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=3, frameon=False, fontsize=8, labelcolor=_INK_2)
-    kind = "gross_range_test" if is_gross else f"climatology_test ({len(limits)} windows)"
+    kind = "gross_range_test" if is_gross_range else f"climatology_test ({len(limits)} windows)"
     ax.set_title(title or kind, fontsize=10, color=_INK, loc="left")
 
     if reference is not None:
