@@ -16,6 +16,7 @@ from ioos_qc.build_limits import (
     find_regimes,
     gross_range_thresh,
     plot_limits,
+    spike_thresh,
 )
 
 GOOD, UNKNOWN, SUSPECT, FAIL = 1, 2, 3, 4
@@ -55,13 +56,50 @@ def test_auto_thresh_dispatches_to_gross_range():
 
 
 def test_auto_thresh_dispatches_multiple_tests():
-    x = np.array([1.0, 2, 3, 4, 5, np.nan])
-    expected = gross_range_thresh(x, n_std=1, include_fail_span=True)
+    x = np.random.default_rng(2).normal(size=100)
+    gross_range = gross_range_thresh(x, n_std=1, include_fail_span=True)
+    spike = spike_thresh(x, suspect_k=3, fail_k=6)
     assert auto_thresh(
         x,
-        tests=["gross_range"],
-        options={"gross_range": {"n_std": 1, "include_fail_span": True}},
-    ) == {"gross_range": expected}
+        tests=["gross_range", "spike"],
+        options={
+            "gross_range": {"n_std": 1, "include_fail_span": True},
+            "spike": {"suspect_k": 3, "fail_k": 6},
+        },
+    ) == {"gross_range": gross_range, "spike": spike}
+
+
+def test_spike_thresh_uses_both_qartod_methods_and_skips_missing_triplets():
+    rng = np.random.default_rng(3)
+    x = rng.normal(size=300)
+    x[[41, 128, 237]] = np.nan
+    x[75] += 12
+    x[180] -= 10
+    result = spike_thresh(x, suspect_k=4, fail_k=8)
+
+    left, center, right = x[:-2], x[1:-1], x[2:]
+    complete = np.isfinite(left) & np.isfinite(center) & np.isfinite(right)
+    average_scores = np.abs(center[complete] - (left[complete] + right[complete]) / 2)
+    delta_left = center - left
+    delta_right = right - center
+    reversals = complete & (delta_left != 0) & (delta_right != 0) & (np.signbit(delta_left) != np.signbit(delta_right))
+    differential_scores = np.minimum(np.abs(delta_left[reversals]), np.abs(delta_right[reversals]))
+
+    for method, scores in (
+        ("average", average_scores),
+        ("differential", differential_scores),
+    ):
+        median = np.median(scores)
+        scale = 1.4826 * np.median(np.abs(scores - median))
+        assert result[method]["suspect_threshold"] == pytest.approx(median + 4 * scale)
+        assert result[method]["fail_threshold"] == pytest.approx(median + 8 * scale)
+        flags = qartod.spike_test(x, method=method, **result[method])
+        assert flags[41] == qartod.QartodFlags.MISSING
+
+
+def test_spike_thresh_rejects_degenerate_scores():
+    with pytest.raises(ValueError, match="scaled MAD is zero"):
+        spike_thresh(np.zeros(20))
 
 
 def test_gross_range_thresh_optional_fail_span():
@@ -74,10 +112,10 @@ def test_gross_range_thresh_optional_fail_span():
 
 
 def test_auto_thresh_rejects_unknown_test():
-    with pytest.raises(ValueError, match="Unknown test 'spike'"):
-        auto_thresh([1, 2, 3], test="spike")
-    with pytest.raises(ValueError, match="Unknown test"):
-        auto_thresh([1, 2, 3], tests=["gross_range", "spike"])
+    with pytest.raises(ValueError, match="Unknown test 'not_a_test'"):
+        auto_thresh([1, 2, 3], test="not_a_test")
+    with pytest.raises(ValueError, match="Unknown tests"):
+        auto_thresh([1, 2, 3], tests=["gross_range", "not_a_test"])
     with pytest.raises(ValueError, match="duplicate"):
         auto_thresh([1, 2, 3], tests=["gross_range", "gross_range"])
     with pytest.raises(ValueError, match="either test or tests"):

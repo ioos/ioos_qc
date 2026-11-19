@@ -61,13 +61,16 @@ PERIODS = ("month", "weekofyear", "day_of_year")
 _PERIOD_UNITS = {"month": 12, "weekofyear": 53, "day_of_year": 366}
 #: Default circular smoothing (in calendar units) applied before clustering.
 DEFAULT_SMOOTH = {"month": 1, "weekofyear": 3, "day_of_year": 15}
+SPIKE_METHODS = ("average", "differential")
 FLAG_NAMES = ("GOOD", "SUSPECT", "FAIL")
 _SCORED = (QartodFlags.GOOD, QartodFlags.SUSPECT, QartodFlags.FAIL)
 _MIN_BIN_SAMPLES = 3
 _Span: TypeAlias = tuple[float, float]
 _GrossRangeThresholds: TypeAlias = _Span | tuple[_Span, _Span]
-_AutoThreshResult: TypeAlias = _GrossRangeThresholds | dict[str, _GrossRangeThresholds]
-_ThresholdBuilder: TypeAlias = Callable[..., _GrossRangeThresholds]
+_SpikeThresholds: TypeAlias = dict[str, dict[str, float]]
+_ThresholdResult: TypeAlias = _GrossRangeThresholds | _SpikeThresholds
+_AutoThreshResult: TypeAlias = _ThresholdResult | dict[str, _ThresholdResult]
+_ThresholdBuilder: TypeAlias = Callable[..., _ThresholdResult]
 
 
 # --------------------------------------------------------------------------- #
@@ -224,8 +227,106 @@ def gross_range_thresh(
     return suspect_span, fail_span
 
 
+def _spike_scores(data: Sequence[Real], method: str) -> np.ndarray:
+    """Return finite spike scores using the corresponding QARTOD method."""
+    x = _as_float(data)
+    if x.size < 3:  # noqa: PLR2004
+        return np.array([], dtype=np.float64)
+
+    left = x[:-2]
+    center = x[1:-1]
+    right = x[2:]
+    complete = np.isfinite(left) & np.isfinite(center) & np.isfinite(right)
+
+    if method == "average":
+        scores = np.abs(center[complete] - (left[complete] + right[complete]) / 2)
+    elif method == "differential":
+        delta_left = center - left
+        delta_right = right - center
+        reversals = complete & (delta_left != 0) & (delta_right != 0) & (np.signbit(delta_left) != np.signbit(delta_right))
+        scores = np.minimum(np.abs(delta_left[reversals]), np.abs(delta_right[reversals]))
+    else:
+        msg = f"Unknown spike method {method!r}; choose from {SPIKE_METHODS}."
+        raise ValueError(msg)
+
+    return scores[np.isfinite(scores)]
+
+
+def spike_thresh(
+    data: Sequence[Real],
+    *,
+    suspect_k: float = 35.0,
+    fail_k: float = 50.0,
+) -> _SpikeThresholds:
+    """Estimate per-method spike-test thresholds using median and scaled MAD.
+
+    For each QARTOD spike method, calculate scores across valid adjacent
+    three-point windows using the same definitions as
+    :func:`qartod.spike_test`. Then, separately for each method, calculate the
+    score median ``m`` and ``MAD = median(|score - m|)``. Set thresholds to
+    ``m + k * (1.4826 * MAD)``. The factor 1.4826 is the reciprocal of
+    ``Phi^-1(0.75) ~= 0.67449``; it makes MAD a normal-consistent estimate of
+    standard deviation, but does not imply normal scores or guarantee a
+    particular false-alarm probability.
+
+    The ``k`` values are the numbers of scaled-MAD units above the score median
+    for the suspect and fail thresholds. Larger ``k`` generally means fewer
+    flags. Thresholds use all valid scores in the supplied series; for a
+    holdout evaluation, estimate them from training data only.
+
+    Thresholds are estimated from all usable scores in the supplied series.
+    For a holdout evaluation, pass only the training portion here, then apply
+    the resulting thresholds to the held-out portion.
+
+    Parameters
+    ----------
+    data
+        Values of a single, ordered time series. Adjacent array values are
+        treated as adjacent observations, matching :func:`qartod.spike_test`.
+    suspect_k, fail_k
+        Multipliers for the suspect and fail thresholds. ``fail_k`` must exceed
+        ``suspect_k``. Defaults are initial heuristics, not universal QARTOD
+        limits.
+
+    Returns
+    -------
+    dict
+        Mapping from method name to ``suspect_threshold`` and
+        ``fail_threshold`` values. The method-specific values can be passed
+        directly to :func:`qartod.spike_test`.
+
+    """
+    if not np.isfinite(suspect_k) or suspect_k <= 0:
+        msg = "suspect_k must be finite and positive."
+        raise ValueError(msg)
+    if not np.isfinite(fail_k) or fail_k <= suspect_k:
+        msg = "fail_k must be finite and greater than suspect_k."
+        raise ValueError(msg)
+
+    thresholds = {}
+    for method in SPIKE_METHODS:
+        scores = _spike_scores(data, method)
+        if scores.size < _MIN_BIN_SAMPLES:
+            msg = f"Not enough valid {method!r} spike scores to estimate thresholds."
+            raise ValueError(msg)
+
+        median = float(np.median(scores))
+        scale = float(1.4826 * np.median(np.abs(scores - median)))
+        if scale <= 0:
+            msg = f"Cannot estimate distinct {method!r} thresholds because its scaled MAD is zero."
+            raise ValueError(msg)
+
+        thresholds[method] = {
+            "suspect_threshold": median + suspect_k * scale,
+            "fail_threshold": median + fail_k * scale,
+        }
+
+    return thresholds
+
+
 _THRESHOLD_BUILDERS: dict[str, _ThresholdBuilder] = {
     "gross_range": gross_range_thresh,
+    "spike": spike_thresh,
 }
 
 
