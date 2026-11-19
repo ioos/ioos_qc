@@ -247,6 +247,16 @@ def test_plot_limits_spike_thresholds(record):
     assert f"Fail threshold: {thresholds['differential']['fail_threshold']:g}" in legend_labels
     plt.close(fig)
 
+    # An isolated differential spike must appear in the score line (not hidden between NaNs)
+    y = np.random.default_rng(5).normal(0, 0.05, 41)
+    y[20] = 5.0
+    fig = plot_limits(y, pd.date_range("2024-01-01", periods=y.size, freq="h"), spike_thresh(y), spike_method="differential")
+    score = fig.axes[1].get_lines()[0].get_ydata()
+    assert np.isfinite(score[20])
+    assert np.isfinite(score[19])
+    assert np.isfinite(score[21])
+    plt.close(fig)
+
     suspect_only = spike_thresh(x)
     fig = plot_limits(x, t, suspect_only)
     legend_labels = {text.get_text() for text in fig.axes[1].get_legend().get_texts()}
