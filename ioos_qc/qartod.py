@@ -1583,8 +1583,9 @@ def impossible_date_test(
 
     """
     #   Init
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]")
     original_shape = tinp.shape
-    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    tinp = tinp.flatten()
     flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"
 
     tinp.mask = np.isnat(tinp.data)
@@ -1639,8 +1640,9 @@ def data_reception_test(
     #   Init
     from_time = np.datetime64("now") if from_time is None else np.datetime64(from_time)
 
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]")
     original_shape = tinp.shape
-    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    tinp = tinp.flatten()
     flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"
 
     tinp.mask = np.isnat(tinp.data)
@@ -1682,8 +1684,9 @@ def time_gap_test(
         A masked array of flag values equal in size to that of the input `tinp`.
 
     """
+    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]")
     original_shape = tinp.shape
-    tinp = np.ma.asarray(tinp, dtype="datetime64[ns]").flatten()
+    tinp = tinp.flatten()
     flag_arr = np.ma.ones(tinp.size, dtype="uint8")  #   Init to flag 1 "good"
 
     tinp.mask = np.isnat(tinp.data)
